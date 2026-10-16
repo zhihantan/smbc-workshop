@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>SMBC Data &amp; AI Workshop · 22 October 2026 · Workspace requirements</title>
+<style>
+:root { --navy: #1B3139; --lava: #FF3621; --oat: #F9F7F4; --oat2: #EEEDE9; --slate: #5A6F77; --rule: #D5D2CC; }
+@page { size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; } }
+html { font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+       color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; }
+a { color: #2272B4; text-decoration: none; }
+code { font-family: Menlo, Consolas, "Courier New", monospace; background: var(--oat); border-radius: 2px; padding: 0 1.5px; }
+pre { background: var(--oat); border-left: 3px solid var(--lava); white-space: pre-wrap; overflow-wrap: anywhere;
+      break-inside: avoid; margin: 0; }
+pre code { background: none; padding: 0; }
+
+html { font-size: 9.8pt; line-height: 1.45; }
+h1 { font-size: 24pt; line-height: 1.15; margin: 0 0 4mm; padding-bottom: 2.5mm; border-bottom: 3px solid var(--lava); }
+h1 .sub { display: block; font-size: 12pt; font-weight: 400; color: var(--slate); margin-top: 1.5mm; }
+h2 { font-size: 14pt; margin: 6mm 0 3mm; padding-bottom: 1.2mm; border-bottom: 1.2px solid var(--lava); break-after: avoid; }
+h2.newpage { break-before: page; margin-top: 0; }
+h3 { font-size: 11pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.2mm; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 6mm; }
+li { margin: 0 0 1mm; }
+li > ul { margin-top: 1mm; }
+code { font-size: 8.4pt; }
+pre { padding: 2.4mm 2.6mm; margin: 0 0 3mm; }
+pre code { font-size: 7.6pt; line-height: 1.42; }
+blockquote { margin: 0 0 3mm; padding: 2mm 3.5mm; background: var(--oat); border-left: 3px solid var(--navy); break-inside: avoid; }
+blockquote p { margin: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 3.5mm; font-size: 8.6pt; line-height: 1.35; }
+th, td { border: 0.6pt solid var(--rule); padding: 1.3mm 1.8mm; vertical-align: top; text-align: left; }
+th { background: var(--oat2); }
+tr { break-inside: avoid; }
+td code { font-size: 7.8pt; overflow-wrap: break-word; }
+hr { display: none; }
+p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
+</style></head>
+<body>
+<h1 id="smbc-data--ai-workshop--22-october-2026--workspace-requirements">Workspace requirements<span class="sub">SMBC Data &amp; AI Workshop · 22 October 2026</span></h1>
+<p><em>An extract from the SMBC Data &amp; AI Workshop guide (section 3), for the SAG team and workspace administrators.</em></p>
+<h2 id="3-workspace-requirements-what-must-be-enabled">3. Workspace requirements: what must be enabled</h2>
+<blockquote>
+<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by <strong>Tuesday 20 October</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
+</blockquote>
+<p><strong>Already confirmed:</strong> the workshop uses a new, dedicated workspace with <strong>serverless compute enabled</strong>, and <strong>Genie has no question-rate limit</strong> to plan around. The <strong>SAG team owns the cross-Geo processing setting</strong> (item 5).</p>
+<h3 id="31-checklist">3.1 Checklist</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requirement</th>
+<th>Why the workshop needs it</th>
+<th>Where it's set</th>
+<th>Who</th>
+<th>Default</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Unity Catalog metastore attached to the workspace</td>
+<td>Everything: Designer, Genie Agents, lineage, file-arrival triggers</td>
+<td>Account console</td>
+<td>Account admin</td>
+<td>New workspaces are usually enabled automatically</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Serverless compute</td>
+<td>Designer, notebooks, Jobs, Genie Code</td>
+<td>Already enabled</td>
+<td>Workspace admin</td>
+<td></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>3</td>
+<td>A serverless SQL warehouse for the workshop</td>
+<td>Dashboards, Genie Agents, SQL editor</td>
+<td>SQL Warehouses → Create, or <code>06_deploy_dashboards_and_agents</code> creates it</td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Partner-powered AI features</strong> on, for the account <em>and</em> the workspace</td>
+<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a> and <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
+<td>Account admin, workspace admin</td>
+<td>On (off for workspaces with the compliance security profile)</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Cross-Geo processing</strong> allowed</td>
+<td>In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a></td>
+<td>Account admin (<strong>SAG team</strong>)</td>
+<td>Allowed for workspaces outside the US and EU without the compliance security profile</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Excel file support</td>
+<td>Dragging the limits spreadsheet onto the Designer canvas</td>
+<td>Smoke test 5; if it fails, check the workspace <strong>Previews</strong> page</td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Attendee and facilitator groups, with entitlements</td>
+<td>Signing in and building</td>
+<td><a href="#35-identity-and-entitlements">3.5</a></td>
+<td>Account or workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8</td>
+<td>One test user with <strong>Consumer access</strong> only</td>
+<td>Showing the business-user view in Genie One</td>
+<td><a href="#35-identity-and-entitlements">3.5</a></td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Workshop catalog, volumes, schemas and grants</td>
+<td>The labs</td>
+<td>Setup notebook (section 4)</td>
+<td>Metastore admin or catalog owner</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Access from SMBC laptops on the venue network</td>
+<td>Everything</td>
+<td><a href="#37-network-and-devices">3.7</a></td>
+<td>SMBC network team</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>11</td>
+<td><em>(Optional)</em> Delivery of dashboard subscription emails to SMBC addresses</td>
+<td>A Lab 2 stretch exercise</td>
+<td>SMBC mail gateway</td>
+<td>SMBC messaging team</td>
+<td></td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-account-level-settings-account-admin">3.2 Account-level settings (account admin)</h3>
+<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
+<ol>
+<li>In the <a href="https://accounts.azuredatabricks.net">account console</a>, click <strong>Settings</strong>.</li>
+<li>Open the <strong>Feature enablement</strong> tab.</li>
+<li>Set <strong>Enable partner-powered AI features</strong> to <strong>On</strong>. Use <strong>Enforce</strong> only if workspaces must not override it.</li>
+</ol>
+<p>Enabling or disabling this setting is recorded as an account event in the audit logs.</p>
+<p><strong>Cross-Geo processing: allowed</strong> <em>(owner: SAG team)</em>. Some AI features are "Designated Services" that use Azure Geographies to manage data residency. In the <strong>Asia Pacific Geo</strong>, which includes Southeast Asia (Singapore), the features this workshop uses for Genie need cross-Geo processing (see <a href="#39-what-processes-data-where">3.9</a>).</p>
+<ol>
+<li>In the account console sidebar, click <strong>Workspaces</strong> and open the workshop workspace.</li>
+<li>Open the <strong>Security and compliance</strong> tab.</li>
+<li>Make sure <strong>Enforce data processing within workspace Geography for Designated Services</strong> is <strong>disabled</strong>. Some pages call it <em>Enforce data processing within workspace Geography for AI features</em>.</li>
+</ol>
+<p>The documentation says: <em>"your data is not stored outside of your workspace's Geo regardless of this setting."</em> Cross-Geo processing is enabled by default for workspaces outside the US and EU that don't use the compliance security profile, so this is usually a check rather than a change. Preview features also follow this setting.</p>
+<p><strong>Account-level Genie One: optional.</strong> The workshop uses the workspace-level Genie One (<code>&lt;workspace URL&gt;/one</code>), so account-level Genie One isn't required. If you review it: Databricks-generated metadata for account-level Genie One (asset identifiers, usage signals, audit events) might be processed in the US. An account admin can turn it off under <strong>Settings → Feature enablement → Genie</strong> without affecting workspace-level Genie One.</p>
+<p><strong>Compliance security profile.</strong> If the workspace uses the compliance security profile, partner-powered AI features are off by default and need an explicit decision.</p>
+<h3 id="33-workspace-level-settings-workspace-admin">3.3 Workspace-level settings (workspace admin)</h3>
+<ul>
+<li><strong>Partner-powered AI features: on.</strong> Go to your username → <strong>Settings</strong> → <strong>Workspace admin</strong> → <strong>Advanced</strong> → <strong>Partner-powered AI features</strong>. It inherits the account setting unless the account enforces it.</li>
+<li><strong>Previews:</strong> none are required. Optionally turn on <strong>Genie Agents Flash Mode</strong> (Beta), a faster agent-mode option. Outside the US and EU it also needs cross-Geo processing.</li>
+<li><strong>Genie One homepage (optional, recommended),</strong> so the business-user view feels finished when it's shown. This is set in the UI only, after <code>06_deploy_dashboards_and_agents</code> has run:<ol>
+<li>Go to your username → <strong>Settings</strong> → <strong>Appearance</strong>, and next to <strong>Genie One home page</strong> click <strong>Edit</strong>.</li>
+<li>Paste the welcome message below into <strong>Markdown text</strong>. Optionally set a brand colour and upload a logo.</li>
+<li>Turn on <strong>Pinned content enabled</strong>, click <strong>Edit pinned assets</strong>, and pin the reference dashboard and the reference Genie Agent. Click <strong>Save</strong>.</li>
+</ol>
+</li>
+</ul>
+<p>Welcome message for the Genie One homepage:</p>
+<pre><code class="language-markdown">## Welcome to the SMBC Data &amp; AI Workshop
+Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credit Risk** Genie Agent a question in plain English.
+
+*All data in this workspace is synthetic: the borrowers, groups and figures are made up.*
+</code></pre>
+<h3 id="34-compute">3.4 Compute</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serverless SQL warehouse</td>
+<td>Name it <strong>SMBC Workshop</strong>, size Small or Medium, minimum 1 and maximum 4 clusters for about 40–60 people. Set a longer auto-stop on the day. Give the attendee group <strong>CAN USE</strong>. Genie Agents need a pro or serverless warehouse; serverless is recommended.</td>
+</tr>
+<tr>
+<td>Serverless compute for notebooks, Jobs and Designer</td>
+<td>Already on. Check that a test attendee can pick <strong>Serverless</strong> in Designer's compute picker; Designer needs CAN USE on at least one compute resource.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-identity-and-entitlements">3.5 Identity and entitlements</h3>
+<table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Entitlements</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attendees (group <code>smbc_workshop_attendees</code>)</td>
+<td><strong>Workspace access</strong> and <strong>Databricks SQL access</strong></td>
+<td>Databricks SQL access is required to create Genie Agents and dashboards; workspace access is required for Designer and notebooks.</td>
+</tr>
+<tr>
+<td>Facilitators (group <code>smbc_workshop_facilitators</code>)</td>
+<td>Workspace admin (recommended)</td>
+<td>Runs the setup notebooks, owns the catalog, runs the governance demo.</td>
+</tr>
+<tr>
+<td>Genie One demo user (one account)</td>
+<td><strong>Consumer access</strong> only</td>
+<td>Shows what a business user sees: dashboards and Genie Agents, no notebooks or compute.</td>
+</tr>
+</tbody>
+</table>
+<p>Sign-in is through SSO (Microsoft Entra ID). <strong>The two groups must be account-level groups</strong>, synced from Entra ID through SCIM or created in the account console, and assigned to the workshop workspace. Groups created inside the workspace are workspace-local: Unity Catalog can't grant them privileges, and <code>is_account_group_member()</code> (used by the governance demo) doesn't recognise them. The setup notebook stops with an explicit error if a grant fails.</p>
+<h3 id="36-unity-catalog-objects">3.6 Unity Catalog objects</h3>
+<p>The setup notebook creates these objects. Creating a catalog needs the <code>CREATE CATALOG</code> privilege, and on some metastores a managed storage location.</p>
+<table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Contents</th>
+<th>Attendee privileges</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Catalog <code>smbc_workshop</code></td>
+<td>Everything below, tagged <code>synthetic_data = true</code> and <code>workshop_date</code> (any tag a governed tag policy rejects is skipped)</td>
+<td><code>USE CATALOG</code></td>
+</tr>
+<tr>
+<td>Volume <code>smbc_workshop.raw.landing</code></td>
+<td>Raw source extracts and the limits spreadsheet</td>
+<td><code>READ VOLUME</code></td>
+</tr>
+<tr>
+<td>Volume <code>smbc_workshop.raw.facilitator</code></td>
+<td>Answer key</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Schema <code>smbc_workshop.checkpoint</code></td>
+<td>Save-point tables (Lab 1 reference solution)</td>
+<td><code>USE SCHEMA</code>, <code>SELECT</code></td>
+</tr>
+<tr>
+<td>Schema <code>smbc_workshop.ops</code></td>
+<td>Check-in and lab-answer tables</td>
+<td><code>SELECT</code>, <code>MODIFY</code> on those two tables</td>
+</tr>
+<tr>
+<td>One schema per attendee, e.g. <code>smbc_workshop.jane_tan</code></td>
+<td>Each person's Lab 1 output</td>
+<td><code>ALL PRIVILEGES</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="37-network-and-devices">3.7 Network and devices</h3>
+<ul>
+<li>SMBC laptops on the venue network can open the workspace URL and sign in with SSO. If the workspace uses <strong>IP access lists</strong> or <strong>Private Link</strong>, allow the venue's egress addresses.</li>
+<li>Proxies and SSL inspection allow the workspace URL and <code>*.azuredatabricks.net</code>, including websockets.</li>
+<li>Use a current version of Microsoft Edge or Google Chrome.</li>
+<li>The quiz and the polls run on phones (Slido), so nothing needs installing on laptops.</li>
+</ul>
+<h3 id="38-smoke-tests">3.8 Smoke tests</h3>
+<p>Run these as a <strong>test attendee</strong> (not an admin), <strong>on an SMBC laptop, on the SMBC network</strong>, after the setup notebooks have run and <code>07_check_requirements</code> passes.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Expected result</th>
+<th>Proves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in through SSO; open the SQL editor on <strong>SMBC Workshop</strong>; run the check-in query (A.1)</td>
+<td>One row inserted</td>
+<td>Access, entitlements, warehouse, grants</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>+ New → Visual data prep</strong>; add a Source from <code>smbc_workshop.raw.landing/facilities</code></td>
+<td>Rows preview</td>
+<td>Designer, serverless, volume grant</td>
+</tr>
+<tr>
+<td>3</td>
+<td>In Designer, type a Genie Code prompt: <em>"Trim and upper-case the currency column"</em></td>
+<td>A Prepare operator appears on the canvas</td>
+<td>Partner-powered AI, cross-Geo (Genie Code agentic)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Add an <strong>Output</strong> to your own schema and <strong>Run</strong>; click <strong>Schedule</strong></td>
+<td>Table written; a job created</td>
+<td>Schema grants, Jobs</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Drag <code>group_limits.xlsx</code> (downloaded from the landing volume) onto the canvas</td>
+<td>A Source operator for the spreadsheet</td>
+<td>Excel file support</td>
+</tr>
+<tr>
+<td>6</td>
+<td>On that job, <strong>Add trigger → File arrival</strong> on a folder in your own volume → <strong>Test connection</strong></td>
+<td>Connection succeeds</td>
+<td>File-arrival triggers</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.checkpoint.gold_group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
+<td>Chart created; dashboard published</td>
+<td>AI/BI, AI-assisted charts</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Genie Agents → New</strong> on the two checkpoint gold tables; ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
+<td>Answer with SQL; agent-mode report</td>
+<td>Genie Agents (chat and agent mode)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Open <code>&lt;workspace URL&gt;/one</code> and use chat</td>
+<td>Genie One loads; chat answers</td>
+<td>Genie One chat</td>
+</tr>
+<tr>
+<td>10</td>
+<td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.checkpoint.gold_group_exposure"</em></td>
+<td>It plans, runs code, summarises</td>
+<td>Genie Code agent mode</td>
+</tr>
+<tr>
+<td>11</td>
+<td>In Catalog Explorer, open a table → AI-suggested description; open the <strong>Lineage</strong> tab</td>
+<td>Suggestion shown; lineage graph</td>
+<td>AI-generated comments, lineage</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Sign in as the <strong>Consumer access</strong> user</td>
+<td>Lands in Genie One; sees shared dashboard and Genie Agent</td>
+<td>Consumer experience</td>
+</tr>
+</tbody>
+</table>
+<h3 id="39-what-processes-data-where">3.9 What processes data where</h3>
+<p>From the <a href="https://learn.microsoft.com/en-us/azure/databricks/resources/designated-services">Designated Services</a> page (updated 14 October 2026) and the <a href="https://learn.microsoft.com/en-us/azure/databricks/databricks-ai/partner-powered">Partner-powered AI features</a> page:</p>
+<table>
+<thead>
+<tr>
+<th>Feature used in the workshop</th>
+<th>Model provider</th>
+<th>Asia Pacific Geo (e.g. Singapore)</th>
+<th>Japan Geo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Genie Agents: chat mode</td>
+<td>Azure OpenAI service</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Agents: agent mode</td>
+<td>Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Chat in Genie One</td>
+<td>Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Code: agentic capabilities (also used by Designer)</td>
+<td>Azure OpenAI service and Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Code: chat and cell actions</td>
+<td>Azure OpenAI service</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>AI/BI dashboards</td>
+<td>Azure OpenAI service</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>AI-generated comments</td>
+<td>Azure OpenAI service (Databricks-hosted if partner features are off)</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+</tbody>
+</table>
+<p>Points the documentation makes that risk and technology reviewers usually ask about:</p>
+<ul>
+<li><strong>Storage stays in the Geo.</strong> <em>"Your data is not stored outside of your workspace's Geo regardless of this setting."</em></li>
+<li><strong>Anthropic on Databricks</strong> <em>"uses endpoints hosted by Databricks within the Databricks security perimeter."</em></li>
+<li><strong>Genie Agents query data as the person asking.</strong> Generated queries are read-only, data access is evaluated with each user's own Unity Catalog permissions, and row filters and column masks are enforced per user. A question about data a user can't access returns an empty response.</li>
+<li><strong>What Genie Code sends to the model:</strong> the prompt plus relevant context, such as table and column names, descriptions, the code being worked on, data samples and cell outputs, all within the user's Unity Catalog permissions. By default an AI classifier approves actions that carry out the request and blocks actions beyond it; users can instead approve every action themselves.</li>
+<li><strong>Cost:</strong> Genie One and Genie Agents usage by users is free until 31 January 2027 (service principals are billed). Genie Code has been pay-as-you-go since 8 July 2026, with a free monthly allowance per user. Account admins can set budgets and cost controls for Genie.</li>
+</ul>
+</body></html>

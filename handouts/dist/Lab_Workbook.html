@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Lab workbook · SMBC Data &amp; AI Workshop · Thursday 22 October 2026</title>
+<style>
+:root { --navy: #1B3139; --lava: #FF3621; --oat: #F9F7F4; --oat2: #EEEDE9; --slate: #5A6F77; --rule: #D5D2CC; }
+@page { size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; } }
+html { font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+       color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; }
+a { color: #2272B4; text-decoration: none; }
+code { font-family: Menlo, Consolas, "Courier New", monospace; background: var(--oat); border-radius: 2px; padding: 0 1.5px; }
+pre { background: var(--oat); border-left: 3px solid var(--lava); white-space: pre-wrap; overflow-wrap: anywhere;
+      break-inside: avoid; margin: 0; }
+pre code { background: none; padding: 0; }
+
+html { font-size: 9.8pt; line-height: 1.45; }
+h1 { font-size: 24pt; line-height: 1.15; margin: 0 0 4mm; padding-bottom: 2.5mm; border-bottom: 3px solid var(--lava); }
+h1 .sub { display: block; font-size: 12pt; font-weight: 400; color: var(--slate); margin-top: 1.5mm; }
+h2 { font-size: 14pt; margin: 6mm 0 3mm; padding-bottom: 1.2mm; border-bottom: 1.2px solid var(--lava); break-after: avoid; }
+h2.newpage { break-before: page; margin-top: 0; }
+h3 { font-size: 11pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.2mm; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 6mm; }
+li { margin: 0 0 1mm; }
+li > ul { margin-top: 1mm; }
+code { font-size: 8.4pt; }
+pre { padding: 2.4mm 2.6mm; margin: 0 0 3mm; }
+pre code { font-size: 7.6pt; line-height: 1.42; }
+blockquote { margin: 0 0 3mm; padding: 2mm 3.5mm; background: var(--oat); border-left: 3px solid var(--navy); break-inside: avoid; }
+blockquote p { margin: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 3.5mm; font-size: 8.6pt; line-height: 1.35; }
+th, td { border: 0.6pt solid var(--rule); padding: 1.3mm 1.8mm; vertical-align: top; text-align: left; }
+th { background: var(--oat2); }
+tr { break-inside: avoid; }
+td code { font-size: 7.8pt; overflow-wrap: break-word; }
+hr { display: none; }
+p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
+</style></head>
+<body>
+<h1 id="lab-workbook--smbc-data--ai-workshop--thursday-22-october-2026">Lab workbook<span class="sub">SMBC Data &amp; AI Workshop · Thursday 22 October 2026</span></h1>
+<blockquote>
+<p><strong>All workshop data is synthetic.</strong> The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.</p>
+</blockquote>
+<h2 id="contents">Contents</h2>
+<ul>
+<li><a href="#before-you-start">Before you start</a></li>
+<li><a href="#1-the-scenario-and-the-data">1. The scenario and the data</a></li>
+<li><a href="#2-lab-1-build-the-trusted-exposure-table">2. Lab 1: Build the trusted exposure table</a></li>
+<li><a href="#3-lab-2-credit-committee-in-30-seconds">3. Lab 2: Credit Committee in 30 seconds</a></li>
+<li><a href="#4-ai-assisted-development-with-genie-code">4. AI-assisted development with Genie Code</a></li>
+<li><a href="#5-resources">5. Resources</a></li>
+<li><a href="#appendix-a-copy-paste-kit">Appendix A: Copy-paste kit</a></li>
+<li><a href="#appendix-b-troubleshooting">Appendix B: Troubleshooting</a></li>
+</ul>
+<h2 id="before-you-start">Before you start</h2>
+<p><strong>1. Sign in.</strong> Open <code>&lt;workspace URL&gt;</code> in Microsoft Edge or Google Chrome and sign in with your SMBC account.</p>
+<p><strong>2. Check in.</strong> Open <strong>SQL Editor</strong>, choose the <strong>SMBC Workshop</strong> warehouse, paste this line and click <strong>Run</strong>. Change <code>DA</code> to <code>DE</code> if you're a data engineer.</p>
+<pre><code class="language-sql">INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+</code></pre>
+<p><strong>3. Find your schema.</strong> Your Lab 1 tables go in <code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email address before the @, in lower case, with any other characters replaced by <code>_</code>. For example, <code>jane.tan@…</code> becomes <code>jane_tan</code>.</p>
+<p><strong>4. Getting help.</strong> Turn your card to red, or raise a hand, and a helper will come to you.</p>
+<p><strong>5. Short on time?</strong> The checkpoint tables in <code>smbc_workshop.checkpoint</code> hold the reference result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1.</p>
+<hr />
+<h2 class="newpage" id="1-the-scenario-and-the-data">1. The scenario and the data</h2>
+<p>The labs use a synthetic <strong>SMBC APAC</strong> corporate lending book with about USD 27bn of drawn exposure across 12 booking branches in Asia Pacific. Every borrower, group and figure is made up. Borrowers belong to counterparty groups, such as a conglomerate and its subsidiaries in several countries, and each group has an approved credit limit set by the risk team. As at SMBC, the fiscal year runs from April to March.</p>
+<h3 id="source-files-volumessmbc_workshoprawlanding">Source files (<code>/Volumes/smbc_workshop/raw/landing/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Format</th>
+<th>Rows</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>counterparties/</code></td>
+<td>CSV</td>
+<td>2,370</td>
+<td>Customer master: borrower, parent group, country, sector, internal rating. Names in English, plus local script where available (日本語, 中文, ไทย, 한국어, Tiếng Việt).</td>
+</tr>
+<tr>
+<td><code>facilities/</code></td>
+<td>JSON Lines</td>
+<td>6,047</td>
+<td>Credit facilities: product, currency, committed amount, start and maturity dates, booking branch, collateral.</td>
+</tr>
+<tr>
+<td><code>monthly_balances/</code></td>
+<td>CSV</td>
+<td>74,799</td>
+<td>Month-end drawn balance and days past due per facility, April 2025 to September 2026.</td>
+</tr>
+<tr>
+<td><code>fx_rates/</code></td>
+<td>CSV</td>
+<td>252</td>
+<td>Month-end FX rates to USD and JPY for 14 currencies.</td>
+</tr>
+<tr>
+<td><code>group_limits/</code></td>
+<td>Excel</td>
+<td>420</td>
+<td>The risk team's spreadsheet of approved limits per counterparty group.</td>
+</tr>
+<tr>
+<td><code>sector_emission_factors/</code></td>
+<td>CSV</td>
+<td>16</td>
+<td>Illustrative emission factors by sector, for an optional ESG stretch question.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="notes-from-the-source-system-owners">Notes from the source-system owners</h3>
+<p>These are the kind of handover notes a data team gets, and Lab 1 deals with each of them:</p>
+<ul>
+<li><em>"The customer master extract sometimes contains the same row twice."</em></li>
+<li><em>"Currency codes on facilities are typed by hand, so expect <code>usd</code>, <code>US$</code>, <code>S$</code> and <code>RMB</code>."</em></li>
+<li><em>"The trade-finance system writes dates as DD/MM/YYYY; the core loan system uses YYYY-MM-DD."</em></li>
+<li><em>"Bangkok re-sent its September trade-finance extract. Keep the latest copy of each row (see <code>extract_ts</code>)."</em></li>
+<li><em>"FX rates are captured on the last business day of each month, not always the calendar month end."</em></li>
+<li><em>"A few facilities were booked before the customer record was created in the master."</em></li>
+</ul>
+<h3 id="save-point-tables-smbc_workshopcheckpoint">Save-point tables (<code>smbc_workshop.checkpoint</code>)</h3>
+<p>The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and the Genie Code segment.</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Grain</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gold_group_exposure</code></td>
+<td>Counterparty group × month</td>
+<td>Exposure, limit and <code>utilisation_pct</code> per group</td>
+</tr>
+<tr>
+<td><code>gold_facility_exposure</code></td>
+<td>Facility × month</td>
+<td>Exposure with borrower, country, sector, branch, product, currency and days past due</td>
+</tr>
+<tr>
+<td><code>silver_*</code>, <code>quarantine_facilities</code></td>
+<td>Cleaned inputs, and the rows held back with a reason</td>
+<td>For comparing with your own Lab 1 output</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 class="newpage" id="2-lab-1-build-the-trusted-exposure-table">2. Lab 1: Build the trusted exposure table</h2>
+<p><strong>Goal:</strong> turn the raw extracts into <code>gold_group_exposure</code>, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.<br />
+<strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
+<strong>Tools:</strong> Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.</p>
+<blockquote>
+<p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
+</blockquote>
+<h3 id="core-path">Core path</h3>
+<p><strong>0. Find your schema (1 min).</strong> In <strong>Catalog Explorer</strong>, open <code>smbc_workshop</code>. Your schema is named after your email address, for example <code>jane_tan</code>. If you don't have one, run <code>CREATE SCHEMA smbc_workshop.&lt;your_name&gt;;</code> in the SQL editor.</p>
+<p><strong>1. Start a visual data prep (1 min).</strong> Click <strong>+ New → Visual data prep</strong>. Rename the tab to <code>Monday exposure report</code>. In the compute picker at the top right, choose <strong>Serverless</strong>.</p>
+<p><strong>2. Bring in the sources (4 min).</strong> Add a <strong>Source</strong> operator → <strong>Browse existing</strong> → <code>smbc_workshop</code> → <code>raw</code> → <code>landing</code> → select the <strong><code>counterparties</code></strong> folder. Designer reads every file in a folder into one table. Do the same for <code>facilities</code>, <code>monthly_balances</code> and <code>fx_rates</code>. For the limits, drag <code>group_limits.xlsx</code> onto the canvas (download it from the landing volume first), or browse to the <code>group_limits</code> folder. Click each Source and look at the preview: can you see two date formats in <code>monthly_balances</code>?</p>
+<p><strong>3. De-duplicate the customer master (1 min).</strong> After <code>counterparties</code>, add <strong>Unique</strong> with <strong>Unique by: All columns</strong>. Row count: 2,370 → 2,325.</p>
+<p><strong>4. Clean the facilities with Genie Code (4 min).</strong> Select the <code>facilities</code> Source and type this into the Genie Code prompt on the canvas:</p>
+<blockquote>
+<p><em>Add a Prepare step that trims and upper-cases <code>currency</code>, maps <code>US$</code> to <code>USD</code>, <code>S$</code> to <code>SGD</code> and <code>RMB</code> to <code>CNY</code>, and parses <code>start_date</code> and <code>maturity_date</code> whether they're written YYYY-MM-DD or DD/MM/YYYY.</em></p>
+</blockquote>
+<p>Open the operator it adds and read its actions. Then open <strong>Table of contents</strong> in the left panel, select the operator, and expand <strong>Generated code</strong>. Every visual step is real code you can review and version.</p>
+<p><strong>5. Quarantine bad rows with Guardrails (4 min).</strong> Add <strong>Guardrails</strong> after the Prepare step, with these checks:</p>
+<ul>
+<li><strong>Value range:</strong> <code>committed_amount</code> greater than 0</li>
+<li><strong>Expression:</strong> <code>maturity_date &gt;= start_date</code></li>
+<li><strong>Not null:</strong> <code>start_date</code>, <code>maturity_date</code></li>
+</ul>
+<p>Set <strong>When a check fails</strong> to <strong>Warn and continue with passed rows</strong>. Connect <strong>Failed</strong> to an <strong>Output</strong> that writes the table <code>quarantine_facilities</code> to your schema. You should see 21 failed rows. Each one has a reason, and that's your data-quality evidence.</p>
+<p><strong>6. Fix the balances and FX dates (3 min).</strong></p>
+<ul>
+<li>On <code>monthly_balances</code>, add a <strong>Prepare</strong> step with two <strong>Formula</strong> actions. Describe them in plain English: <em>"<code>as_of_date</code> as a date, whether written YYYY-MM-DD or DD/MM/YYYY"</em> and <em>"<code>month</code> = first day of the month of <code>as_of_date</code>"</em>.</li>
+<li>Then add <strong>Unique</strong> → <strong>Selected columns</strong> <code>facility_id</code>, <code>as_of_date</code> → <strong>Order by</strong> <code>extract_ts</code> descending. Rows: 74,799 → 74,757.</li>
+<li>On <code>fx_rates</code>, add a Formula: <em>"<code>rate_month</code> = first day of the month of <code>rate_date</code>"</em>.</li>
+</ul>
+<p><strong>7. Join and convert with Genie Code (4 min).</strong> Prompt:</p>
+<blockquote>
+<p><em>Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties. Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.</em></p>
+</blockquote>
+<p>Check the Join outputs:</p>
+<ul>
+<li><strong>Left unmatched</strong> on the facilities-to-counterparties join shows the facilities whose customer isn't in the master yet (send them to a second quarantine Output if you like).</li>
+<li><strong>Left unmatched</strong> on the FX join should be empty. If it shows <code>US$</code>, <code>S$</code> or <code>RMB</code>, step 4 missed a mapping.</li>
+</ul>
+<p><strong>8. Roll up to the group and compare with limits (3 min).</strong></p>
+<ul>
+<li>Add <strong>Aggregate</strong>: group by <code>as_of_date</code>, <code>parent_group_id</code>; <strong>SUM</strong> of <code>exposure_usd</code> and <code>exposure_jpy</code>.</li>
+<li>Add <strong>Join</strong> with the limits on <code>parent_group_id</code> = <code>group_id</code>.</li>
+<li>Add a <strong>Prepare</strong> Formula: <em>"<code>utilisation_pct</code> = 100 × exposure_usd ÷ group_limit_usd"</em>.</li>
+</ul>
+<p><strong>9. Write and schedule (2 min).</strong> Add an <strong>Output</strong>: <strong>Table</strong> <code>gold_group_exposure</code> in your schema, <strong>Write mode: Overwrite</strong>, then <strong>Run</strong>. Click <strong>Schedule</strong> to run it daily at 07:00 Singapore time.</p>
+<p>✅ <strong>Checkpoint:</strong> your row on the progress board turns green. To check your result against the reference, run both queries; the two totals should be identical:</p>
+<pre><code class="language-sql">SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
+FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure WHERE as_of_date = '2026-09-30';
+
+SELECT round(sum(exposure_usd) / 1e6, 1) AS reference_usd_m
+FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30';
+</code></pre>
+<h3 id="stretch-pick-any">Stretch (pick any)</h3>
+<ul>
+<li><strong>Version and diff:</strong> open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.</li>
+<li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code in agent mode, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
+<li><strong>Event-driven:</strong> in <strong>Jobs &amp; Pipelines</strong>, open your job → <strong>Add trigger → File arrival</strong>, and point it at a folder in a volume in your own schema. Upload a file and watch the run start.</li>
+<li><strong>Alerting:</strong> add a task that checks <em>"any group above 90% utilisation?"</em> and sends a notification when it's true.</li>
+<li><strong>Document it:</strong> in Catalog Explorer, accept or edit the AI-suggested description for <code>gold_group_exposure</code>. Better metadata means better Genie answers in Lab 2.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="3-lab-2-credit-committee-in-30-seconds">3. Lab 2: Credit Committee in 30 seconds</h2>
+<p><strong>Goal:</strong> give the Credit Committee a dashboard for the questions they always ask, and a Genie Agent for the ones they haven't asked yet. Teach the agent the bank's rules, and test that it's right.<br />
+<strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
+<strong>Tools:</strong> AI/BI dashboards, Genie Agents, Genie One, Unity Catalog.</p>
+<blockquote>
+<p>Use the <strong>checkpoint</strong> tables (<code>smbc_workshop.checkpoint.gold_group_exposure</code> and <code>gold_facility_exposure</code>) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.</p>
+</blockquote>
+<h3 id="core-path_1">Core path</h3>
+<p><strong>1. Build the dashboard (10 min).</strong></p>
+<ul>
+<li>Click <strong>+ New → Dashboard</strong>. On the <strong>Data</strong> tab, add both checkpoint gold tables.</li>
+<li>On the canvas, ask the AI assistant: <em>"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."</em></li>
+<li>Add these widgets:<ul>
+<li>a <strong>counter</strong> for total exposure at the latest month end;</li>
+<li>a <strong>counter</strong> for groups above 80% utilisation;</li>
+<li>a <strong>line chart</strong> of total exposure by month;</li>
+<li>a <strong>bar chart</strong> of exposure by country.</li>
+</ul>
+</li>
+<li>Add filters for <code>as_of_date</code> and <code>booking_branch</code>, then <strong>Publish</strong>.</li>
+<li>Open <code>&lt;workspace URL&gt;/one</code>: this is Genie One, what a business user sees.</li>
+</ul>
+<p><strong>2. Create a Genie Agent (5 min).</strong></p>
+<ul>
+<li>Click <strong>Genie Agents → New</strong>, select the two checkpoint gold tables, and click <strong>Create</strong>.</li>
+<li>Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.</li>
+<li>In <strong>Configure → Settings</strong>, set the title to <code>Credit Risk – &lt;your name&gt;</code> and the default warehouse to <strong>SMBC Workshop</strong>.</li>
+<li>Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).</li>
+</ul>
+<p><strong>3. Ask, and check the SQL (5 min).</strong> Try <em>"Which counterparty groups are closest to their limits?"</em> and <em>"Show exposure in yen by booking branch at the latest month end."</em> Open the generated SQL for each answer. Trust, but verify.</p>
+<p><strong>4. The fiscal-year test (4 min).</strong> Before adding the fiscal-year instruction, ask:</p>
+<ul>
+<li><em>"What was Orchid Group's utilisation at the end of Q1 FY2026?"</em></li>
+<li><em>"Show Orchid Group's utilisation for each month of FY2025."</em></li>
+</ul>
+<p>Open the SQL and check which dates Genie used. Then add the fiscal-year instruction (A.4) and ask both again.</p>
+<p>✅ <strong>Checkpoint:</strong> ask <em>"Which groups were above 90% of their limit at the end of FY2026 H1?"</em>, then submit the name of the group:</p>
+<pre><code class="language-sql">INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
+</code></pre>
+<h3 id="stretch-pick-any_1">Stretch (pick any)</h3>
+<ul>
+<li><strong>Stump the Genie:</strong> find a question it gets wrong, fix it with an instruction or an example query, and ask again. Share your best stump-and-fix with a facilitator: there's a prize.<ul>
+<li><em>Starter example (tested):</em> ask <em>"Which booking branch has the highest share of trade finance in arrears?"</em> and open the SQL. In one test run Genie counted facilities; in another it weighted by exposure and asked which one we meant. Add the instruction <em>"Shares of arrears are measured by exposure (exposure_usd), not by number of facilities"</em>, and the answer becomes consistent.</li>
+</ul>
+</li>
+<li><strong>Benchmarks:</strong> add the benchmark questions (A.7) with their expected SQL and run an evaluation. Benchmarks are how a team shows a Genie Agent is accurate before sharing it.</li>
+<li><strong>Agent mode:</strong> ask <em>"Why has the most utilised group's limit usage risen since April 2026?"</em> and watch it plan, run several queries and write a report.</li>
+<li><strong>In Japanese:</strong> 「2026年度上期末時点で、与信限度額の90%を超えている取引先グループはどこですか？」 Answers may sometimes come back in English.</li>
+<li><strong>Share it:</strong> attach your Genie Agent to your dashboard, or schedule a Monday 08:00 PDF subscription of the dashboard.</li>
+<li><strong>Semantic layer:</strong> use the agent's ⋮ menu → <strong>Export to metric view</strong> to turn the definitions you taught it into a governed metric view.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="4-ai-assisted-development-with-genie-code">4. AI-assisted development with Genie Code</h2>
+<p><strong>15 minutes</strong>, mostly a live demo; participants can follow along in a notebook. The prompts are in A.8.</p>
+<ol>
+<li><strong>Explore:</strong> profile <code>gold_group_exposure</code> and ask what is unusual about the latest month compared with April.</li>
+<li><strong>Generate:</strong> split one group's exposure change since April into an <strong>FX effect</strong> and a <strong>new-drawdowns effect</strong>, by subsidiary, and chart it. This answers the "why" behind the Credit Committee's question.</li>
+<li><strong>Explain and convert:</strong> paste a legacy Synapse T-SQL procedure (A.9). Genie Code explains what it does, points out logic risks, and rewrites it as Databricks SQL against the workshop tables.</li>
+<li><strong>Iterate safely:</strong><ul>
+<li>Show the action-approval setting: by default an AI classifier approves actions within your request and blocks actions beyond it, or you can approve each one yourself.</li>
+<li>Ask for an explanation with <em>"don't run any code"</em>.</li>
+<li>Show that Genie Code can only reach data your Unity Catalog permissions allow.</li>
+<li>Roll back a change with revision history.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 class="newpage" id="5-resources">5. Resources</h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free self-paced training and learning paths for data analysts and data engineers</td>
+<td>https://www.databricks.com/learn/training</td>
+</tr>
+<tr>
+<td>Certifications (Data Analyst Associate, Data Engineer Associate)</td>
+<td>https://www.databricks.com/learn/certification</td>
+</tr>
+<tr>
+<td>Databricks Free Edition, for practice outside work</td>
+<td>https://www.databricks.com/learn/free-edition</td>
+</tr>
+<tr>
+<td>Free virtual workshops (4 Nov <em>Hands-on with Genie</em>, 12 Nov <em>AI-Powered Data Engineering with Lakeflow</em>, 18 Nov <em>Build, Orchestrate and Improve Agents</em>; Americas time slots, recordings available)</td>
+<td>https://www.databricks.com/learn/training/workshop</td>
+</tr>
+<tr>
+<td>Lakeflow Designer documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/designer/what-is-lakeflow-designer</td>
+</tr>
+<tr>
+<td>Genie Agents documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-agents/</td>
+</tr>
+<tr>
+<td>Genie One documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-one/</td>
+</tr>
+<tr>
+<td>Genie Code documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-code/</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 class="newpage" id="appendix-a-copy-paste-kit">Appendix A: Copy-paste kit</h2>
+<h3 id="a1-check-in-and-checkpoint-queries">A.1 Check-in and checkpoint queries</h3>
+<pre><code class="language-sql">-- Check-in (change 'DA' to 'DE' if you're a data engineer)
+INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+
+-- Lab 2 checkpoint
+INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
+</code></pre>
+<h3 id="a2-genie-code-prompts-for-lab-1-designer">A.2 Genie Code prompts for Lab 1 (Designer)</h3>
+<pre><code class="language-text">Add a Prepare step that trims and upper-cases currency, maps US$ to USD, S$ to SGD and RMB to CNY, and parses start_date and maturity_date whether they're written YYYY-MM-DD or DD/MM/YYYY.
+</code></pre>
+<pre><code class="language-text">Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties.
+Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.
+</code></pre>
+<h3 id="a3-genie-agent-starter-instructions">A.3 Genie Agent starter instructions</h3>
+<pre><code class="language-text">This agent answers questions about SMBC APAC's corporate lending exposure. All data is synthetic.
+
+- Exposure means drawn balance. Use exposure_usd unless the user asks for yen; then use exposure_jpy.
+- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in gold_group_exposure). Above 90% is &quot;near its limit&quot;; above 100% is &quot;in breach&quot;.
+- Balances are month-end snapshots. For &quot;current&quot; or &quot;latest&quot;, use the most recent as_of_date. Never add balances across months; compare month ends instead.
+- A counterparty group's exposure includes all of its subsidiaries in every country (parent_group_id).
+- Booking branch codes: SIN Singapore, HKG Hong Kong, BKK Bangkok, SGN Ho Chi Minh City, JKT Jakarta, BOM Mumbai, SYD Sydney, SEL Seoul, SHA Shanghai, KUL Kuala Lumpur, MNL Manila, TPE Taipei.
+- Arrears means days_past_due greater than 30.
+- Show amounts in USD millions with one decimal place unless asked otherwise.
+</code></pre>
+<h3 id="a4-the-fiscal-year-instruction-add-in-lab-2-step-4">A.4 The fiscal-year instruction (add in Lab 2, step 4)</h3>
+<pre><code class="language-text">The fiscal year runs from 1 April to 31 March and is named after the calendar year it starts in:
+FY2026 = 1 April 2026 to 31 March 2027. H1 = April to September; H2 = October to March.
+Q1 = April–June, Q2 = July–September, Q3 = October–December, Q4 = January–March.
+&quot;End of FY2026 H1&quot; means as_of_date = 2026-09-30. &quot;FY2026 to date&quot; means as_of_date from 2026-04-30 onwards.
+</code></pre>
+<h3 id="a5-example-sql-queries">A.5 Example SQL queries</h3>
+<p><strong>"Top 10 counterparty groups by exposure at the latest month end"</strong></p>
+<pre><code class="language-sql">SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct
+FROM smbc_workshop.checkpoint.gold_group_exposure
+WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.checkpoint.gold_group_exposure)
+ORDER BY exposure_usd DESC
+LIMIT 10;
+</code></pre>
+<p><strong>"Exposure by country and sector at a given month end"</strong> (parameterised)</p>
+<pre><code class="language-sql">SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m
+FROM smbc_workshop.checkpoint.gold_facility_exposure
+WHERE as_of_date = :as_of_date
+GROUP BY country_code, sector
+ORDER BY exposure_usd_m DESC;
+</code></pre>
+<h3 id="a6-common-questions">A.6 Common questions</h3>
+<pre><code class="language-text">Which counterparty groups are closest to their limits?
+How has total exposure changed month by month since April 2025?
+What is our exposure to Vietnam by sector at the latest month end?
+Show exposure in yen by booking branch at the latest month end.
+Which booking branch has the highest share of trade finance in arrears?
+</code></pre>
+<h3 id="a7-benchmark-questions-stretch">A.7 Benchmark questions (stretch)</h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Expected SQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total exposure in USD at 30 Sep 2026</td>
+<td><code>SELECT sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30'</code></td>
+</tr>
+<tr>
+<td>Which groups were above 90% of their limit at the end of FY2026 H1?</td>
+<td><code>SELECT group_name, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct &gt; 90</code></td>
+</tr>
+<tr>
+<td>Top 5 groups by exposure at the end of June 2026</td>
+<td><code>SELECT group_name, exposure_usd FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5</code></td>
+</tr>
+<tr>
+<td>Utilisation by month in FY2026 for the most utilised group</td>
+<td><code>SELECT as_of_date, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date &gt;= '2026-04-30' ORDER BY as_of_date</code></td>
+</tr>
+<tr>
+<td>Share of SGN trade-finance exposure in arrears at 30 Sep 2026</td>
+<td><code>SELECT 100 * sum(CASE WHEN days_past_due &gt; 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="a8-genie-code-prompts-ai-assisted-development-segment">A.8 Genie Code prompts (AI-assisted development segment)</h3>
+<pre><code class="language-text">Profile smbc_workshop.checkpoint.gold_group_exposure and tell me what is unusual about the latest month compared with April 2026.
+</code></pre>
+<pre><code class="language-text">For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using smbc_workshop.checkpoint.gold_facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
+FX = Sep balance × (Sep rate − Apr rate). Chart it.
+</code></pre>
+<pre><code class="language-text">Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against the smbc_workshop.checkpoint tables. Just explain first, don't run any code.
+&lt;paste A.9&gt;
+</code></pre>
+<h3 id="a9-legacy-synapse-procedure-synthetic-example">A.9 Legacy Synapse procedure (synthetic example)</h3>
+<pre><code class="language-sql">-- Legacy month-end group exposure report (synthetic example for the workshop)
+CREATE PROCEDURE rpt.usp_GroupExposure_Monthly @AsOfDate DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF OBJECT_ID('tempdb..#bal') IS NOT NULL DROP TABLE #bal;
+
+    SELECT b.facility_id,
+           b.drawn_amount,
+           ISNULL(f.currency, 'USD') AS ccy,
+           cp.parent_group_id
+    INTO #bal
+    FROM stg.monthly_balances b
+    INNER JOIN stg.facilities f ON f.facility_id = b.facility_id
+    INNER JOIN stg.counterparties cp ON cp.counterparty_id = f.counterparty_id
+    WHERE b.as_of_date = @AsOfDate
+      AND f.committed_amount &gt; 0;
+
+    SELECT TOP 20
+           g.group_name,
+           SUM(b.drawn_amount * fx.usd_rate) AS exposure_usd,
+           CAST(100.0 * SUM(b.drawn_amount * fx.usd_rate) / NULLIF(g.group_limit_usd, 0) AS DECIMAL(9, 2))
+               AS utilisation_pct,
+           CASE WHEN SUM(b.drawn_amount * fx.usd_rate) &gt; 0.90 * g.group_limit_usd THEN 'RED'
+                WHEN SUM(b.drawn_amount * fx.usd_rate) &gt; 0.75 * g.group_limit_usd THEN 'AMBER'
+                ELSE 'GREEN' END AS rag_status
+    FROM #bal b
+    CROSS APPLY (SELECT TOP 1 r.usd_rate
+                 FROM ref.fx_rates r
+                 WHERE r.currency_code = b.ccy AND r.rate_date &lt;= @AsOfDate
+                 ORDER BY r.rate_date DESC) fx
+    INNER JOIN ref.group_limits g ON g.group_id = b.parent_group_id
+    GROUP BY g.group_name, g.group_limit_usd
+    ORDER BY exposure_usd DESC;
+END
+</code></pre>
+<hr />
+<h2 class="newpage" id="appendix-b-troubleshooting">Appendix B: Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Genie Agents</strong> is in the sidebar but agents won't open</td>
+<td>Partner-powered AI features are off</td>
+<td>Ask a facilitator</td>
+</tr>
+<tr>
+<td>Genie Code prompts in Designer or agent mode are unavailable</td>
+<td>Partner-powered AI features off, or cross-Geo processing enforced</td>
+<td>Ask a facilitator</td>
+</tr>
+<tr>
+<td>Can't see the <code>landing</code> volume</td>
+<td>Missing <code>READ VOLUME</code> grant</td>
+<td>Ask a facilitator</td>
+</tr>
+<tr>
+<td>Output fails with a permission error</td>
+<td>Writing outside your own schema</td>
+<td>Set <strong>Output location</strong> to <code>smbc_workshop.&lt;your_schema&gt;</code></td>
+</tr>
+<tr>
+<td>Some months disappear after the FX join</td>
+<td>Joining on the exact date: FX is dated on the last business day</td>
+<td>Join on currency and month (Lab 1, step 6)</td>
+</tr>
+<tr>
+<td>Your total is higher than the checkpoint</td>
+<td>Duplicates not removed (customer master or the re-sent Bangkok extract)</td>
+<td>Lab 1, steps 3 and 6</td>
+</tr>
+<tr>
+<td>Your total is much lower than the checkpoint</td>
+<td>Only one date format parsed, or currency codes not mapped</td>
+<td>Lab 1, steps 4 and 6; check the join's <strong>Left unmatched</strong> output</td>
+</tr>
+<tr>
+<td>Dragging the <code>.xlsx</code> onto the canvas fails</td>
+<td>Excel file support not enabled, or downloads blocked</td>
+<td>Use <strong>Source → Browse existing →</strong> <code>group_limits</code> folder instead</td>
+</tr>
+<tr>
+<td>Genie picks the wrong dates for "Q1 FY2026", "FY2025" or "FY2026 H1"</td>
+<td>It assumed a calendar year (it does this inconsistently)</td>
+<td>Add the fiscal-year instruction (A.4)</td>
+</tr>
+<tr>
+<td>Genie's arrears "share" is much higher than the dashboard's</td>
+<td>It counted facilities instead of weighting by exposure</td>
+<td>Add an instruction that shares are by exposure (see Stump the Genie)</td>
+</tr>
+<tr>
+<td>A question in Japanese gets an English answer</td>
+<td>Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese.</td>
+<td>Add Japanese metadata or instructions if needed</td>
+</tr>
+<tr>
+<td>A dashboard subscription email doesn't arrive</td>
+<td>Mail gateway filtering</td>
+<td>Ask a facilitator</td>
+</tr>
+<tr>
+<td><strong>Test connection</strong> fails on a file-arrival trigger</td>
+<td>Path isn't a volume or external location, or missing <code>READ</code> on it / <code>CAN MANAGE</code> on the job</td>
+<td>Use a folder in a volume in your own schema</td>
+</tr>
+</tbody>
+</table>
+</body></html>

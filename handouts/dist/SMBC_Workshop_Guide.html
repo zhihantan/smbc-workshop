@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>SMBC Data &amp; AI Workshop: Workshop Guide</title>
+<style>
+:root { --navy: #1B3139; --lava: #FF3621; --oat: #F9F7F4; --oat2: #EEEDE9; --slate: #5A6F77; --rule: #D5D2CC; }
+@page { size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; } }
+html { font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+       color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; }
+a { color: #2272B4; text-decoration: none; }
+code { font-family: Menlo, Consolas, "Courier New", monospace; background: var(--oat); border-radius: 2px; padding: 0 1.5px; }
+pre { background: var(--oat); border-left: 3px solid var(--lava); white-space: pre-wrap; overflow-wrap: anywhere;
+      break-inside: avoid; margin: 0; }
+pre code { background: none; padding: 0; }
+
+html { font-size: 9.8pt; line-height: 1.45; }
+h1 { font-size: 24pt; line-height: 1.15; margin: 0 0 4mm; padding-bottom: 2.5mm; border-bottom: 3px solid var(--lava); }
+h1 .sub { display: block; font-size: 12pt; font-weight: 400; color: var(--slate); margin-top: 1.5mm; }
+h2 { font-size: 14pt; margin: 6mm 0 3mm; padding-bottom: 1.2mm; border-bottom: 1.2px solid var(--lava); break-after: avoid; }
+h2.newpage { break-before: page; margin-top: 0; }
+h3 { font-size: 11pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.2mm; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 6mm; }
+li { margin: 0 0 1mm; }
+li > ul { margin-top: 1mm; }
+code { font-size: 8.4pt; }
+pre { padding: 2.4mm 2.6mm; margin: 0 0 3mm; }
+pre code { font-size: 7.6pt; line-height: 1.42; }
+blockquote { margin: 0 0 3mm; padding: 2mm 3.5mm; background: var(--oat); border-left: 3px solid var(--navy); break-inside: avoid; }
+blockquote p { margin: 0; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 3.5mm; font-size: 8.6pt; line-height: 1.35; }
+th, td { border: 0.6pt solid var(--rule); padding: 1.3mm 1.8mm; vertical-align: top; text-align: left; }
+th { background: var(--oat2); }
+tr { break-inside: avoid; }
+td code { font-size: 7.8pt; overflow-wrap: break-word; }
+hr { display: none; }
+p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
+</style></head>
+<body>
+<h1 id="smbc-data--ai-workshop-workshop-guide">SMBC Data &amp; AI Workshop: Workshop Guide</h1>
+<p><strong>Thursday 22 October 2026 · SMBC Asia Pacific · Data Analysts and Data Engineers</strong></p>
+<p><em>Version 0.1, draft of 15 October 2026. Prepared by the Databricks account team (Siu-Li Choa, Zhi Han Tan) with SMBC (contacts TBC).</em></p>
+<blockquote>
+<p><strong>All workshop data is synthetic.</strong> The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.</p>
+</blockquote>
+<hr />
+<h2 id="contents">Contents</h2>
+<ol>
+<li><a href="#1-at-a-glance">At a glance</a></li>
+<li><a href="#2-agenda">Agenda</a></li>
+<li><a href="#3-workspace-requirements-what-must-be-enabled">Workspace requirements: what must be enabled</a> (for the SAG team and workspace admins)</li>
+<li><a href="#4-setting-up-the-workspace">Setting up the workspace</a></li>
+<li><a href="#5-participant-pre-work">Participant pre-work</a></li>
+<li><a href="#6-the-scenario-and-the-data">The scenario and the data</a></li>
+<li><a href="#7-lab-1-build-the-trusted-exposure-table">Lab 1: Build the trusted exposure table</a></li>
+<li><a href="#8-lab-2-credit-committee-in-30-seconds">Lab 2: Credit Committee in 30 seconds</a></li>
+<li><a href="#9-ai-assisted-development-with-genie-code">AI-assisted development with Genie Code</a></li>
+<li><a href="#10-quiz">Quiz</a></li>
+<li><a href="#11-next-steps-and-resources">Next steps and resources</a></li>
+</ol>
+<ul>
+<li><a href="#appendix-a-copy-paste-kit">Appendix A: Copy-paste kit</a></li>
+<li><a href="#appendix-b-troubleshooting">Appendix B: Troubleshooting</a></li>
+</ul>
+<hr />
+<h2 class="newpage" id="1-at-a-glance">1. At a glance</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>When</strong></td>
+<td>Thursday 22 October 2026, 3 hours 35 minutes (start time TBC)</td>
+</tr>
+<tr>
+<td><strong>Who</strong></td>
+<td>SMBC APAC data analysts and data engineers (headcount TBC)</td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td>Short demos, two 40-minute hands-on labs, a Genie Code segment, and a quiz</td>
+</tr>
+<tr>
+<td><strong>Where people work</strong></td>
+<td>A dedicated workshop workspace (Azure Databricks) with serverless compute</td>
+</tr>
+<tr>
+<td><strong>Data</strong></td>
+<td>A synthetic SMBC APAC corporate lending book, with fictional borrowers</td>
+</tr>
+<tr>
+<td><strong>What people take away</strong></td>
+<td>A pipeline, a dashboard and a Genie Agent they built themselves, plus a learning path</td>
+</tr>
+</tbody>
+</table>
+<p><strong>By the end of the session, each participant can:</strong></p>
+<ul>
+<li>build a data-preparation pipeline visually in <strong>Lakeflow Designer</strong>, use <strong>Genie Code</strong> to generate steps from plain English, and schedule it with <strong>Lakeflow Jobs</strong>;</li>
+<li>build an <strong>AI/BI dashboard</strong> and a <strong>Genie Agent</strong>, teach it business rules such as the April-to-March fiscal year, and test whether it answers correctly;</li>
+<li>use <strong>Genie Code</strong> to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;</li>
+<li>explain how <strong>Unity Catalog</strong> governs all of it: lineage, data-quality checks, and row-level security.</li>
+</ul>
+<p><strong>One storyline runs through the day.</strong> It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found.</p>
+<hr />
+<h2 class="newpage" id="2-agenda">2. Agenda</h2>
+<p>Times are relative to the start time.</p>
+<table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Length</th>
+<th>Segment</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0:00</td>
+<td>10 min</td>
+<td><strong>Welcome and environment check</strong></td>
+<td>Run the one-line check-in query; a one-question poll</td>
+</tr>
+<tr>
+<td>0:10</td>
+<td>15 min</td>
+<td><strong>Executive briefing</strong></td>
+<td>Opening by Richard Lowe (APAC CDAO) and Peter Butsch (Head of Emerging Enterprises &amp; Digital Natives, Databricks)</td>
+</tr>
+<tr>
+<td>0:25</td>
+<td>20 min</td>
+<td><strong>Data engineering: Lakeflow</strong></td>
+<td>Low-code ETL with Lakeflow Designer and Lakeflow Jobs, and AI-assisted pipeline creation (mostly live demo)</td>
+</tr>
+<tr>
+<td>0:45</td>
+<td>40 min</td>
+<td><strong>Lab 1</strong></td>
+<td>Build the trusted exposure table</td>
+</tr>
+<tr>
+<td>1:25</td>
+<td>15 min</td>
+<td>Break</td>
+<td></td>
+</tr>
+<tr>
+<td>1:40</td>
+<td>20 min</td>
+<td><strong>Self-service analytics</strong></td>
+<td>AI/BI dashboards, Genie Agents, and Genie One (formerly Databricks One)</td>
+</tr>
+<tr>
+<td>2:00</td>
+<td>40 min</td>
+<td><strong>Lab 2</strong></td>
+<td>Build a Credit Committee dashboard and a Genie Agent</td>
+</tr>
+<tr>
+<td>2:40</td>
+<td>15 min</td>
+<td>Break</td>
+<td></td>
+</tr>
+<tr>
+<td>2:55</td>
+<td>15 min</td>
+<td><strong>AI-assisted development</strong></td>
+<td>Genie Code: explore data, generate SQL and Python, explain results, and iterate safely</td>
+</tr>
+<tr>
+<td>3:10</td>
+<td>15 min</td>
+<td><strong>Quiz</strong></td>
+<td>On phones, with Databricks swag for the winners</td>
+</tr>
+<tr>
+<td>3:25</td>
+<td>10 min</td>
+<td><strong>Next steps and resources</strong></td>
+<td>Learning materials and upcoming events</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Product names changed in 2026.</strong> Genie spaces are now <strong>Genie Agents</strong>, and Databricks One is now <strong>Genie One</strong>. This guide uses the current names, which match the product and the documentation participants will see.</p>
+<p><strong>Two logistics suggestions:</strong></p>
+<ul>
+<li>Open the doors 30 minutes early with a helper desk for login problems, so the 10-minute check-in slot only confirms everyone is in.</li>
+<li>Consider swapping the last two slots so the prize-giving closes the session, and make the feedback survey the raffle ticket.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="3-workspace-requirements-what-must-be-enabled">3. Workspace requirements: what must be enabled</h2>
+<blockquote>
+<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by <strong>Tuesday 20 October</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
+</blockquote>
+<p><strong>Already confirmed:</strong> the workshop uses a new, dedicated workspace with <strong>serverless compute enabled</strong>, and <strong>Genie has no question-rate limit</strong> to plan around. The <strong>SAG team owns the cross-Geo processing setting</strong> (item 5).</p>
+<h3 id="31-checklist">3.1 Checklist</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requirement</th>
+<th>Why the workshop needs it</th>
+<th>Where it's set</th>
+<th>Who</th>
+<th>Default</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Unity Catalog metastore attached to the workspace</td>
+<td>Everything: Designer, Genie Agents, lineage, file-arrival triggers</td>
+<td>Account console</td>
+<td>Account admin</td>
+<td>New workspaces are usually enabled automatically</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Serverless compute</td>
+<td>Designer, notebooks, Jobs, Genie Code</td>
+<td>Already enabled</td>
+<td>Workspace admin</td>
+<td></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>3</td>
+<td>A serverless SQL warehouse for the workshop</td>
+<td>Dashboards, Genie Agents, SQL editor</td>
+<td>SQL Warehouses → Create, or <code>06_deploy_dashboards_and_agents</code> creates it</td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Partner-powered AI features</strong> on, for the account <em>and</em> the workspace</td>
+<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a> and <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
+<td>Account admin, workspace admin</td>
+<td>On (off for workspaces with the compliance security profile)</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Cross-Geo processing</strong> allowed</td>
+<td>In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a></td>
+<td>Account admin (<strong>SAG team</strong>)</td>
+<td>Allowed for workspaces outside the US and EU without the compliance security profile</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Excel file support</td>
+<td>Dragging the limits spreadsheet onto the Designer canvas</td>
+<td>Smoke test 5; if it fails, check the workspace <strong>Previews</strong> page</td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Attendee and facilitator groups, with entitlements</td>
+<td>Signing in and building</td>
+<td><a href="#35-identity-and-entitlements">3.5</a></td>
+<td>Account or workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8</td>
+<td>One test user with <strong>Consumer access</strong> only</td>
+<td>Showing the business-user view in Genie One</td>
+<td><a href="#35-identity-and-entitlements">3.5</a></td>
+<td>Workspace admin</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Workshop catalog, volumes, schemas and grants</td>
+<td>The labs</td>
+<td>Setup notebook (<a href="#4-setting-up-the-workspace">section 4</a>)</td>
+<td>Metastore admin or catalog owner</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Access from SMBC laptops on the venue network</td>
+<td>Everything</td>
+<td><a href="#37-network-and-devices">3.7</a></td>
+<td>SMBC network team</td>
+<td></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>11</td>
+<td><em>(Optional)</em> Delivery of dashboard subscription emails to SMBC addresses</td>
+<td>A Lab 2 stretch exercise</td>
+<td>SMBC mail gateway</td>
+<td>SMBC messaging team</td>
+<td></td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-account-level-settings-account-admin">3.2 Account-level settings (account admin)</h3>
+<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
+<ol>
+<li>In the <a href="https://accounts.azuredatabricks.net">account console</a>, click <strong>Settings</strong>.</li>
+<li>Open the <strong>Feature enablement</strong> tab.</li>
+<li>Set <strong>Enable partner-powered AI features</strong> to <strong>On</strong>. Use <strong>Enforce</strong> only if workspaces must not override it.</li>
+</ol>
+<p>Enabling or disabling this setting is recorded as an account event in the audit logs.</p>
+<p><strong>Cross-Geo processing: allowed</strong> <em>(owner: SAG team)</em>. Some AI features are "Designated Services" that use Azure Geographies to manage data residency. In the <strong>Asia Pacific Geo</strong>, which includes Southeast Asia (Singapore), the features this workshop uses for Genie need cross-Geo processing (see <a href="#39-what-processes-data-where">3.9</a>).</p>
+<ol>
+<li>In the account console sidebar, click <strong>Workspaces</strong> and open the workshop workspace.</li>
+<li>Open the <strong>Security and compliance</strong> tab.</li>
+<li>Make sure <strong>Enforce data processing within workspace Geography for Designated Services</strong> is <strong>disabled</strong>. Some pages call it <em>Enforce data processing within workspace Geography for AI features</em>.</li>
+</ol>
+<p>The documentation says: <em>"your data is not stored outside of your workspace's Geo regardless of this setting."</em> Cross-Geo processing is enabled by default for workspaces outside the US and EU that don't use the compliance security profile, so this is usually a check rather than a change. Preview features also follow this setting.</p>
+<p><strong>Account-level Genie One: optional.</strong> The workshop uses the workspace-level Genie One (<code>&lt;workspace URL&gt;/one</code>), so account-level Genie One isn't required. If you review it: Databricks-generated metadata for account-level Genie One (asset identifiers, usage signals, audit events) might be processed in the US. An account admin can turn it off under <strong>Settings → Feature enablement → Genie</strong> without affecting workspace-level Genie One.</p>
+<p><strong>Compliance security profile.</strong> If the workspace uses the compliance security profile, partner-powered AI features are off by default and need an explicit decision.</p>
+<h3 id="33-workspace-level-settings-workspace-admin">3.3 Workspace-level settings (workspace admin)</h3>
+<ul>
+<li><strong>Partner-powered AI features: on.</strong> Go to your username → <strong>Settings</strong> → <strong>Workspace admin</strong> → <strong>Advanced</strong> → <strong>Partner-powered AI features</strong>. It inherits the account setting unless the account enforces it.</li>
+<li><strong>Previews:</strong> none are required. Optionally turn on <strong>Genie Agents Flash Mode</strong> (Beta), a faster agent-mode option. Outside the US and EU it also needs cross-Geo processing.</li>
+<li><strong>Genie One homepage (optional, recommended),</strong> so the business-user view feels finished when it's shown. This is set in the UI only, after <code>06_deploy_dashboards_and_agents</code> has run:<ol>
+<li>Go to your username → <strong>Settings</strong> → <strong>Appearance</strong>, and next to <strong>Genie One home page</strong> click <strong>Edit</strong>.</li>
+<li>Paste the welcome message below into <strong>Markdown text</strong>. Optionally set a brand colour and upload a logo.</li>
+<li>Turn on <strong>Pinned content enabled</strong>, click <strong>Edit pinned assets</strong>, and pin the reference dashboard and the reference Genie Agent. Click <strong>Save</strong>.</li>
+</ol>
+</li>
+</ul>
+<p>Welcome message for the Genie One homepage:</p>
+<pre><code class="language-markdown">## Welcome to the SMBC Data &amp; AI Workshop
+Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credit Risk** Genie Agent a question in plain English.
+
+*All data in this workspace is synthetic: the borrowers, groups and figures are made up.*
+</code></pre>
+<h3 id="34-compute">3.4 Compute</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serverless SQL warehouse</td>
+<td>Name it <strong>SMBC Workshop</strong>, size Small or Medium, minimum 1 and maximum 4 clusters for about 40–60 people. Set a longer auto-stop on the day. Give the attendee group <strong>CAN USE</strong>. Genie Agents need a pro or serverless warehouse; serverless is recommended.</td>
+</tr>
+<tr>
+<td>Serverless compute for notebooks, Jobs and Designer</td>
+<td>Already on. Check that a test attendee can pick <strong>Serverless</strong> in Designer's compute picker; Designer needs CAN USE on at least one compute resource.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-identity-and-entitlements">3.5 Identity and entitlements</h3>
+<table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Entitlements</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attendees (group <code>smbc_workshop_attendees</code>)</td>
+<td><strong>Workspace access</strong> and <strong>Databricks SQL access</strong></td>
+<td>Databricks SQL access is required to create Genie Agents and dashboards; workspace access is required for Designer and notebooks.</td>
+</tr>
+<tr>
+<td>Facilitators (group <code>smbc_workshop_facilitators</code>)</td>
+<td>Workspace admin (recommended)</td>
+<td>Runs the setup notebooks, owns the catalog, runs the governance demo.</td>
+</tr>
+<tr>
+<td>Genie One demo user (one account)</td>
+<td><strong>Consumer access</strong> only</td>
+<td>Shows what a business user sees: dashboards and Genie Agents, no notebooks or compute.</td>
+</tr>
+</tbody>
+</table>
+<p>Sign-in is through SSO (Microsoft Entra ID). <strong>The two groups must be account-level groups</strong>, synced from Entra ID through SCIM or created in the account console, and assigned to the workshop workspace. Groups created inside the workspace are workspace-local: Unity Catalog can't grant them privileges, and <code>is_account_group_member()</code> (used by the governance demo) doesn't recognise them. The setup notebook stops with an explicit error if a grant fails.</p>
+<h3 id="36-unity-catalog-objects">3.6 Unity Catalog objects</h3>
+<p>The setup notebook creates these objects. Creating a catalog needs the <code>CREATE CATALOG</code> privilege, and on some metastores a managed storage location.</p>
+<table>
+<thead>
+<tr>
+<th>Object</th>
+<th>Contents</th>
+<th>Attendee privileges</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Catalog <code>smbc_workshop</code></td>
+<td>Everything below, tagged <code>synthetic_data = true</code> and <code>workshop_date</code> (any tag a governed tag policy rejects is skipped)</td>
+<td><code>USE CATALOG</code></td>
+</tr>
+<tr>
+<td>Volume <code>smbc_workshop.raw.landing</code></td>
+<td>Raw source extracts and the limits spreadsheet</td>
+<td><code>READ VOLUME</code></td>
+</tr>
+<tr>
+<td>Volume <code>smbc_workshop.raw.facilitator</code></td>
+<td>Answer key</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Schema <code>smbc_workshop.checkpoint</code></td>
+<td>Save-point tables (Lab 1 reference solution)</td>
+<td><code>USE SCHEMA</code>, <code>SELECT</code></td>
+</tr>
+<tr>
+<td>Schema <code>smbc_workshop.ops</code></td>
+<td>Check-in and lab-answer tables</td>
+<td><code>SELECT</code>, <code>MODIFY</code> on those two tables</td>
+</tr>
+<tr>
+<td>One schema per attendee, e.g. <code>smbc_workshop.jane_tan</code></td>
+<td>Each person's Lab 1 output</td>
+<td><code>ALL PRIVILEGES</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="37-network-and-devices">3.7 Network and devices</h3>
+<ul>
+<li>SMBC laptops on the venue network can open the workspace URL and sign in with SSO. If the workspace uses <strong>IP access lists</strong> or <strong>Private Link</strong>, allow the venue's egress addresses.</li>
+<li>Proxies and SSL inspection allow the workspace URL and <code>*.azuredatabricks.net</code>, including websockets.</li>
+<li>Use a current version of Microsoft Edge or Google Chrome.</li>
+<li>The quiz and the polls run on phones (Slido), so nothing needs installing on laptops.</li>
+</ul>
+<h3 id="38-smoke-tests">3.8 Smoke tests</h3>
+<p>Run these as a <strong>test attendee</strong> (not an admin), <strong>on an SMBC laptop, on the SMBC network</strong>, after the setup notebooks have run and <code>07_check_requirements</code> passes.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Expected result</th>
+<th>Proves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in through SSO; open the SQL editor on <strong>SMBC Workshop</strong>; run the check-in query (A.1)</td>
+<td>One row inserted</td>
+<td>Access, entitlements, warehouse, grants</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>+ New → Visual data prep</strong>; add a Source from <code>smbc_workshop.raw.landing/facilities</code></td>
+<td>Rows preview</td>
+<td>Designer, serverless, volume grant</td>
+</tr>
+<tr>
+<td>3</td>
+<td>In Designer, type a Genie Code prompt: <em>"Trim and upper-case the currency column"</em></td>
+<td>A Prepare operator appears on the canvas</td>
+<td>Partner-powered AI, cross-Geo (Genie Code agentic)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Add an <strong>Output</strong> to your own schema and <strong>Run</strong>; click <strong>Schedule</strong></td>
+<td>Table written; a job created</td>
+<td>Schema grants, Jobs</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Drag <code>group_limits.xlsx</code> (downloaded from the landing volume) onto the canvas</td>
+<td>A Source operator for the spreadsheet</td>
+<td>Excel file support</td>
+</tr>
+<tr>
+<td>6</td>
+<td>On that job, <strong>Add trigger → File arrival</strong> on a folder in your own volume → <strong>Test connection</strong></td>
+<td>Connection succeeds</td>
+<td>File-arrival triggers</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.checkpoint.gold_group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
+<td>Chart created; dashboard published</td>
+<td>AI/BI, AI-assisted charts</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Genie Agents → New</strong> on the two checkpoint gold tables; ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
+<td>Answer with SQL; agent-mode report</td>
+<td>Genie Agents (chat and agent mode)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Open <code>&lt;workspace URL&gt;/one</code> and use chat</td>
+<td>Genie One loads; chat answers</td>
+<td>Genie One chat</td>
+</tr>
+<tr>
+<td>10</td>
+<td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.checkpoint.gold_group_exposure"</em></td>
+<td>It plans, runs code, summarises</td>
+<td>Genie Code agent mode</td>
+</tr>
+<tr>
+<td>11</td>
+<td>In Catalog Explorer, open a table → AI-suggested description; open the <strong>Lineage</strong> tab</td>
+<td>Suggestion shown; lineage graph</td>
+<td>AI-generated comments, lineage</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Sign in as the <strong>Consumer access</strong> user</td>
+<td>Lands in Genie One; sees shared dashboard and Genie Agent</td>
+<td>Consumer experience</td>
+</tr>
+</tbody>
+</table>
+<h3 id="39-what-processes-data-where">3.9 What processes data where</h3>
+<p>From the <a href="https://learn.microsoft.com/en-us/azure/databricks/resources/designated-services">Designated Services</a> page (updated 14 October 2026) and the <a href="https://learn.microsoft.com/en-us/azure/databricks/databricks-ai/partner-powered">Partner-powered AI features</a> page:</p>
+<table>
+<thead>
+<tr>
+<th>Feature used in the workshop</th>
+<th>Model provider</th>
+<th>Asia Pacific Geo (e.g. Singapore)</th>
+<th>Japan Geo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Genie Agents: chat mode</td>
+<td>Azure OpenAI service</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Agents: agent mode</td>
+<td>Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Chat in Genie One</td>
+<td>Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Code: agentic capabilities (also used by Designer)</td>
+<td>Azure OpenAI service and Anthropic on Databricks</td>
+<td>Needs cross-Geo processing</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>Genie Code: chat and cell actions</td>
+<td>Azure OpenAI service</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>AI/BI dashboards</td>
+<td>Azure OpenAI service</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+<tr>
+<td>AI-generated comments</td>
+<td>Azure OpenAI service (Databricks-hosted if partner features are off)</td>
+<td>In-Geo</td>
+<td>In-Geo</td>
+</tr>
+</tbody>
+</table>
+<p>Points the documentation makes that risk and technology reviewers usually ask about:</p>
+<ul>
+<li><strong>Storage stays in the Geo.</strong> <em>"Your data is not stored outside of your workspace's Geo regardless of this setting."</em></li>
+<li><strong>Anthropic on Databricks</strong> <em>"uses endpoints hosted by Databricks within the Databricks security perimeter."</em></li>
+<li><strong>Genie Agents query data as the person asking.</strong> Generated queries are read-only, data access is evaluated with each user's own Unity Catalog permissions, and row filters and column masks are enforced per user. A question about data a user can't access returns an empty response.</li>
+<li><strong>What Genie Code sends to the model:</strong> the prompt plus relevant context, such as table and column names, descriptions, the code being worked on, data samples and cell outputs, all within the user's Unity Catalog permissions. By default an AI classifier approves actions that carry out the request and blocks actions beyond it; users can instead approve every action themselves.</li>
+<li><strong>Cost:</strong> Genie One and Genie Agents usage by users is free until 31 January 2027 (service principals are billed). Genie Code has been pay-as-you-go since 8 July 2026, with a free monthly allowance per user. Account admins can set budgets and cost controls for Genie.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="4-setting-up-the-workspace">4. Setting up the workspace</h2>
+<p>The scripts are in this repository. Import it into the workspace as a <strong>Git folder</strong> so the notebooks can find the data generator and the deployment tools. Everything runs inside the workspace on serverless compute, so no laptop or CLI is needed.</p>
+<p><strong>One notebook does it all.</strong> Open <code>setup/00_master_setup</code> and fill in its settings:</p>
+<ul>
+<li>the two groups;</li>
+<li>the attendee emails, if you know them;</li>
+<li>a managed location, only if creating a catalog asks for one.</li>
+</ul>
+<p>Then attach it to <strong>Serverless</strong> and click <strong>Run all</strong>. Before it creates anything, it checks the prerequisites that most often break a setup: that Unity Catalog is attached, that both groups exist and are account-level, and that you can create the SQL warehouse. Then it runs steps 2–6 and 8 below in order. It finishes with links to everything it created and the requirement checks. In testing it took about 5 minutes, and it's safe to re-run. It needs a workspace admin who can create a catalog. Steps 7 and 9 are done by hand.</p>
+<p>You can also run the notebooks one at a time, in this order; for example, to repeat a single step.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Notebook</th>
+<th>Who</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><em>(Optional, local)</em> <code>python data/generate_data.py --out data/output</code>, then <code>python data/validate_data.py --data data/output</code> (needs pandas)</td>
+<td>Facilitator</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>setup/01_setup_workspace</code>: creates the catalog, schemas, volumes, ops tables, per-attendee schemas and grants, and generates the data into the landing volume. Set the widgets: groups, and attendee emails if known.</td>
+<td>Facilitator with catalog rights</td>
+<td>3 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>setup/02_build_checkpoints</code> (SQL): builds the bronze, silver and gold save-point tables</td>
+<td>Facilitator</td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>setup/03_validate_checkpoints</code>: compares the checkpoint tables with the answer key; every row must say PASS</td>
+<td>Facilitator</td>
+<td>1 min</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>setup/05_governance_demo</code>: row-filter and column-mask demo table</td>
+<td>Facilitator</td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>setup/06_deploy_dashboards_and_agents</code>: creates the <strong>SMBC Workshop</strong> SQL warehouse if it doesn't exist (<a href="#34-compute">3.4</a>); tests and publishes the <strong>reference dashboard</strong> and the <strong>progress board</strong>; creates the <strong>reference</strong> and <strong>secured demo</strong> Genie Agents; copies the participants' <strong>Lab workbook</strong> notebook; and shares all of them with the attendee and facilitator groups. Creating the warehouse needs workspace admin rights.</td>
+<td>Facilitator (workspace admin)</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Set up the Genie One homepage (<a href="#33-workspace-level-settings-workspace-admin">3.3</a>)</td>
+<td>Workspace admin</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>setup/07_check_requirements</code>: automated checks of the requirements in <a href="#3-workspace-requirements-what-must-be-enabled">section 3</a>, including whether the groups are account-level and a live question to the reference Genie Agent. Every row should say PASS.</td>
+<td>Facilitator</td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Run the smoke tests (<a href="#38-smoke-tests">3.8</a>)</td>
+<td>Facilitator with an SMBC volunteer</td>
+<td>30 min</td>
+</tr>
+</tbody>
+</table>
+<p>Between a dry run and the workshop, <code>setup/08_reset_or_teardown</code> empties the progress board and drops attendee schemas; after the workshop it tears everything down. It only lists what it would change until you set <code>dry_run</code> to <code>no</code>.</p>
+<p>The tools behind step 6 (<code>setup/tools/dashboards.py</code> and <code>genie_agents.py</code>) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the <code>starter</code> agent, which has no fiscal-year instruction.</p>
+<p>The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running <code>00_master_setup</code> is safe, for example after adding late registrations: add their emails and set <strong>Generate the synthetic data</strong> to <code>no</code>.</p>
+<hr />
+<h2 class="newpage" id="5-participant-pre-work">5. Participant pre-work</h2>
+<p>Send on <strong>Tuesday 20 October</strong>:</p>
+<blockquote>
+<p><strong>Subject: Before Thursday's Databricks workshop: 2-minute login check</strong></p>
+<p>Hi all, we're looking forward to seeing you on Thursday 22 October. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:</p>
+<ol>
+<li>Open <strong><code>&lt;workspace URL&gt;</code></strong> in Microsoft Edge or Google Chrome on the laptop you'll bring, and sign in with your SMBC account.</li>
+<li>Open <strong>SQL Editor</strong>, choose the <strong>SMBC Workshop</strong> warehouse, paste the line below and click <strong>Run</strong>:
+   <code>INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();</code>
+   (Change <code>DA</code> to <code>DE</code> if you're a data engineer.)</li>
+<li>If anything doesn't work, reply to this email. We'll also have a help desk open 30 minutes before the start.</li>
+</ol>
+<p>Please bring your laptop and charger, and your phone for the quiz. No preparation or software installation is needed. All workshop data is synthetic.</p>
+</blockquote>
+<hr />
+<h2 class="newpage" id="6-the-scenario-and-the-data">6. The scenario and the data</h2>
+<p>The labs use a synthetic <strong>SMBC APAC</strong> corporate lending book with about USD 27bn of drawn exposure across 12 booking branches in Asia Pacific. Every borrower, group and figure is made up. Borrowers belong to counterparty groups, such as a conglomerate and its subsidiaries in several countries, and each group has an approved credit limit set by the risk team. As at SMBC, the fiscal year runs from April to March.</p>
+<h3 id="source-files-volumessmbc_workshoprawlanding">Source files (<code>/Volumes/smbc_workshop/raw/landing/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Format</th>
+<th>Rows</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>counterparties/</code></td>
+<td>CSV</td>
+<td>2,370</td>
+<td>Customer master: borrower, parent group, country, sector, internal rating. Names in English, plus local script where available (日本語, 中文, ไทย, 한국어, Tiếng Việt).</td>
+</tr>
+<tr>
+<td><code>facilities/</code></td>
+<td>JSON Lines</td>
+<td>6,047</td>
+<td>Credit facilities: product, currency, committed amount, start and maturity dates, booking branch, collateral.</td>
+</tr>
+<tr>
+<td><code>monthly_balances/</code></td>
+<td>CSV</td>
+<td>74,799</td>
+<td>Month-end drawn balance and days past due per facility, April 2025 to September 2026.</td>
+</tr>
+<tr>
+<td><code>fx_rates/</code></td>
+<td>CSV</td>
+<td>252</td>
+<td>Month-end FX rates to USD and JPY for 14 currencies.</td>
+</tr>
+<tr>
+<td><code>group_limits/</code></td>
+<td>Excel</td>
+<td>420</td>
+<td>The risk team's spreadsheet of approved limits per counterparty group.</td>
+</tr>
+<tr>
+<td><code>sector_emission_factors/</code></td>
+<td>CSV</td>
+<td>16</td>
+<td>Illustrative emission factors by sector, for an optional ESG stretch question.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="notes-from-the-source-system-owners">Notes from the source-system owners</h3>
+<p>These are the kind of handover notes a data team gets, and Lab 1 deals with each of them:</p>
+<ul>
+<li><em>"The customer master extract sometimes contains the same row twice."</em></li>
+<li><em>"Currency codes on facilities are typed by hand, so expect <code>usd</code>, <code>US$</code>, <code>S$</code> and <code>RMB</code>."</em></li>
+<li><em>"The trade-finance system writes dates as DD/MM/YYYY; the core loan system uses YYYY-MM-DD."</em></li>
+<li><em>"Bangkok re-sent its September trade-finance extract. Keep the latest copy of each row (see <code>extract_ts</code>)."</em></li>
+<li><em>"FX rates are captured on the last business day of each month, not always the calendar month end."</em></li>
+<li><em>"A few facilities were booked before the customer record was created in the master."</em></li>
+</ul>
+<h3 id="save-point-tables-smbc_workshopcheckpoint">Save-point tables (<code>smbc_workshop.checkpoint</code>)</h3>
+<p>The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and the Genie Code segment.</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Grain</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gold_group_exposure</code></td>
+<td>Counterparty group × month</td>
+<td>Exposure, limit and <code>utilisation_pct</code> per group</td>
+</tr>
+<tr>
+<td><code>gold_facility_exposure</code></td>
+<td>Facility × month</td>
+<td>Exposure with borrower, country, sector, branch, product, currency and days past due</td>
+</tr>
+<tr>
+<td><code>silver_*</code>, <code>quarantine_facilities</code></td>
+<td>Cleaned inputs, and the rows held back with a reason</td>
+<td>For comparing with your own Lab 1 output</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 class="newpage" id="7-lab-1-build-the-trusted-exposure-table">7. Lab 1: Build the trusted exposure table</h2>
+<p><strong>Goal:</strong> turn the raw extracts into <code>gold_group_exposure</code>, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.<br />
+<strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
+<strong>Tools:</strong> Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.</p>
+<blockquote>
+<p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
+</blockquote>
+<h3 id="core-path">Core path</h3>
+<p><strong>0. Find your schema (1 min).</strong> In <strong>Catalog Explorer</strong>, open <code>smbc_workshop</code>. Your schema is named after your email address, for example <code>jane_tan</code>. If you don't have one, run <code>CREATE SCHEMA smbc_workshop.&lt;your_name&gt;;</code> in the SQL editor.</p>
+<p><strong>1. Start a visual data prep (1 min).</strong> Click <strong>+ New → Visual data prep</strong>. Rename the tab to <code>Monday exposure report</code>. In the compute picker at the top right, choose <strong>Serverless</strong>.</p>
+<p><strong>2. Bring in the sources (4 min).</strong> Add a <strong>Source</strong> operator → <strong>Browse existing</strong> → <code>smbc_workshop</code> → <code>raw</code> → <code>landing</code> → select the <strong><code>counterparties</code></strong> folder. Designer reads every file in a folder into one table. Do the same for <code>facilities</code>, <code>monthly_balances</code> and <code>fx_rates</code>. For the limits, drag <code>group_limits.xlsx</code> onto the canvas (download it from the landing volume first), or browse to the <code>group_limits</code> folder. Click each Source and look at the preview: can you see two date formats in <code>monthly_balances</code>?</p>
+<p><strong>3. De-duplicate the customer master (1 min).</strong> After <code>counterparties</code>, add <strong>Unique</strong> with <strong>Unique by: All columns</strong>. Row count: 2,370 → 2,325.</p>
+<p><strong>4. Clean the facilities with Genie Code (4 min).</strong> Select the <code>facilities</code> Source and type this into the Genie Code prompt on the canvas:</p>
+<blockquote>
+<p><em>Add a Prepare step that trims and upper-cases <code>currency</code>, maps <code>US$</code> to <code>USD</code>, <code>S$</code> to <code>SGD</code> and <code>RMB</code> to <code>CNY</code>, and parses <code>start_date</code> and <code>maturity_date</code> whether they're written YYYY-MM-DD or DD/MM/YYYY.</em></p>
+</blockquote>
+<p>Open the operator it adds and read its actions. Then open <strong>Table of contents</strong> in the left panel, select the operator, and expand <strong>Generated code</strong>. Every visual step is real code you can review and version.</p>
+<p><strong>5. Quarantine bad rows with Guardrails (4 min).</strong> Add <strong>Guardrails</strong> after the Prepare step, with these checks:</p>
+<ul>
+<li><strong>Value range:</strong> <code>committed_amount</code> greater than 0</li>
+<li><strong>Expression:</strong> <code>maturity_date &gt;= start_date</code></li>
+<li><strong>Not null:</strong> <code>start_date</code>, <code>maturity_date</code></li>
+</ul>
+<p>Set <strong>When a check fails</strong> to <strong>Warn and continue with passed rows</strong>. Connect <strong>Failed</strong> to an <strong>Output</strong> that writes the table <code>quarantine_facilities</code> to your schema. You should see 21 failed rows. Each one has a reason, and that's your data-quality evidence.</p>
+<p><strong>6. Fix the balances and FX dates (3 min).</strong></p>
+<ul>
+<li>On <code>monthly_balances</code>, add a <strong>Prepare</strong> step with two <strong>Formula</strong> actions. Describe them in plain English: <em>"<code>as_of_date</code> as a date, whether written YYYY-MM-DD or DD/MM/YYYY"</em> and <em>"<code>month</code> = first day of the month of <code>as_of_date</code>"</em>.</li>
+<li>Then add <strong>Unique</strong> → <strong>Selected columns</strong> <code>facility_id</code>, <code>as_of_date</code> → <strong>Order by</strong> <code>extract_ts</code> descending. Rows: 74,799 → 74,757.</li>
+<li>On <code>fx_rates</code>, add a Formula: <em>"<code>rate_month</code> = first day of the month of <code>rate_date</code>"</em>.</li>
+</ul>
+<p><strong>7. Join and convert with Genie Code (4 min).</strong> Prompt:</p>
+<blockquote>
+<p><em>Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties. Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.</em></p>
+</blockquote>
+<p>Check the Join outputs:</p>
+<ul>
+<li><strong>Left unmatched</strong> on the facilities-to-counterparties join shows the facilities whose customer isn't in the master yet (send them to a second quarantine Output if you like).</li>
+<li><strong>Left unmatched</strong> on the FX join should be empty. If it shows <code>US$</code>, <code>S$</code> or <code>RMB</code>, step 4 missed a mapping.</li>
+</ul>
+<p><strong>8. Roll up to the group and compare with limits (3 min).</strong></p>
+<ul>
+<li>Add <strong>Aggregate</strong>: group by <code>as_of_date</code>, <code>parent_group_id</code>; <strong>SUM</strong> of <code>exposure_usd</code> and <code>exposure_jpy</code>.</li>
+<li>Add <strong>Join</strong> with the limits on <code>parent_group_id</code> = <code>group_id</code>.</li>
+<li>Add a <strong>Prepare</strong> Formula: <em>"<code>utilisation_pct</code> = 100 × exposure_usd ÷ group_limit_usd"</em>.</li>
+</ul>
+<p><strong>9. Write and schedule (2 min).</strong> Add an <strong>Output</strong>: <strong>Table</strong> <code>gold_group_exposure</code> in your schema, <strong>Write mode: Overwrite</strong>, then <strong>Run</strong>. Click <strong>Schedule</strong> to run it daily at 07:00 Singapore time.</p>
+<p>✅ <strong>Checkpoint:</strong> your row on the progress board turns green. To check your result against the reference, run both queries; the two totals should be identical:</p>
+<pre><code class="language-sql">SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
+FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure WHERE as_of_date = '2026-09-30';
+
+SELECT round(sum(exposure_usd) / 1e6, 1) AS reference_usd_m
+FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30';
+</code></pre>
+<h3 id="stretch-pick-any">Stretch (pick any)</h3>
+<ul>
+<li><strong>Version and diff:</strong> open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.</li>
+<li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code in agent mode, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
+<li><strong>Event-driven:</strong> in <strong>Jobs &amp; Pipelines</strong>, open your job → <strong>Add trigger → File arrival</strong>, and point it at a folder in a volume in your own schema. Upload a file and watch the run start.</li>
+<li><strong>Alerting:</strong> add a task that checks <em>"any group above 90% utilisation?"</em> and sends a notification when it's true.</li>
+<li><strong>Document it:</strong> in Catalog Explorer, accept or edit the AI-suggested description for <code>gold_group_exposure</code>. Better metadata means better Genie answers in Lab 2.</li>
+</ul>
+<h3 id="facilitator-close-3-min">Facilitator close (3 min)</h3>
+<ul>
+<li>Open <strong>Catalog Explorer → <code>gold_group_exposure</code> → Lineage</strong> and trace it back through every step to the raw files. That's lineage evidence nobody had to draw by hand.</li>
+<li>Then reveal what the duplicate extract would have done to the Credit Committee pack.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="8-lab-2-credit-committee-in-30-seconds">8. Lab 2: Credit Committee in 30 seconds</h2>
+<p><strong>Goal:</strong> give the Credit Committee a dashboard for the questions they always ask, and a Genie Agent for the ones they haven't asked yet. Teach the agent the bank's rules, and test that it's right.<br />
+<strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
+<strong>Tools:</strong> AI/BI dashboards, Genie Agents, Genie One, Unity Catalog.</p>
+<blockquote>
+<p>Use the <strong>checkpoint</strong> tables (<code>smbc_workshop.checkpoint.gold_group_exposure</code> and <code>gold_facility_exposure</code>) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.</p>
+</blockquote>
+<h3 id="core-path_1">Core path</h3>
+<p><strong>1. Build the dashboard (10 min).</strong></p>
+<ul>
+<li>Click <strong>+ New → Dashboard</strong>. On the <strong>Data</strong> tab, add both checkpoint gold tables.</li>
+<li>On the canvas, ask the AI assistant: <em>"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."</em></li>
+<li>Add these widgets:<ul>
+<li>a <strong>counter</strong> for total exposure at the latest month end;</li>
+<li>a <strong>counter</strong> for groups above 80% utilisation;</li>
+<li>a <strong>line chart</strong> of total exposure by month;</li>
+<li>a <strong>bar chart</strong> of exposure by country.</li>
+</ul>
+</li>
+<li>Add filters for <code>as_of_date</code> and <code>booking_branch</code>, then <strong>Publish</strong>.</li>
+<li>Open <code>&lt;workspace URL&gt;/one</code>: this is Genie One, what a business user sees.</li>
+</ul>
+<p><strong>2. Create a Genie Agent (5 min).</strong></p>
+<ul>
+<li>Click <strong>Genie Agents → New</strong>, select the two checkpoint gold tables, and click <strong>Create</strong>.</li>
+<li>Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.</li>
+<li>In <strong>Configure → Settings</strong>, set the title to <code>Credit Risk – &lt;your name&gt;</code> and the default warehouse to <strong>SMBC Workshop</strong>.</li>
+<li>Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).</li>
+</ul>
+<p><strong>3. Ask, and check the SQL (5 min).</strong> Try <em>"Which counterparty groups are closest to their limits?"</em> and <em>"Show exposure in yen by booking branch at the latest month end."</em> Open the generated SQL for each answer. Trust, but verify.</p>
+<p><strong>4. The fiscal-year test (4 min).</strong> Before adding the fiscal-year instruction, ask:</p>
+<ul>
+<li><em>"What was Orchid Group's utilisation at the end of Q1 FY2026?"</em></li>
+<li><em>"Show Orchid Group's utilisation for each month of FY2025."</em></li>
+</ul>
+<p>Open the SQL and check which dates Genie used. Then add the fiscal-year instruction (A.4) and ask both again.</p>
+<blockquote>
+<p><strong>What we saw when testing (15 Oct).</strong> Without the instruction, Genie treated Q1 FY2026 as January–March 2026 and answered <em>"70.0%, not near its limit"</em>, and it treated FY2025 as January–December 2025. Yet it guessed <em>"end of FY2026 H1"</em> correctly as 30 September. After adding the instruction, Q1 FY2026 ends on 30 June (79.0%), and FY2025 runs from April 2025 to March 2026. <strong>The lesson: without explicit rules the AI guesses, and it doesn't guess the same way every time.</strong> That's why curation and benchmarks matter before anyone shares an agent with a credit committee.</p>
+</blockquote>
+<p>✅ <strong>Checkpoint:</strong> ask <em>"Which groups were above 90% of their limit at the end of FY2026 H1?"</em>, then submit the name of the group:</p>
+<pre><code class="language-sql">INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
+</code></pre>
+<h3 id="stretch-pick-any_1">Stretch (pick any)</h3>
+<ul>
+<li><strong>Stump the Genie:</strong> find a question it gets wrong, fix it with an instruction or an example query, and ask again. Share your best stump-and-fix with a facilitator: there's a prize.<ul>
+<li><em>Starter example (tested):</em> ask <em>"Which booking branch has the highest share of trade finance in arrears?"</em> and open the SQL. In one test run Genie counted facilities; in another it weighted by exposure and asked which one we meant. Add the instruction <em>"Shares of arrears are measured by exposure (exposure_usd), not by number of facilities"</em>, and the answer becomes consistent.</li>
+</ul>
+</li>
+<li><strong>Benchmarks:</strong> add the benchmark questions (A.7) with their expected SQL and run an evaluation. Benchmarks are how a team shows a Genie Agent is accurate before sharing it.</li>
+<li><strong>Agent mode:</strong> ask <em>"Why has the most utilised group's limit usage risen since April 2026?"</em> and watch it plan, run several queries and write a report.</li>
+<li><strong>In Japanese:</strong> 「2026年度上期末時点で、与信限度額の90%を超えている取引先グループはどこですか？」 Answers may sometimes come back in English.</li>
+<li><strong>Share it:</strong> attach your Genie Agent to your dashboard, or schedule a Monday 08:00 PDF subscription of the dashboard.</li>
+<li><strong>Semantic layer:</strong> use the agent's ⋮ menu → <strong>Export to metric view</strong> to turn the definitions you taught it into a governed metric view.</li>
+</ul>
+<h3 id="governance-moment-facilitator-3-min">Governance moment (facilitator, 3 min)</h3>
+<p>A demo Genie Agent sits on a copy of the facility table that has a <strong>row filter</strong> (Singapore branch only, unless you're a facilitator) and a <strong>column mask</strong> on borrower names. A facilitator and a volunteer ask the same question and get different, correct answers: the Genie Agent inherits Unity Catalog permissions rather than bypassing them.</p>
+<hr />
+<h2 class="newpage" id="9-ai-assisted-development-with-genie-code">9. AI-assisted development with Genie Code</h2>
+<p><strong>15 minutes</strong>, mostly a live demo; participants can follow along in a notebook. The prompts are in A.8.</p>
+<ol>
+<li><strong>Explore:</strong> profile <code>gold_group_exposure</code> and ask what is unusual about the latest month compared with April.</li>
+<li><strong>Generate:</strong> split one group's exposure change since April into an <strong>FX effect</strong> and a <strong>new-drawdowns effect</strong>, by subsidiary, and chart it. This answers the "why" behind the Credit Committee's question.</li>
+<li><strong>Explain and convert:</strong> paste a legacy Synapse T-SQL procedure (A.9). Genie Code explains what it does, points out logic risks, and rewrites it as Databricks SQL against the workshop tables.</li>
+<li><strong>Iterate safely:</strong><ul>
+<li>Show the action-approval setting: by default an AI classifier approves actions within your request and blocks actions beyond it, or you can approve each one yourself.</li>
+<li>Ask for an explanation with <em>"don't run any code"</em>.</li>
+<li>Show that Genie Code can only reach data your Unity Catalog permissions allow.</li>
+<li>Roll back a change with revision history.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 class="newpage" id="10-quiz">10. Quiz</h2>
+<ul>
+<li><strong>Format:</strong> about 12 questions of 20 seconds each, on phones with Slido (confirm that SMBC allows it). There's a mix of questions about what people discovered in the labs, product questions, and one "Genie or human?" round. The facilitator pack has the questions and answers.</li>
+<li><strong>Prizes:</strong> quiz top three, plus <em>Best Stump the Genie</em>, <em>First to finish Lab 1</em> (from the progress board) and <em>Best dashboard</em> (peer vote).</li>
+<li><strong>Close:</strong> a short feedback survey, which doubles as the swag raffle ticket.</li>
+</ul>
+<hr />
+<h2 class="newpage" id="11-next-steps-and-resources">11. Next steps and resources</h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free self-paced training and learning paths for data analysts and data engineers</td>
+<td>https://www.databricks.com/learn/training</td>
+</tr>
+<tr>
+<td>Certifications (Data Analyst Associate, Data Engineer Associate)</td>
+<td>https://www.databricks.com/learn/certification</td>
+</tr>
+<tr>
+<td>Databricks Free Edition, for practice outside work</td>
+<td>https://www.databricks.com/learn/free-edition</td>
+</tr>
+<tr>
+<td>Free virtual workshops (4 Nov <em>Hands-on with Genie</em>, 12 Nov <em>AI-Powered Data Engineering with Lakeflow</em>, 18 Nov <em>Build, Orchestrate and Improve Agents</em>; Americas time slots, recordings available)</td>
+<td>https://www.databricks.com/learn/training/workshop</td>
+</tr>
+<tr>
+<td>Lakeflow Designer documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/designer/what-is-lakeflow-designer</td>
+</tr>
+<tr>
+<td>Genie Agents documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-agents/</td>
+</tr>
+<tr>
+<td>Genie One documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-one/</td>
+</tr>
+<tr>
+<td>Genie Code documentation</td>
+<td>https://learn.microsoft.com/azure/databricks/genie-code/</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Proposed follow-up with SMBC:</strong> a 30-day Genie Agent challenge. Each team nominates one real business question set, and the Databricks team holds weekly 30-minute office hours, leading into a pilot in SMBC's own workspace.</p>
+<hr />
+<h2 class="newpage" id="appendix-a-copy-paste-kit">Appendix A: Copy-paste kit</h2>
+<h3 id="a1-check-in-and-checkpoint-queries">A.1 Check-in and checkpoint queries</h3>
+<pre><code class="language-sql">-- Check-in (change 'DA' to 'DE' if you're a data engineer)
+INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+
+-- Lab 2 checkpoint
+INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
+</code></pre>
+<h3 id="a2-genie-code-prompts-for-lab-1-designer">A.2 Genie Code prompts for Lab 1 (Designer)</h3>
+<pre><code class="language-text">Add a Prepare step that trims and upper-cases currency, maps US$ to USD, S$ to SGD and RMB to CNY, and parses start_date and maturity_date whether they're written YYYY-MM-DD or DD/MM/YYYY.
+</code></pre>
+<pre><code class="language-text">Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties.
+Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.
+</code></pre>
+<h3 id="a3-genie-agent-starter-instructions">A.3 Genie Agent starter instructions</h3>
+<pre><code class="language-text">This agent answers questions about SMBC APAC's corporate lending exposure. All data is synthetic.
+
+- Exposure means drawn balance. Use exposure_usd unless the user asks for yen; then use exposure_jpy.
+- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in gold_group_exposure). Above 90% is &quot;near its limit&quot;; above 100% is &quot;in breach&quot;.
+- Balances are month-end snapshots. For &quot;current&quot; or &quot;latest&quot;, use the most recent as_of_date. Never add balances across months; compare month ends instead.
+- A counterparty group's exposure includes all of its subsidiaries in every country (parent_group_id).
+- Booking branch codes: SIN Singapore, HKG Hong Kong, BKK Bangkok, SGN Ho Chi Minh City, JKT Jakarta, BOM Mumbai, SYD Sydney, SEL Seoul, SHA Shanghai, KUL Kuala Lumpur, MNL Manila, TPE Taipei.
+- Arrears means days_past_due greater than 30.
+- Show amounts in USD millions with one decimal place unless asked otherwise.
+</code></pre>
+<h3 id="a4-the-fiscal-year-instruction-add-in-lab-2-step-4">A.4 The fiscal-year instruction (add in Lab 2, step 4)</h3>
+<pre><code class="language-text">The fiscal year runs from 1 April to 31 March and is named after the calendar year it starts in:
+FY2026 = 1 April 2026 to 31 March 2027. H1 = April to September; H2 = October to March.
+Q1 = April–June, Q2 = July–September, Q3 = October–December, Q4 = January–March.
+&quot;End of FY2026 H1&quot; means as_of_date = 2026-09-30. &quot;FY2026 to date&quot; means as_of_date from 2026-04-30 onwards.
+</code></pre>
+<h3 id="a5-example-sql-queries">A.5 Example SQL queries</h3>
+<p><strong>"Top 10 counterparty groups by exposure at the latest month end"</strong></p>
+<pre><code class="language-sql">SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct
+FROM smbc_workshop.checkpoint.gold_group_exposure
+WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.checkpoint.gold_group_exposure)
+ORDER BY exposure_usd DESC
+LIMIT 10;
+</code></pre>
+<p><strong>"Exposure by country and sector at a given month end"</strong> (parameterised)</p>
+<pre><code class="language-sql">SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m
+FROM smbc_workshop.checkpoint.gold_facility_exposure
+WHERE as_of_date = :as_of_date
+GROUP BY country_code, sector
+ORDER BY exposure_usd_m DESC;
+</code></pre>
+<h3 id="a6-common-questions">A.6 Common questions</h3>
+<pre><code class="language-text">Which counterparty groups are closest to their limits?
+How has total exposure changed month by month since April 2025?
+What is our exposure to Vietnam by sector at the latest month end?
+Show exposure in yen by booking branch at the latest month end.
+Which booking branch has the highest share of trade finance in arrears?
+</code></pre>
+<h3 id="a7-benchmark-questions-stretch">A.7 Benchmark questions (stretch)</h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Expected SQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total exposure in USD at 30 Sep 2026</td>
+<td><code>SELECT sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30'</code></td>
+</tr>
+<tr>
+<td>Which groups were above 90% of their limit at the end of FY2026 H1?</td>
+<td><code>SELECT group_name, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct &gt; 90</code></td>
+</tr>
+<tr>
+<td>Top 5 groups by exposure at the end of June 2026</td>
+<td><code>SELECT group_name, exposure_usd FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5</code></td>
+</tr>
+<tr>
+<td>Utilisation by month in FY2026 for the most utilised group</td>
+<td><code>SELECT as_of_date, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date &gt;= '2026-04-30' ORDER BY as_of_date</code></td>
+</tr>
+<tr>
+<td>Share of SGN trade-finance exposure in arrears at 30 Sep 2026</td>
+<td><code>SELECT 100 * sum(CASE WHEN days_past_due &gt; 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="a8-genie-code-prompts-ai-assisted-development-segment">A.8 Genie Code prompts (AI-assisted development segment)</h3>
+<pre><code class="language-text">Profile smbc_workshop.checkpoint.gold_group_exposure and tell me what is unusual about the latest month compared with April 2026.
+</code></pre>
+<pre><code class="language-text">For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using smbc_workshop.checkpoint.gold_facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
+FX = Sep balance × (Sep rate − Apr rate). Chart it.
+</code></pre>
+<pre><code class="language-text">Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against the smbc_workshop.checkpoint tables. Just explain first, don't run any code.
+&lt;paste A.9&gt;
+</code></pre>
+<h3 id="a9-legacy-synapse-procedure-synthetic-example">A.9 Legacy Synapse procedure (synthetic example)</h3>
+<pre><code class="language-sql">-- Legacy month-end group exposure report (synthetic example for the workshop)
+CREATE PROCEDURE rpt.usp_GroupExposure_Monthly @AsOfDate DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF OBJECT_ID('tempdb..#bal') IS NOT NULL DROP TABLE #bal;
+
+    SELECT b.facility_id,
+           b.drawn_amount,
+           ISNULL(f.currency, 'USD') AS ccy,
+           cp.parent_group_id
+    INTO #bal
+    FROM stg.monthly_balances b
+    INNER JOIN stg.facilities f ON f.facility_id = b.facility_id
+    INNER JOIN stg.counterparties cp ON cp.counterparty_id = f.counterparty_id
+    WHERE b.as_of_date = @AsOfDate
+      AND f.committed_amount &gt; 0;
+
+    SELECT TOP 20
+           g.group_name,
+           SUM(b.drawn_amount * fx.usd_rate) AS exposure_usd,
+           CAST(100.0 * SUM(b.drawn_amount * fx.usd_rate) / NULLIF(g.group_limit_usd, 0) AS DECIMAL(9, 2))
+               AS utilisation_pct,
+           CASE WHEN SUM(b.drawn_amount * fx.usd_rate) &gt; 0.90 * g.group_limit_usd THEN 'RED'
+                WHEN SUM(b.drawn_amount * fx.usd_rate) &gt; 0.75 * g.group_limit_usd THEN 'AMBER'
+                ELSE 'GREEN' END AS rag_status
+    FROM #bal b
+    CROSS APPLY (SELECT TOP 1 r.usd_rate
+                 FROM ref.fx_rates r
+                 WHERE r.currency_code = b.ccy AND r.rate_date &lt;= @AsOfDate
+                 ORDER BY r.rate_date DESC) fx
+    INNER JOIN ref.group_limits g ON g.group_id = b.parent_group_id
+    GROUP BY g.group_name, g.group_limit_usd
+    ORDER BY exposure_usd DESC;
+END
+</code></pre>
+<hr />
+<h2 class="newpage" id="appendix-b-troubleshooting">Appendix B: Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Genie Agents</strong> is in the sidebar but agents won't open</td>
+<td>Partner-powered AI features are off</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a>, <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
+</tr>
+<tr>
+<td>Genie Code prompts in Designer or agent mode are unavailable</td>
+<td>Partner-powered AI features off, or cross-Geo processing enforced</td>
+<td><a href="#32-account-level-settings-account-admin">3.2</a></td>
+</tr>
+<tr>
+<td>Can't see the <code>landing</code> volume</td>
+<td>Missing <code>READ VOLUME</code> grant</td>
+<td>Re-run <code>01_setup_workspace</code></td>
+</tr>
+<tr>
+<td>Output fails with a permission error</td>
+<td>Writing outside your own schema</td>
+<td>Set <strong>Output location</strong> to <code>smbc_workshop.&lt;your_schema&gt;</code></td>
+</tr>
+<tr>
+<td>Some months disappear after the FX join</td>
+<td>Joining on the exact date: FX is dated on the last business day</td>
+<td>Join on currency and month (Lab 1, step 6)</td>
+</tr>
+<tr>
+<td>Your total is higher than the checkpoint</td>
+<td>Duplicates not removed (customer master or the re-sent Bangkok extract)</td>
+<td>Lab 1, steps 3 and 6</td>
+</tr>
+<tr>
+<td>Your total is much lower than the checkpoint</td>
+<td>Only one date format parsed, or currency codes not mapped</td>
+<td>Lab 1, steps 4 and 6; check the join's <strong>Left unmatched</strong> output</td>
+</tr>
+<tr>
+<td>Dragging the <code>.xlsx</code> onto the canvas fails</td>
+<td>Excel file support not enabled, or downloads blocked</td>
+<td>Use <strong>Source → Browse existing →</strong> <code>group_limits</code> folder instead</td>
+</tr>
+<tr>
+<td>Genie picks the wrong dates for "Q1 FY2026", "FY2025" or "FY2026 H1"</td>
+<td>It assumed a calendar year (it does this inconsistently)</td>
+<td>Add the fiscal-year instruction (A.4)</td>
+</tr>
+<tr>
+<td>Genie's arrears "share" is much higher than the dashboard's</td>
+<td>It counted facilities instead of weighting by exposure</td>
+<td>Add an instruction that shares are by exposure (see Stump the Genie)</td>
+</tr>
+<tr>
+<td>A question in Japanese gets an English answer</td>
+<td>Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese.</td>
+<td>Add Japanese metadata or instructions if needed</td>
+</tr>
+<tr>
+<td>A dashboard subscription email doesn't arrive</td>
+<td>Mail gateway filtering</td>
+<td>Check with the SMBC messaging team; use a PDF download for the demo</td>
+</tr>
+<tr>
+<td><strong>Test connection</strong> fails on a file-arrival trigger</td>
+<td>Path isn't a volume or external location, or missing <code>READ</code> on it / <code>CAN MANAGE</code> on the job</td>
+<td>Use a folder in a volume in your own schema</td>
+</tr>
+</tbody>
+</table>
+</body></html>
