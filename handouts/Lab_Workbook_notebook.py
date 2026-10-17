@@ -164,7 +164,6 @@
 # MAGIC
 # MAGIC - **Version and diff:** open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.
 # MAGIC - **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code in agent mode, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
-# MAGIC - **Event-driven:** in **Jobs & Pipelines**, open your job → **Add trigger → File arrival**, and point it at a folder in a volume in your own schema. Upload a file and watch the run start.
 # MAGIC - **Alerting:** add a task that checks *"any group above 90% utilisation?"* and sends a notification when it's true.
 # MAGIC - **Document it:** in Catalog Explorer, accept or edit the AI-suggested description for `gold_group_exposure`. Better metadata means better Genie answers in Lab 2.
 
@@ -467,4 +466,3 @@
 # MAGIC | Genie's arrears "share" is much higher than the dashboard's | It counted facilities instead of weighting by exposure | Add an instruction that shares are by exposure (see Stump the Genie) |
 # MAGIC | A question in Japanese gets an English answer | Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese. | Add Japanese metadata or instructions if needed |
 # MAGIC | A dashboard subscription email doesn't arrive | Mail gateway filtering | Ask a facilitator |
-# MAGIC | **Test connection** fails on a file-arrival trigger | Path isn't a volume or external location, or missing `READ` on it / `CAN MANAGE` on the job | Use a folder in a volume in your own schema |

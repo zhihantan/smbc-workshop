@@ -217,7 +217,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tr>
 <td>1</td>
 <td>Unity Catalog metastore attached to the workspace</td>
-<td>Everything: Designer, Genie Agents, lineage, file-arrival triggers</td>
+<td>Everything: Designer, Genie Agents, lineage</td>
 <td>Account console</td>
 <td>Account admin</td>
 <td>New workspaces are usually enabled automatically</td>
@@ -490,42 +490,36 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </tr>
 <tr>
 <td>6</td>
-<td>On that job, <strong>Add trigger → File arrival</strong> on a folder in your own volume → <strong>Test connection</strong></td>
-<td>Connection succeeds</td>
-<td>File-arrival triggers</td>
-</tr>
-<tr>
-<td>7</td>
 <td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.checkpoint.gold_group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
 <td>Chart created; dashboard published</td>
 <td>AI/BI, AI-assisted charts</td>
 </tr>
 <tr>
-<td>8</td>
+<td>7</td>
 <td><strong>Genie Agents → New</strong> on the two checkpoint gold tables; ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
 <td>Answer with SQL; agent-mode report</td>
 <td>Genie Agents (chat and agent mode)</td>
 </tr>
 <tr>
-<td>9</td>
+<td>8</td>
 <td>Open <code>&lt;workspace URL&gt;/one</code> and use chat</td>
 <td>Genie One loads; chat answers</td>
 <td>Genie One chat</td>
 </tr>
 <tr>
-<td>10</td>
+<td>9</td>
 <td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.checkpoint.gold_group_exposure"</em></td>
 <td>It plans, runs code, summarises</td>
 <td>Genie Code agent mode</td>
 </tr>
 <tr>
-<td>11</td>
+<td>10</td>
 <td>In Catalog Explorer, open a table → AI-suggested description; open the <strong>Lineage</strong> tab</td>
 <td>Suggestion shown; lineage graph</td>
 <td>AI-generated comments, lineage</td>
 </tr>
 <tr>
-<td>12</td>
+<td>11</td>
 <td>Sign in as the <strong>Consumer access</strong> user</td>
 <td>Lands in Genie One; sees shared dashboard and Genie Agent</td>
 <td>Consumer experience</td>
@@ -839,7 +833,6 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 <ul>
 <li><strong>Version and diff:</strong> open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.</li>
 <li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code in agent mode, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
-<li><strong>Event-driven:</strong> in <strong>Jobs &amp; Pipelines</strong>, open your job → <strong>Add trigger → File arrival</strong>, and point it at a folder in a volume in your own schema. Upload a file and watch the run start.</li>
 <li><strong>Alerting:</strong> add a task that checks <em>"any group above 90% utilisation?"</em> and sends a notification when it's true.</li>
 <li><strong>Document it:</strong> in Catalog Explorer, accept or edit the AI-suggested description for <code>gold_group_exposure</code>. Better metadata means better Genie answers in Lab 2.</li>
 </ul>
@@ -1174,11 +1167,6 @@ END
 <td>A dashboard subscription email doesn't arrive</td>
 <td>Mail gateway filtering</td>
 <td>Check with the SMBC messaging team; use a PDF download for the demo</td>
-</tr>
-<tr>
-<td><strong>Test connection</strong> fails on a file-arrival trigger</td>
-<td>Path isn't a volume or external location, or missing <code>READ</code> on it / <code>CAN MANAGE</code> on the job</td>
-<td>Use a folder in a volume in your own schema</td>
 </tr>
 </tbody>
 </table>

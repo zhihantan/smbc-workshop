@@ -565,7 +565,6 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 
 - **Version and diff:** open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.
 - **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code in agent mode, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
-- **Event-driven:** in **Jobs & Pipelines**, open your job → **Add trigger → File arrival**, and point it at a folder in a volume in your own schema. Upload a file and watch the run start.
 - **Alerting:** add a task that checks *"any group above 90% utilisation?"* and sends a notification when it's true.
 - **Document it:** in Catalog Explorer, accept or edit the AI-suggested description for `gold_group_exposure`. Better metadata means better Genie answers in Lab 2.
 
@@ -824,7 +823,6 @@ END
 | Genie's arrears "share" is much higher than the dashboard's | It counted facilities instead of weighting by exposure | Add an instruction that shares are by exposure (see Stump the Genie) |
 | A question in Japanese gets an English answer | Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese. | Add Japanese metadata or instructions if needed |
 | A dashboard subscription email doesn't arrive | Mail gateway filtering | Ask a facilitator |
-| **Test connection** fails on a file-arrival trigger | Path isn't a volume or external location, or missing `READ` on it / `CAN MANAGE` on the job | Use a folder in a volume in your own schema |
 
 # Part 4. Workspace setup and requirements
 
@@ -840,7 +838,7 @@ END
 
 | # | Requirement | Why the workshop needs it | Where it's set | Who | Default | Status |
 |---|---|---|---|---|---|---|
-| 1 | Unity Catalog metastore attached to the workspace | Everything: Designer, Genie Agents, lineage, file-arrival triggers | Account console | Account admin | New workspaces are usually enabled automatically | ☐ |
+| 1 | Unity Catalog metastore attached to the workspace | Everything: Designer, Genie Agents, lineage | Account console | Account admin | New workspaces are usually enabled automatically | ☐ |
 | 2 | Serverless compute | Designer, notebooks, Jobs, Genie Code | Already enabled | Workspace admin | | ✅ |
 | 3 | A serverless SQL warehouse for the workshop | Dashboards, Genie Agents, SQL editor | SQL Warehouses → Create, or `06_deploy_dashboards_and_agents` creates it | Workspace admin | | ☐ |
 | 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts | 3.2 and 3.3 | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
@@ -938,13 +936,12 @@ Run these as a **test attendee** (not an admin), **on an SMBC laptop, on the SMB
 | 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code agentic) |
 | 4 | Add an **Output** to your own schema and **Run**; click **Schedule** | Table written; a job created | Schema grants, Jobs |
 | 5 | Drag `group_limits.xlsx` (downloaded from the landing volume) onto the canvas | A Source operator for the spreadsheet | Excel file support |
-| 6 | On that job, **Add trigger → File arrival** on a folder in your own volume → **Test connection** | Connection succeeds | File-arrival triggers |
-| 7 | **+ New → Dashboard**; add `smbc_workshop.checkpoint.gold_group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
-| 8 | **Genie Agents → New** on the two checkpoint gold tables; ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
-| 9 | Open `<workspace URL>/one` and use chat | Genie One loads; chat answers | Genie One chat |
-| 10 | In a notebook, ask Genie Code to *"profile smbc_workshop.checkpoint.gold_group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
-| 11 | In Catalog Explorer, open a table → AI-suggested description; open the **Lineage** tab | Suggestion shown; lineage graph | AI-generated comments, lineage |
-| 12 | Sign in as the **Consumer access** user | Lands in Genie One; sees shared dashboard and Genie Agent | Consumer experience |
+| 6 | **+ New → Dashboard**; add `smbc_workshop.checkpoint.gold_group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
+| 7 | **Genie Agents → New** on the two checkpoint gold tables; ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
+| 8 | Open `<workspace URL>/one` and use chat | Genie One loads; chat answers | Genie One chat |
+| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.checkpoint.gold_group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
+| 10 | In Catalog Explorer, open a table → AI-suggested description; open the **Lineage** tab | Suggestion shown; lineage graph | AI-generated comments, lineage |
+| 11 | Sign in as the **Consumer access** user | Lands in Genie One; sees shared dashboard and Genie Agent | Consumer experience |
 
 ### 3.9 What processes data where
 
@@ -1215,7 +1212,6 @@ Helpers, watch for:
 *For anyone who finishes the core path early*
 
 - Engineer's path: Genie Code in agent mode, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
-- Event-driven: Jobs & Pipelines → your job → Add trigger → File arrival, pointed at a folder in a volume in your own schema.
 - Document it: better metadata means better Genie answers in Lab 2.
 
 ### Slide 22: Lab 1 debrief

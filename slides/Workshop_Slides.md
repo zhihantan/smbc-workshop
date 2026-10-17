@@ -176,7 +176,7 @@ Handover notes from the source-system owners:
 | **Lakeflow Connect** | Ingests data from source systems | Not in the lab: the landing volume stands in for it |
 | **Lakeflow Designer** | Visual, AI-assisted data prep | Lab 1 core path |
 | **Lakeflow Pipelines** | Declarative pipelines in SQL or Python, for engineers | Lab 1 stretch |
-| **Lakeflow Jobs** | Orchestration: schedules and file-arrival triggers | Lab 1 core path and stretch |
+| **Lakeflow Jobs** | Orchestration: schedules and notifications | Lab 1 core path and stretch |
 
 **Unity Catalog** sits under all four: the same permissions and lineage, whichever tool built the table. It fits alongside existing Azure Data Factory and Synapse estates; adopt one piece at a time.
 
@@ -422,14 +422,12 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 |---|---|
 | **Version and diff** | See a visual diff of your changes, then commit to a Git folder |
 | **Engineer's path** | Rebuild the facility cleaning in the Lakeflow Pipelines Editor, with expectations |
-| **Event-driven** | Add a file-arrival trigger on a folder in your own volume, upload a file, watch the run start |
 | **Alerting** | Notify someone when any group is above 90% utilisation |
 | **Document it** | Accept or edit the AI-suggested description for `gold_group_exposure` |
 
 <!--
 [For anyone who finishes the core path early]
 - Engineer's path: Genie Code in agent mode, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
-- Event-driven: Jobs & Pipelines → your job → Add trigger → File arrival, pointed at a folder in a volume in your own schema.
 - Document it: better metadata means better Genie answers in Lab 2.
 -->
 
