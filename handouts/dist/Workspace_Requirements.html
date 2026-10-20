@@ -45,6 +45,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by <strong>Tuesday 20 October</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
 </blockquote>
 <p><strong>Already confirmed:</strong> the workshop uses a new, dedicated workspace with <strong>serverless compute enabled</strong>, and <strong>Genie has no question-rate limit</strong> to plan around. The <strong>SAG team owns the cross-Geo processing setting</strong> (item 5).</p>
+<p><strong>No groups are needed.</strong> The setup shares everything with the workspace's built-in <code>users</code> group (everyone in the workspace) and recognises facilitators by email. Attendees need access to the <code>smbc_workshop</code> catalog (<a href="#36-unity-catalog-objects">3.6</a>) and to a SQL warehouse (<a href="#34-compute">3.4</a>).</p>
 <h3 id="31-checklist">3.1 Checklist</h3>
 <table>
 <thead>
@@ -79,9 +80,9 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td>3</td>
-<td>A serverless SQL warehouse for the workshop</td>
+<td>A pro or serverless <strong>SQL warehouse</strong> that attendees can use</td>
 <td>Dashboards, Genie Agents, SQL editor</td>
-<td>SQL Warehouses → Create, or <code>06_deploy_dashboards_and_agents</code> creates it</td>
+<td>Any existing warehouse, for example the Serverless Starter Warehouse (<a href="#34-compute">3.4</a>)</td>
 <td>Workspace admin</td>
 <td></td>
 <td>☐</td>
@@ -115,11 +116,11 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td>7</td>
-<td>Attendee and facilitator groups, with entitlements</td>
+<td>Attendees can sign in, with <strong>Workspace access</strong> and <strong>Databricks SQL access</strong>; no groups needed</td>
 <td>Signing in and building</td>
 <td><a href="#35-identity-and-entitlements">3.5</a></td>
-<td>Account or workspace admin</td>
-<td></td>
+<td>Workspace admin</td>
+<td>On for workspace users</td>
 <td>☐</td>
 </tr>
 <tr>
@@ -133,10 +134,10 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td>9</td>
-<td>Workshop catalog, volumes, schemas and grants</td>
+<td>The <code>smbc_workshop</code> catalog, and attendee access to it</td>
 <td>The labs</td>
-<td>Setup notebook (section 4)</td>
-<td>Metastore admin or catalog owner</td>
+<td>The setup notebook (section 4), then the grants in <a href="#36-unity-catalog-objects">3.6</a></td>
+<td>Catalog owner or metastore admin</td>
 <td></td>
 <td>☐</td>
 </tr>
@@ -204,8 +205,8 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </thead>
 <tbody>
 <tr>
-<td>Serverless SQL warehouse</td>
-<td>Name it <strong>SMBC Workshop</strong>, size Small or Medium, minimum 1 and maximum 4 clusters for about 40–60 people. Set a longer auto-stop on the day. Give the attendee group <strong>CAN USE</strong>. Genie Agents need a pro or serverless warehouse; serverless is recommended.</td>
+<td>SQL warehouse</td>
+<td>Any pro or serverless SQL warehouse that attendees can use (<strong>CAN USE</strong>), for example the workspace's <strong>Serverless Starter Warehouse</strong>. The setup uses the one you name, or picks the first one you can use, and prints its name: give that name to attendees. For about 40–60 people, a Small or Medium serverless warehouse with up to 4 clusters is comfortable; if you manage it, set a longer auto-stop on the day. Genie Agents need pro or serverless; serverless is recommended.</td>
 </tr>
 <tr>
 <td>Serverless compute for notebooks, Jobs and Designer</td>
@@ -224,14 +225,14 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </thead>
 <tbody>
 <tr>
-<td>Attendees (group <code>smbc_workshop_attendees</code>)</td>
-<td><strong>Workspace access</strong> and <strong>Databricks SQL access</strong></td>
+<td>Attendees (any workspace users: no group is needed)</td>
+<td><strong>Workspace access</strong> and <strong>Databricks SQL access</strong> (on for workspace users by default)</td>
 <td>Databricks SQL access is required to create Genie Agents and dashboards; workspace access is required for Designer and notebooks.</td>
 </tr>
 <tr>
-<td>Facilitators (group <code>smbc_workshop_facilitators</code>)</td>
+<td>Facilitators</td>
 <td>Workspace admin (recommended)</td>
-<td>Runs the setup notebooks, owns the catalog, runs the governance demo.</td>
+<td>Run the setup notebooks and the governance demo. List the other facilitators' emails in the setup's <code>facilitator_emails</code> setting: they get full access to the catalog, see every branch in the governance demo, and can edit the reference dashboards and Genie Agents.</td>
 </tr>
 <tr>
 <td>Genie One demo user (one account)</td>
@@ -240,22 +241,22 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </tr>
 </tbody>
 </table>
-<p>Sign-in is through SSO (Microsoft Entra ID). <strong>The two groups must be account-level groups</strong>, synced from Entra ID through SCIM or created in the account console, and assigned to the workshop workspace. Groups created inside the workspace are workspace-local: Unity Catalog can't grant them privileges, and <code>is_account_group_member()</code> (used by the governance demo) doesn't recognise them. The setup notebook stops with an explicit error if a grant fails.</p>
+<p>Sign-in is through SSO (Microsoft Entra ID). <strong>No groups need to be created.</strong> The setup shares the dashboards, Genie Agents and lab workbook with the workspace's built-in <code>users</code> group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set <code>share_with</code> in <code>00_master_setup</code>.</p>
 <h3 id="36-unity-catalog-objects">3.6 Unity Catalog objects</h3>
-<p>The setup notebook creates these objects. Creating a catalog needs the <code>CREATE CATALOG</code> privilege, and on some metastores a managed storage location.</p>
+<p>The setup notebook creates these objects. Creating a catalog needs the <code>CREATE CATALOG</code> privilege, and on metastores without root storage a managed location: set it in the setup, or create <code>smbc_workshop</code> yourself in Catalog Explorer, which can use Default Storage. If the catalog already exists, whoever runs the setup needs <code>ALL PRIVILEGES</code> and <code>MANAGE</code> on it.</p>
 <table>
 <thead>
 <tr>
 <th>Object</th>
 <th>Contents</th>
-<th>Attendee privileges</th>
+<th>What attendees need</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Catalog <code>smbc_workshop</code></td>
 <td>Everything below, tagged <code>synthetic_data = true</code> and <code>workshop_date</code> (any tag a governed tag policy rejects is skipped)</td>
-<td><code>USE CATALOG</code></td>
+<td><code>USE CATALOG</code>, and <code>CREATE SCHEMA</code> for their own schema</td>
 </tr>
 <tr>
 <td>Volume <code>smbc_workshop.raw.landing</code></td>
@@ -265,7 +266,7 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 <tr>
 <td>Volume <code>smbc_workshop.raw.facilitator</code></td>
 <td>Answer key</td>
-<td>none</td>
+<td>Nothing</td>
 </tr>
 <tr>
 <td>Schema <code>smbc_workshop.checkpoint</code></td>
@@ -275,15 +276,21 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 <tr>
 <td>Schema <code>smbc_workshop.ops</code></td>
 <td>Check-in and lab-answer tables</td>
-<td><code>SELECT</code>, <code>MODIFY</code> on those two tables</td>
+<td><code>USE SCHEMA</code>, <code>MODIFY</code></td>
 </tr>
 <tr>
 <td>One schema per attendee, e.g. <code>smbc_workshop.jane_tan</code></td>
-<td>Each person's Lab 1 output</td>
-<td><code>ALL PRIVILEGES</code></td>
+<td>Each person's Lab 1 output; their check-in block creates it</td>
+<td>They own it</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Giving attendees access.</strong> The setup grants attendees nothing. Once it has run, the catalog owner or a metastore admin runs these three statements. <code>account users</code> is everyone in the account; use an existing group instead if you prefer.</p>
+<pre><code class="language-sql">GRANT USE CATALOG, USE SCHEMA, SELECT, CREATE SCHEMA ON CATALOG smbc_workshop TO `account users`;
+GRANT READ VOLUME ON VOLUME smbc_workshop.raw.landing TO `account users`;
+GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
+</code></pre>
+<p>Granting <code>READ VOLUME</code> on the landing volume only keeps the answer key private. Attendees need no privileges on the governance demo's functions, because row filters and column masks run with their owner's rights. <code>07_check_requirements</code> reports whether attendees have everything they need.</p>
 <h3 id="37-network-and-devices">3.7 Network and devices</h3>
 <ul>
 <li>SMBC laptops on the venue network can open the workspace URL and sign in with SSO. If the workspace uses <strong>IP access lists</strong> or <strong>Private Link</strong>, allow the venue's egress addresses.</li>
@@ -305,9 +312,9 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 <tbody>
 <tr>
 <td>1</td>
-<td>Sign in through SSO; open the SQL editor on <strong>SMBC Workshop</strong>; run the check-in query (A.1)</td>
-<td>One row inserted</td>
-<td>Access, entitlements, warehouse, grants</td>
+<td>Sign in through SSO; open the SQL editor on the workshop's SQL warehouse; run the check-in block (A.1)</td>
+<td>It shows your schema, e.g. <code>smbc_workshop.jane_tan</code></td>
+<td>Access, entitlements, warehouse, catalog access</td>
 </tr>
 <tr>
 <td>2</td>

@@ -3,11 +3,12 @@
 
 From a laptop, through the Databricks CLI:
 
-  python setup/tools/dashboards.py --profile P --warehouse W --parent /Workspace/Users/<you>/smbc_workshop test
-  python setup/tools/dashboards.py --profile P --warehouse W --parent /Workspace/Users/<you>/smbc_workshop deploy
+  python setup/tools/dashboards.py --profile P --parent "/Workspace/Users/<you>/SMBC Workshop" test
+  python setup/tools/dashboards.py --profile P --parent "/Workspace/Users/<you>/SMBC Workshop" deploy
 
 `test` runs every dataset query and prints row counts; `deploy` creates or updates the reference dashboard and the
-facilitator progress board, then publishes both. Run `test` first: every query must succeed. Inside the workspace,
+facilitator progress board, then publishes both. Run `test` first: every query must succeed. Both use the SQL
+warehouse in `--warehouse` (a name or ID), or the first pro or serverless warehouse you can use. Inside the workspace,
 `setup/06_deploy_dashboards_and_agents` does the same without a laptop.
 """
 import argparse, json, sys, time
@@ -218,12 +219,12 @@ def deploy_all():
 def main():
     ap = argparse.ArgumentParser(description="SMBC workshop dashboards")
     ap.add_argument("--profile", default="DEFAULT", help="Databricks CLI profile")
-    ap.add_argument("--warehouse", required=True, help="SQL warehouse ID")
+    ap.add_argument("--warehouse", default="", help="SQL warehouse name or ID (default: pick one you can use)")
     ap.add_argument("--parent", required=True, help="workspace folder for the dashboards")
     ap.add_argument("action", choices=["test", "deploy"])
     a = ap.parse_args()
     workspace_api.use_profile(a.profile)
-    configure(a.warehouse, a.parent)
+    configure(workspace_api.pick_warehouse(a.warehouse)["id"], a.parent)
     if a.action == "test":
         sys.exit(1 if test() else 0)
     deploy_all()

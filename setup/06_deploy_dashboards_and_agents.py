@@ -5,25 +5,27 @@
 # MAGIC Run as a facilitator after `01`–`03` and `05`, on serverless compute. No laptop or CLI is needed: the Databricks
 # MAGIC SDK authenticates as you. It's safe to re-run; anything that already exists in the folder is updated in place.
 # MAGIC
-# MAGIC | Creates or updates | Attendee access |
+# MAGIC Everything runs on an existing SQL warehouse: the one you name, or the first pro or serverless warehouse you can use
+# MAGIC (serverless and running ones first). Nothing here creates a warehouse or changes its permissions.
+# MAGIC
+# MAGIC | Creates or updates | `share_with` gets |
 # MAGIC |---|---|
-# MAGIC | SQL warehouse **SMBC Workshop** (only if it doesn't exist yet) | CAN USE |
 # MAGIC | Dashboard **Credit Committee: APAC exposure (reference)**, published | CAN VIEW |
 # MAGIC | Dashboard **SMBC Workshop: progress board**, published | CAN VIEW |
 # MAGIC | Genie Agent **Credit Risk (reference)**: the Lab 2 model answer | CAN RUN |
 # MAGIC | Genie Agent **Credit Risk (secured demo)**: the governance demo from `05` | CAN RUN |
 # MAGIC | Notebook **Lab workbook**: a read-only copy of `handouts/Lab_Workbook_notebook` | CAN READ |
 # MAGIC
-# MAGIC The facilitator group gets CAN MANAGE on all of them. The default folder is in your home folder rather than
+# MAGIC `share_with` is `users` by default: the built-in group of everyone in this workspace, so no group has to be created.
+# MAGIC The facilitators in `facilitator_emails` get CAN MANAGE. The default folder is in your home folder rather than
 # MAGIC `Shared`, because every user can manage what's in `Shared`.
 
 # COMMAND ----------
 
 dbutils.widgets.text("folder", "", "Folder (blank: <your home folder>/SMBC Workshop)")
-dbutils.widgets.text("warehouse_name", "SMBC Workshop", "SQL warehouse name")
-dbutils.widgets.dropdown("create_warehouse", "yes", ["yes", "no"], "Create the warehouse if it doesn't exist")
-dbutils.widgets.text("attendee_group", "smbc_workshop_attendees", "Attendee group")
-dbutils.widgets.text("facilitator_group", "smbc_workshop_facilitators", "Facilitator group")
+dbutils.widgets.text("warehouse", "", "SQL warehouse name or ID (blank: pick one you can use)")
+dbutils.widgets.text("share_with", "users", "Share with (users: everyone in the workspace)")
+dbutils.widgets.text("facilitator_emails", "", "Other facilitators' emails, comma-separated")
 
 import base64
 import importlib
@@ -45,8 +47,9 @@ workspace_api.use_client(w)
 me = w.current_user.me().user_name
 host = w.config.host.rstrip("/")
 folder = dbutils.widgets.get("folder").strip().rstrip("/") or f"/Workspace/Users/{me}/SMBC Workshop"
-attendees = dbutils.widgets.get("attendee_group").strip()
-facilitators = dbutils.widgets.get("facilitator_group").strip()
+share_with = dbutils.widgets.get("share_with").strip()
+facilitators = [e.strip() for e in dbutils.widgets.get("facilitator_emails").split(",")
+                if e.strip() and e.strip().lower() != me.lower()]
 repo = os.path.dirname(os.getcwd())  # this notebook lives in <repo>/setup
 api("post", "/api/2.0/workspace/mkdirs", {"path": folder})
 print("Folder:", folder)
@@ -57,19 +60,9 @@ print("Folder:", folder)
 
 # COMMAND ----------
 
-name = dbutils.widgets.get("warehouse_name").strip()
-found = [wh for wh in api("get", "/api/2.0/sql/warehouses").get("warehouses", []) if wh["name"] == name]
-if found:
-    warehouse_id = found[0]["id"]
-    print(f"Using warehouse {name} ({warehouse_id}), serverless={found[0].get('enable_serverless_compute')}")
-elif dbutils.widgets.get("create_warehouse") == "yes":
-    # Section 3.4 of the guide: Small, 1-4 clusters, for about 40-60 people. Lengthen auto-stop on the day.
-    warehouse_id = api("post", "/api/2.0/sql/warehouses", {
-        "name": name, "cluster_size": "Small", "min_num_clusters": 1, "max_num_clusters": 4, "auto_stop_mins": 30,
-        "enable_serverless_compute": True, "warehouse_type": "PRO"})["id"]
-    print(f"Created serverless warehouse {name} ({warehouse_id})")
-else:
-    raise RuntimeError(f"No SQL warehouse called '{name}'. Create it (guide section 3.4) or set create_warehouse to yes.")
+warehouse = workspace_api.pick_warehouse(dbutils.widgets.get("warehouse").strip())
+warehouse_id, name = warehouse["id"], warehouse["name"]
+print(f"Using warehouse {name} ({warehouse_id}), serverless={warehouse.get('enable_serverless_compute')}")
 
 # COMMAND ----------
 
@@ -142,17 +135,15 @@ def share(object_type, object_id, principal, level, what):
         print(f"FAIL {what}: {principal} {level} -> {str(err).splitlines()[0][:300]}")
 
 
-share("warehouses", warehouse_id, attendees, "CAN_USE", f"Warehouse {name}")
-share("warehouses", warehouse_id, facilitators, "CAN_MANAGE", f"Warehouse {name}")
-for title, dashboard_id in dashboard_ids.items():
-    share("dashboards", dashboard_id, attendees, "CAN_READ", title)
-    share("dashboards", dashboard_id, facilitators, "CAN_MANAGE", title)
-for title, space_id in agent_ids.items():
-    share("genie", space_id, attendees, "CAN_RUN", title)
-    share("genie", space_id, facilitators, "CAN_MANAGE", title)
+objects = [("dashboards", i, "CAN_READ", title) for title, i in dashboard_ids.items()]
+objects += [("genie", i, "CAN_RUN", title) for title, i in agent_ids.items()]
 if workbook_id:
-    share("notebooks", workbook_id, attendees, "CAN_READ", "Lab workbook")
-    share("notebooks", workbook_id, facilitators, "CAN_MANAGE", "Lab workbook")
+    objects.append(("notebooks", workbook_id, "CAN_READ", "Lab workbook"))
+for object_type, object_id, level, what in objects:
+    if share_with:
+        share(object_type, object_id, share_with, level, what)
+    for facilitator in facilitators:
+        share(object_type, object_id, facilitator, "CAN_MANAGE", what)
 
 # COMMAND ----------
 
@@ -171,8 +162,8 @@ display(spark.createDataFrame(links, "type string, name string, link string"))
 if failed_shares:
     raise RuntimeError(
         f"{len(failed_shares)} permission(s) failed, starting with {failed_shares[0][0]} for {failed_shares[0][1]}: "
-        f"{failed_shares[0][2]}\nCheck that the groups exist and are assigned to this workspace, then re-run this "
-        "notebook (it's safe to re-run).")
+        f"{failed_shares[0][2]}\nCheck the share_with and facilitator_emails settings, then re-run this notebook (it's "
+        "safe to re-run).")
 dbutils.notebook.exit(json.dumps({"links": links}))  # read by 00_master_setup
 
 # COMMAND ----------

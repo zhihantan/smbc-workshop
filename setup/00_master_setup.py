@@ -4,36 +4,37 @@
 # MAGIC
 # MAGIC Run this one notebook to build the whole workshop environment in this workspace. It checks the prerequisites,
 # MAGIC then runs the other setup notebooks in order with the settings at the top, and stops at the first problem with a
-# MAGIC message saying what to fix. It's safe to re-run: every step updates what already exists. It takes about 15 minutes.
+# MAGIC message saying what to fix. It's safe to re-run: every step updates what already exists. It takes 5–15 minutes.
 # MAGIC
 # MAGIC **Before you start** (section 3 of the workshop guide has the details):
 # MAGIC 1. The SAG team has turned on **partner-powered AI features** and allowed **cross-Geo processing** for this workspace.
-# MAGIC 2. The attendee and facilitator groups exist as **account-level** groups (created in the account console or synced
-# MAGIC    from Entra ID) and are assigned to this workspace. Workspace-local groups don't work with Unity Catalog.
-# MAGIC 3. You can create a catalog in the metastore, and you're a **workspace admin** (needed to create the SQL warehouse).
+# MAGIC 2. You can create the `smbc_workshop` catalog, or it already exists and you have `ALL PRIVILEGES` and `MANAGE` on it.
+# MAGIC 3. You can use a pro or serverless **SQL warehouse**: the setup uses the one you name below, or picks one for you.
 # MAGIC 4. This repository is imported as a **Git folder**, and you're running this notebook from its `setup` folder.
 # MAGIC 5. The notebook is attached to **Serverless** compute.
 # MAGIC
-# MAGIC Fill in the settings at the top, then click **Run all**.
+# MAGIC No groups are needed. Attendees need access to the `smbc_workshop` catalog, which an admin grants (guide 3.6);
+# MAGIC the requirement checks at the end show whether they have it.
+# MAGIC
+# MAGIC Every setting is optional. Fill in the ones you need, then click **Run all**.
 # MAGIC
 # MAGIC | Step | Notebook | What it creates |
 # MAGIC |---|---|---|
-# MAGIC | 1 | `01_setup_workspace` | Catalog `smbc_workshop` with its schemas, volumes and ops tables; one schema per attendee; grants; the synthetic data |
+# MAGIC | 1 | `01_setup_workspace` | Catalog `smbc_workshop` with its schemas, volumes and ops tables; the synthetic data; full access for the facilitators |
 # MAGIC | 2 | `02_build_checkpoints` | The save-point tables (the Lab 1 reference solution) |
 # MAGIC | 3 | `03_validate_checkpoints` | Nothing: checks the save-point tables against the answer key |
 # MAGIC | 4 | `05_governance_demo` | The row-filtered, column-masked copy of the facility table |
-# MAGIC | 5 | `06_deploy_dashboards_and_agents` | The **SMBC Workshop** SQL warehouse, two dashboards, two Genie Agents and the lab workbook, shared with both groups |
+# MAGIC | 5 | `06_deploy_dashboards_and_agents` | Two dashboards, two Genie Agents and the lab workbook, on the chosen SQL warehouse, shared with everyone in the workspace |
 # MAGIC | 6 | `07_check_requirements` | Nothing: automated checks of the requirements, including a live question to a Genie Agent |
 
 # COMMAND ----------
 
-dbutils.widgets.text("attendee_group", "smbc_workshop_attendees", "1. Attendee group (account-level)")
-dbutils.widgets.text("facilitator_group", "smbc_workshop_facilitators", "2. Facilitator group (account-level)")
-dbutils.widgets.text("attendee_emails", "", "3. Attendee emails, comma-separated (optional)")
-dbutils.widgets.text("managed_location", "", "4. Managed location (only if CREATE CATALOG asks for one)")
-dbutils.widgets.text("warehouse_name", "SMBC Workshop", "5. SQL warehouse name")
-dbutils.widgets.text("folder", "", "6. Folder for dashboards and agents (blank: <your home folder>/SMBC Workshop)")
-dbutils.widgets.dropdown("generate_data", "yes", ["yes", "no"], "7. Generate the synthetic data")
+dbutils.widgets.text("warehouse", "", "1. SQL warehouse name or ID (blank: pick one you can use)")
+dbutils.widgets.text("facilitator_emails", "", "2. Other facilitators' emails, comma-separated (you're included)")
+dbutils.widgets.text("managed_location", "", "3. Managed location (only if CREATE CATALOG asks for one)")
+dbutils.widgets.text("share_with", "users", "4. Share dashboards, agents and workbook with (users: everyone)")
+dbutils.widgets.text("folder", "", "5. Folder for dashboards and agents (blank: <your home folder>/SMBC Workshop)")
+dbutils.widgets.dropdown("generate_data", "yes", ["yes", "no"], "6. Generate the synthetic data")
 
 import json
 import os
@@ -44,14 +45,11 @@ from databricks.sdk import WorkspaceClient
 
 sys.path.insert(0, os.path.abspath("tools"))
 import workspace_api
-from workspace_api import api
 
 w = WorkspaceClient()
 workspace_api.use_client(w)
 settings = {name: dbutils.widgets.get(name).strip() for name in
-            ("attendee_group", "facilitator_group", "attendee_emails", "managed_location", "warehouse_name", "folder",
-             "generate_data")}
-attendees, facilitators = settings["attendee_group"], settings["facilitator_group"]
+            ("warehouse", "facilitator_emails", "managed_location", "share_with", "folder", "generate_data")}
 
 # COMMAND ----------
 
@@ -67,22 +65,12 @@ try:
 except Exception:
     problems.append("No Unity Catalog metastore is attached to this workspace (guide 3.1, item 1).")
 
-for group in (attendees, facilitators):
-    found = api("get", "/api/2.0/preview/scim/v2/Groups",
-                {"filter": f'displayName eq "{group}"', "attributes": "displayName,meta"}).get("Resources", [])
-    if not found:
-        problems.append(f"Group '{group}' isn't in this workspace. Create it at account level (or sync it from Entra ID) "
-                        "and assign it to this workspace (guide 3.5).")
-    elif found[0].get("meta", {}).get("resourceType") != "Group":
-        problems.append(f"Group '{group}' is workspace-local, and Unity Catalog can only grant privileges to account-level "
-                        "groups. Create it in the account console or sync it from Entra ID (guide 3.5).")
-
-me = api("get", "/api/2.0/preview/scim/v2/Me")
-is_admin = any(g.get("display") == "admins" for g in me.get("groups", []))
-warehouses = [wh["name"] for wh in api("get", "/api/2.0/sql/warehouses").get("warehouses", [])]
-if settings["warehouse_name"] not in warehouses and not is_admin:
-    problems.append(f"There's no SQL warehouse called '{settings['warehouse_name']}', and only a workspace admin can create "
-                    "one. Run this notebook as a workspace admin, or ask one to create the warehouse first (guide 3.4).")
+warehouse = None
+try:
+    warehouse = workspace_api.pick_warehouse(settings["warehouse"])
+    print(f"SQL warehouse: {warehouse['name']} ({warehouse['id']})")
+except workspace_api.ApiError as err:
+    problems.append(str(err))
 
 for path in ("../data/generate_data.py", "tools/dashboards.py", "tools/genie_agents.py"):
     if not os.path.exists(path):
@@ -91,7 +79,7 @@ for path in ("../data/generate_data.py", "tools/dashboards.py", "tools/genie_age
 
 if problems:
     raise RuntimeError("Fix these first, then run this notebook again:\n- " + "\n- ".join(problems))
-print(f"Pre-flight checks passed. Running as {me.get('userName')}{' (workspace admin)' if is_admin else ''}.")
+print(f"Pre-flight checks passed. Running as {w.current_user.me().user_name}.")
 
 # COMMAND ----------
 
@@ -101,19 +89,18 @@ print(f"Pre-flight checks passed. Running as {me.get('userName')}{' (workspace a
 
 # COMMAND ----------
 
-groups = {"attendee_group": attendees, "facilitator_group": facilitators}
-place = {"folder": settings["folder"], "warehouse_name": settings["warehouse_name"]}
+facilitators = {"facilitator_emails": settings["facilitator_emails"]}
+place = {"folder": settings["folder"], "warehouse": warehouse["id"], "share_with": settings["share_with"]}
 steps = [
-    ("01_setup_workspace", "Catalog, schemas, volumes and grants; the synthetic data",
-     {"catalog": "smbc_workshop", "managed_location": settings["managed_location"], "attendee_emails": settings["attendee_emails"],
-      "generate_data": settings["generate_data"], "remove_after": "", **groups}),
+    ("01_setup_workspace", "Catalog, schemas and volumes; the synthetic data; facilitator access",
+     {"catalog": "smbc_workshop", "managed_location": settings["managed_location"], "generate_data": settings["generate_data"],
+      "remove_after": "", **facilitators}),
     ("02_build_checkpoints", "Save-point tables (the Lab 1 reference solution)", {}),
     ("03_validate_checkpoints", "Save-point tables checked against the answer key", {"catalog": "smbc_workshop"}),
-    ("05_governance_demo", "Row filter and column mask for the governance demo", groups),
-    ("06_deploy_dashboards_and_agents", "SQL warehouse, dashboards, Genie Agents and lab workbook",
-     {**place, "create_warehouse": "yes", **groups}),
+    ("05_governance_demo", "Row filter and column mask for the governance demo", facilitators),
+    ("06_deploy_dashboards_and_agents", "Dashboards, Genie Agents and lab workbook", {**place, **facilitators}),
     ("07_check_requirements", "Requirement checks, including a live Genie Agent question",
-     {**place, "ask_genie": "yes", "raise_on_failure": "no", **groups}),
+     {**place, **facilitators, "ask_genie": "yes", "raise_on_failure": "no"}),
 ]
 
 outputs, done = {}, []
@@ -146,18 +133,22 @@ failed = [c for c in checks if c[2] == "FAIL"]
 if failed:
     raise RuntimeError(f"Setup finished, but {len(failed)} requirement check(s) failed: "
                        + "; ".join(f"{c[1]} ({c[4]})" for c in failed))
-print(f"Setup complete: {len(checks)} requirement checks, none failed.")
+warned = [c[1] for c in checks if c[2] == "WARN"]
+print(f"Setup complete: {len(checks)} requirement checks, none failed"
+      + (f"; {len(warned)} warning(s) to review: {', '.join(warned)}." if warned else "."))
+print(f"Tell attendees to use the SQL warehouse '{warehouse['name']}'.")
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## What's left (by hand)
 # MAGIC
-# MAGIC 1. **Genie One homepage** (workspace admin): add the welcome message and pin the reference dashboard and the
+# MAGIC 1. **Attendee access:** if the *Attendee access* check warned, an admin grants attendees access to `smbc_workshop`
+# MAGIC    with the statements in guide 3.6. Attendees also need CAN USE on the SQL warehouse named above.
+# MAGIC 2. **Genie One homepage** (workspace admin): add the welcome message and pin the reference dashboard and the
 # MAGIC    reference Genie Agent (guide 3.3). This is done in the UI.
-# MAGIC 2. **Business-user demo account:** one user with **Consumer access** only (guide 3.5).
-# MAGIC 3. **Smoke tests** (guide 3.8) as a test attendee, on an SMBC laptop, on the SMBC network. They cover what this
+# MAGIC 3. **Business-user demo account:** one user with **Consumer access** only (guide 3.5).
+# MAGIC 4. **Smoke tests** (guide 3.8) as a test attendee, on an SMBC laptop, on the SMBC network. They cover what this
 # MAGIC    notebook can't: sign-in and network, Lakeflow Designer and its Genie Code prompts, Excel drag-and-drop, Genie
 # MAGIC    Code in notebooks, agent mode and Genie One.
-# MAGIC 4. **Late registrations:** add their emails to setting 3 and run this notebook again, with setting 7 set to `no`.
 # MAGIC 5. **Before the workshop starts:** run `08_reset_or_teardown` → `reset_progress` so the progress board starts at zero.

@@ -13,13 +13,19 @@
 # MAGIC
 # MAGIC **1. Sign in.** Open `<workspace URL>` in Microsoft Edge or Google Chrome and sign in with your SMBC account.
 # MAGIC
-# MAGIC **2. Check in.** Open **SQL Editor**, choose the **SMBC Workshop** warehouse, paste this line and click **Run**. Change `DA` to `DE` if you're a data engineer.
+# MAGIC **2. Check in.** Open **SQL Editor**, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click **Run**. It checks you in and creates your schema for Lab 1. Change `DA` to `DE` if you're a data engineer.
 # MAGIC
 # MAGIC ```sql
-# MAGIC INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC -- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+# MAGIC BEGIN
+# MAGIC   DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+# MAGIC   INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC   CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+# MAGIC   SELECT 'smbc_workshop.' || my_schema AS your_schema;
+# MAGIC END
 # MAGIC ```
 # MAGIC
-# MAGIC **3. Find your schema.** Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
+# MAGIC **3. Your schema.** The check-in shows its name. Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
 # MAGIC
 # MAGIC **4. Getting help.** Turn your card to red, or raise a hand, and a helper will come to you.
 # MAGIC
@@ -28,8 +34,13 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Check in. Change 'DA' to 'DE' if you're a data engineer.
-# MAGIC INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC -- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+# MAGIC BEGIN
+# MAGIC   DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+# MAGIC   INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC   CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+# MAGIC   SELECT 'smbc_workshop.' || my_schema AS your_schema;
+# MAGIC END
 
 # COMMAND ----------
 
@@ -95,7 +106,7 @@
 # MAGIC %md
 # MAGIC ### Core path
 # MAGIC
-# MAGIC **0. Find your schema (1 min).** In **Catalog Explorer**, open `smbc_workshop`. Your schema is named after your email address, for example `jane_tan`. If you don't have one, run `CREATE SCHEMA smbc_workshop.<your_name>;` in the SQL editor.
+# MAGIC **0. Find your schema (1 min).** Your check-in created it and showed its name: the part of your email address before the @, for example `jane_tan`. Find it in **Catalog Explorer** → `smbc_workshop`. Not there? Run the check-in block (A.1) again.
 # MAGIC
 # MAGIC **1. Start a visual data prep (1 min).** Click **+ New → Visual data prep**. Rename the tab to `Monday exposure report`. In the compute picker at the top right, choose **Serverless**.
 # MAGIC
@@ -197,7 +208,7 @@
 # MAGIC **2. Create a Genie Agent (5 min).**
 # MAGIC - Click **Genie Agents → New**, select the two checkpoint gold tables, and click **Create**.
 # MAGIC - Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.
-# MAGIC - In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to **SMBC Workshop**.
+# MAGIC - In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to the SQL warehouse you checked in with.
 # MAGIC - Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).
 # MAGIC
 # MAGIC **3. Ask, and check the SQL (5 min).** Try *"Which counterparty groups are closest to their limits?"* and *"Show exposure in yen by booking branch at the latest month end."* Open the generated SQL for each answer. Trust, but verify.
@@ -276,8 +287,13 @@
 # MAGIC ### A.1 Check-in and checkpoint queries
 # MAGIC
 # MAGIC ```sql
-# MAGIC -- Check-in (change 'DA' to 'DE' if you're a data engineer)
-# MAGIC INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC -- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+# MAGIC BEGIN
+# MAGIC   DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+# MAGIC   INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+# MAGIC   CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+# MAGIC   SELECT 'smbc_workshop.' || my_schema AS your_schema;
+# MAGIC END
 # MAGIC
 # MAGIC -- Lab 2 checkpoint
 # MAGIC INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group name>', current_timestamp();
@@ -456,7 +472,7 @@
 # MAGIC |---|---|---|
 # MAGIC | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
 # MAGIC | Genie Code prompts in Designer or agent mode are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
-# MAGIC | Can't see the `landing` volume | Missing `READ VOLUME` grant | Ask a facilitator |
+# MAGIC | The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 # MAGIC | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
 # MAGIC | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
 # MAGIC | Your total is higher than the checkpoint | Duplicates not removed (customer master or the re-sent Bangkok extract) | Lab 1, steps 3 and 6 |

@@ -6,19 +6,26 @@
 # MAGIC different, correct answers. Works on a **copy** of the gold table so participants' own Genie Agents are
 # MAGIC unaffected.
 # MAGIC
-# MAGIC 1. Run this notebook after `02_build_checkpoints`. The facilitator group must be an account-level group: the
-# MAGIC    row filter uses `is_account_group_member()`, which doesn't recognise workspace-local groups.
+# MAGIC 1. Run this notebook after `02_build_checkpoints`. The facilitators are you plus anyone in `facilitator_emails`;
+# MAGIC    no groups are needed. Re-run it to change the list.
 # MAGIC 2. `06_deploy_dashboards_and_agents` then creates the Genie Agent **Credit Risk (secured demo)** on this table and
-# MAGIC    shares it with the attendee group.
-# MAGIC 3. On the day: ask *"What is our total exposure by booking branch at the latest month end?"* as yourself, then
+# MAGIC    shares it with everyone in the workspace.
+# MAGIC 3. On the day: ask *"What is our total exposure by booking branch at the latest month end?"* as a facilitator, then
 # MAGIC    have a volunteer attendee ask the same question on the projector. They see Singapore only, with masked names.
+# MAGIC
+# MAGIC The filter and mask run with the function owner's rights, except `session_user()`, which is the person asking. So
+# MAGIC attendees need no privilege on the functions, only `SELECT` on the table.
 
 # COMMAND ----------
 
-dbutils.widgets.text("attendee_group", "smbc_workshop_attendees", "Attendee group")
-dbutils.widgets.text("facilitator_group", "smbc_workshop_facilitators", "Facilitator group")
-attendees = dbutils.widgets.get("attendee_group").strip()
-facilitators = dbutils.widgets.get("facilitator_group").strip().replace("'", "")  # goes inside a SQL string literal
+dbutils.widgets.text("facilitator_emails", "", "Other facilitators' emails, comma-separated (you're included)")
+me = spark.sql("SELECT session_user()").first()[0]
+facilitators = []
+for email in [me] + dbutils.widgets.get("facilitator_emails").split(","):
+    email = email.strip().lower().replace("'", "")  # goes inside a SQL string literal
+    if email and email not in facilitators:
+        facilitators.append(email)
+is_facilitator = "lower(session_user()) IN (" + ", ".join(f"'{f}'" for f in facilitators) + ")"
 table = "smbc_workshop.checkpoint.gold_facility_exposure_secured"
 
 spark.sql(f"""CREATE OR REPLACE TABLE {table}
@@ -29,21 +36,19 @@ spark.sql(f"""CREATE OR REPLACE TABLE {table}
 spark.sql(f"""CREATE OR REPLACE FUNCTION smbc_workshop.ops.singapore_branch_only(booking_branch STRING)
   RETURNS BOOLEAN
   COMMENT 'Row filter for the governance demo'
-  RETURN is_account_group_member('{facilitators}') OR booking_branch = 'SIN'""")
+  RETURN {is_facilitator} OR booking_branch = 'SIN'""")
 
 # Column mask: facilitators see borrower names; everyone else sees the first word only.
 spark.sql(f"""CREATE OR REPLACE FUNCTION smbc_workshop.ops.mask_borrower_name(name STRING)
   RETURNS STRING
   COMMENT 'Column mask for the governance demo'
-  RETURN CASE WHEN is_account_group_member('{facilitators}') THEN name
+  RETURN CASE WHEN {is_facilitator} THEN name
               ELSE concat(split(name, ' ')[0], ' ••••') END""")
 
 spark.sql(f"ALTER TABLE {table} SET ROW FILTER smbc_workshop.ops.singapore_branch_only ON (booking_branch)")
 for column in ("counterparty_name", "counterparty_name_local"):
     spark.sql(f"ALTER TABLE {table} ALTER COLUMN {column} SET MASK smbc_workshop.ops.mask_borrower_name")
-for function in ("singapore_branch_only", "mask_borrower_name"):
-    spark.sql(f"GRANT EXECUTE ON FUNCTION smbc_workshop.ops.{function} TO `{attendees}`")
-print(f"{table} is ready: {facilitators} sees every branch; everyone else sees SIN only, with names masked")
+print(f"{table} is ready: {', '.join(facilitators)} see every branch; everyone else sees SIN only, with names masked")
 
 # COMMAND ----------
 

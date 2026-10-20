@@ -126,13 +126,13 @@ Times are relative to the start time.
 | 15 Oct | Dataset generated and validated. Checkpoint tables, dashboards and Genie Agents built and tested in the Databricks test workspace (test report) | ✅ |
 | Fri 16 Oct | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
 | Mon 19 Oct | Internal dry run (section 6) | ☐ |
-| Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed". Then set up the Genie One homepage (guide §3.3) | ☐ |
+| Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
 | Tue 20 Oct | Smoke tests (guide §3.8) on an SMBC laptop, on the SMBC network, with 2–3 SMBC volunteers | ☐ |
-| Tue 20 Oct | Send the pre-work email (guide §5). Agree the executive briefing with Richard and Peter (section 7) | ☐ |
+| Tue 20 Oct | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 7) | ☐ |
 | Wed 21 Oct | Freeze the content. Set up the quiz (Quiz (Part 2)), the polls and the survey (Polls and survey (Part 2)) in Slido, and test them on a phone | ☐ |
 | Wed 21 Oct | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 5) | ☐ |
-| Wed 21 Oct | Late registrations: add their emails to `00_master_setup` and re-run it, with **Generate the synthetic data** set to `no`. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
-| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the SQL warehouse and lengthen its auto-stop for the day | ☐ |
+| Wed 21 Oct | Late registrations: check they can sign in and have access to `smbc_workshop`; their check-in creates their schema. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
+| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day | ☐ |
 | Day, −30 min | Doors open; check-in desk opens | ☐ |
 
 ## 2.3 Presenter laptop: tabs to open before the start
@@ -173,7 +173,7 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 | Nobody can reach the workspace | Present from the Databricks test workspace; people follow on the projector in pairs; play the recordings |
 | Designer's Genie Code prompts don't respond | Build the step by hand from the actions in Lab 1, step 4, and check cross-Geo processing (guide §3.2) |
 | Genie Agents error or are slow | Lab 2 carries on with the dashboard, Genie in pairs; check cross-Geo processing and partner-powered AI (`07_check_requirements` tests both) |
-| Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses |
+| Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses, or ask its owner to |
 | Lab 1 overruns | At 1:15 move everyone to the checkpoint tables; Lab 2 doesn't depend on Lab 1 |
 | AI output differs from the rehearsal | Say so: it's why you check the SQL. Show the recording if the difference matters |
 | Slido is blocked on the SMBC network | Phones on mobile data; or read the questions from `quiz.md` and take answers by show of hands |
@@ -237,6 +237,7 @@ Agree these by Tuesday 20 October. Fifteen minutes in three parts.
 - **Total too low:** only one date format was parsed, or `US$`, `S$` or `RMB` wasn't mapped. Look at the join's Left unmatched output.
 - **Months missing after the FX join:** joined on the exact date; join on currency and month.
 - **Permission error on Output:** the output location isn't the person's own schema.
+- **Permission error at check-in:** the person doesn't have access to `smbc_workshop` yet (guide §3.6); tell the lab lead.
 - **Genie reads FY2026 as a calendar year:** that's the point of step 4; add the fiscal-year instruction (A.4).
 
 **Catching up:** anyone can carry on from `smbc_workshop.checkpoint`.
@@ -450,13 +451,19 @@ Say on the survey how emails will be used (the raffle draw and the recap email o
 
 **1. Sign in.** Open `<workspace URL>` in Microsoft Edge or Google Chrome and sign in with your SMBC account.
 
-**2. Check in.** Open **SQL Editor**, choose the **SMBC Workshop** warehouse, paste this line and click **Run**. Change `DA` to `DE` if you're a data engineer.
+**2. Check in.** Open **SQL Editor**, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click **Run**. It checks you in and creates your schema for Lab 1. Change `DA` to `DE` if you're a data engineer.
 
 ```sql
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 ```
 
-**3. Find your schema.** Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
+**3. Your schema.** The check-in shows its name. Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
 
 **4. Getting help.** Turn your card to red, or raise a hand, and a helper will come to you.
 
@@ -512,7 +519,7 @@ The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and
 
 ### Core path
 
-**0. Find your schema (1 min).** In **Catalog Explorer**, open `smbc_workshop`. Your schema is named after your email address, for example `jane_tan`. If you don't have one, run `CREATE SCHEMA smbc_workshop.<your_name>;` in the SQL editor.
+**0. Find your schema (1 min).** Your check-in created it and showed its name: the part of your email address before the @, for example `jane_tan`. Find it in **Catalog Explorer** → `smbc_workshop`. Not there? Run the check-in block (A.1) again.
 
 **1. Start a visual data prep (1 min).** Click **+ New → Visual data prep**. Rename the tab to `Monday exposure report`. In the compute picker at the top right, choose **Serverless**.
 
@@ -594,7 +601,7 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 **2. Create a Genie Agent (5 min).**
 - Click **Genie Agents → New**, select the two checkpoint gold tables, and click **Create**.
 - Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.
-- In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to **SMBC Workshop**.
+- In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to the SQL warehouse you checked in with.
 - Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).
 
 **3. Ask, and check the SQL (5 min).** Try *"Which counterparty groups are closest to their limits?"* and *"Show exposure in yen by booking branch at the latest month end."* Open the generated SQL for each answer. Trust, but verify.
@@ -658,8 +665,13 @@ INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group
 ### A.1 Check-in and checkpoint queries
 
 ```sql
--- Check-in (change 'DA' to 'DE' if you're a data engineer)
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 
 -- Lab 2 checkpoint
 INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group name>', current_timestamp();
@@ -813,7 +825,7 @@ END
 |---|---|---|
 | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
 | Genie Code prompts in Designer or agent mode are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
-| Can't see the `landing` volume | Missing `READ VOLUME` grant | Ask a facilitator |
+| The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
 | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
 | Your total is higher than the checkpoint | Duplicates not removed (customer master or the re-sent Bangkok extract) | Lab 1, steps 3 and 6 |
@@ -834,19 +846,21 @@ END
 
 **Already confirmed:** the workshop uses a new, dedicated workspace with **serverless compute enabled**, and **Genie has no question-rate limit** to plan around. The **SAG team owns the cross-Geo processing setting** (item 5).
 
+**No groups are needed.** The setup shares everything with the workspace's built-in `users` group (everyone in the workspace) and recognises facilitators by email. Attendees need access to the `smbc_workshop` catalog (3.6) and to a SQL warehouse (3.4).
+
 ### 3.1 Checklist
 
 | # | Requirement | Why the workshop needs it | Where it's set | Who | Default | Status |
 |---|---|---|---|---|---|---|
 | 1 | Unity Catalog metastore attached to the workspace | Everything: Designer, Genie Agents, lineage | Account console | Account admin | New workspaces are usually enabled automatically | ☐ |
 | 2 | Serverless compute | Designer, notebooks, Jobs, Genie Code | Already enabled | Workspace admin | | ✅ |
-| 3 | A serverless SQL warehouse for the workshop | Dashboards, Genie Agents, SQL editor | SQL Warehouses → Create, or `06_deploy_dashboards_and_agents` creates it | Workspace admin | | ☐ |
+| 3 | A pro or serverless **SQL warehouse** that attendees can use | Dashboards, Genie Agents, SQL editor | Any existing warehouse, for example the Serverless Starter Warehouse (3.4) | Workspace admin | | ☐ |
 | 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts | 3.2 and 3.3 | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
 | 5 | **Cross-Geo processing** allowed | In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features | 3.2 | Account admin (**SAG team**) | Allowed for workspaces outside the US and EU without the compliance security profile | ☐ |
 | 6 | Excel file support | Dragging the limits spreadsheet onto the Designer canvas | Smoke test 5; if it fails, check the workspace **Previews** page | Workspace admin | | ☐ |
-| 7 | Attendee and facilitator groups, with entitlements | Signing in and building | 3.5 | Account or workspace admin | | ☐ |
+| 7 | Attendees can sign in, with **Workspace access** and **Databricks SQL access**; no groups needed | Signing in and building | 3.5 | Workspace admin | On for workspace users | ☐ |
 | 8 | One test user with **Consumer access** only | Showing the business-user view in Genie One | 3.5 | Workspace admin | | ☐ |
-| 9 | Workshop catalog, volumes, schemas and grants | The labs | Setup notebook (section 4) | Metastore admin or catalog owner | | ☐ |
+| 9 | The `smbc_workshop` catalog, and attendee access to it | The labs | The setup notebook (section 4), then the grants in 3.6 | Catalog owner or metastore admin | | ☐ |
 | 10 | Access from SMBC laptops on the venue network | Everything | 3.7 | SMBC network team | | ☐ |
 | 11 | *(Optional)* Delivery of dashboard subscription emails to SMBC addresses | A Lab 2 stretch exercise | SMBC mail gateway | SMBC messaging team | | ☐ |
 
@@ -892,31 +906,41 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 
 | Item | Recommendation |
 |---|---|
-| Serverless SQL warehouse | Name it **SMBC Workshop**, size Small or Medium, minimum 1 and maximum 4 clusters for about 40–60 people. Set a longer auto-stop on the day. Give the attendee group **CAN USE**. Genie Agents need a pro or serverless warehouse; serverless is recommended. |
+| SQL warehouse | Any pro or serverless SQL warehouse that attendees can use (**CAN USE**), for example the workspace's **Serverless Starter Warehouse**. The setup uses the one you name, or picks the first one you can use, and prints its name: give that name to attendees. For about 40–60 people, a Small or Medium serverless warehouse with up to 4 clusters is comfortable; if you manage it, set a longer auto-stop on the day. Genie Agents need pro or serverless; serverless is recommended. |
 | Serverless compute for notebooks, Jobs and Designer | Already on. Check that a test attendee can pick **Serverless** in Designer's compute picker; Designer needs CAN USE on at least one compute resource. |
 
 ### 3.5 Identity and entitlements
 
 | Who | Entitlements | Notes |
 |---|---|---|
-| Attendees (group `smbc_workshop_attendees`) | **Workspace access** and **Databricks SQL access** | Databricks SQL access is required to create Genie Agents and dashboards; workspace access is required for Designer and notebooks. |
-| Facilitators (group `smbc_workshop_facilitators`) | Workspace admin (recommended) | Runs the setup notebooks, owns the catalog, runs the governance demo. |
+| Attendees (any workspace users: no group is needed) | **Workspace access** and **Databricks SQL access** (on for workspace users by default) | Databricks SQL access is required to create Genie Agents and dashboards; workspace access is required for Designer and notebooks. |
+| Facilitators | Workspace admin (recommended) | Run the setup notebooks and the governance demo. List the other facilitators' emails in the setup's `facilitator_emails` setting: they get full access to the catalog, see every branch in the governance demo, and can edit the reference dashboards and Genie Agents. |
 | Genie One demo user (one account) | **Consumer access** only | Shows what a business user sees: dashboards and Genie Agents, no notebooks or compute. |
 
-Sign-in is through SSO (Microsoft Entra ID). **The two groups must be account-level groups**, synced from Entra ID through SCIM or created in the account console, and assigned to the workshop workspace. Groups created inside the workspace are workspace-local: Unity Catalog can't grant them privileges, and `is_account_group_member()` (used by the governance demo) doesn't recognise them. The setup notebook stops with an explicit error if a grant fails.
+Sign-in is through SSO (Microsoft Entra ID). **No groups need to be created.** The setup shares the dashboards, Genie Agents and lab workbook with the workspace's built-in `users` group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set `share_with` in `00_master_setup`.
 
 ### 3.6 Unity Catalog objects
 
-The setup notebook creates these objects. Creating a catalog needs the `CREATE CATALOG` privilege, and on some metastores a managed storage location.
+The setup notebook creates these objects. Creating a catalog needs the `CREATE CATALOG` privilege, and on metastores without root storage a managed location: set it in the setup, or create `smbc_workshop` yourself in Catalog Explorer, which can use Default Storage. If the catalog already exists, whoever runs the setup needs `ALL PRIVILEGES` and `MANAGE` on it.
 
-| Object | Contents | Attendee privileges |
+| Object | Contents | What attendees need |
 |---|---|---|
-| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` and `workshop_date` (any tag a governed tag policy rejects is skipped) | `USE CATALOG` |
+| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` and `workshop_date` (any tag a governed tag policy rejects is skipped) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
 | Volume `smbc_workshop.raw.landing` | Raw source extracts and the limits spreadsheet | `READ VOLUME` |
-| Volume `smbc_workshop.raw.facilitator` | Answer key | none |
+| Volume `smbc_workshop.raw.facilitator` | Answer key | Nothing |
 | Schema `smbc_workshop.checkpoint` | Save-point tables (Lab 1 reference solution) | `USE SCHEMA`, `SELECT` |
-| Schema `smbc_workshop.ops` | Check-in and lab-answer tables | `SELECT`, `MODIFY` on those two tables |
-| One schema per attendee, e.g. `smbc_workshop.jane_tan` | Each person's Lab 1 output | `ALL PRIVILEGES` |
+| Schema `smbc_workshop.ops` | Check-in and lab-answer tables | `USE SCHEMA`, `MODIFY` |
+| One schema per attendee, e.g. `smbc_workshop.jane_tan` | Each person's Lab 1 output; their check-in block creates it | They own it |
+
+**Giving attendees access.** The setup grants attendees nothing. Once it has run, the catalog owner or a metastore admin runs these three statements. `account users` is everyone in the account; use an existing group instead if you prefer.
+
+```sql
+GRANT USE CATALOG, USE SCHEMA, SELECT, CREATE SCHEMA ON CATALOG smbc_workshop TO `account users`;
+GRANT READ VOLUME ON VOLUME smbc_workshop.raw.landing TO `account users`;
+GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
+```
+
+Granting `READ VOLUME` on the landing volume only keeps the answer key private. Attendees need no privileges on the governance demo's functions, because row filters and column masks run with their owner's rights. `07_check_requirements` reports whether attendees have everything they need.
 
 ### 3.7 Network and devices
 
@@ -931,7 +955,7 @@ Run these as a **test attendee** (not an admin), **on an SMBC laptop, on the SMB
 
 | # | Test | Expected result | Proves |
 |---|---|---|---|
-| 1 | Sign in through SSO; open the SQL editor on **SMBC Workshop**; run the check-in query (A.1) | One row inserted | Access, entitlements, warehouse, grants |
+| 1 | Sign in through SSO; open the SQL editor on the workshop's SQL warehouse; run the check-in block (A.1) | It shows your schema, e.g. `smbc_workshop.jane_tan` | Access, entitlements, warehouse, catalog access |
 | 2 | **+ New → Visual data prep**; add a Source from `smbc_workshop.raw.landing/facilities` | Rows preview | Designer, serverless, volume grant |
 | 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code agentic) |
 | 4 | Add an **Output** to your own schema and **Run**; click **Schedule** | Table written; a job created | Schema grants, Jobs |
@@ -971,32 +995,34 @@ Points the documentation makes that risk and technology reviewers usually ask ab
 
 The scripts are in this repository. Import it into the workspace as a **Git folder** so the notebooks can find the data generator and the deployment tools. Everything runs inside the workspace on serverless compute, so no laptop or CLI is needed.
 
-**One notebook does it all.** Open `setup/00_master_setup` and fill in its settings:
-- the two groups;
-- the attendee emails, if you know them;
-- a managed location, only if creating a catalog asks for one.
+**One notebook does it all.** Open `setup/00_master_setup`. Every setting is optional:
+- a SQL warehouse to use (blank: the first pro or serverless warehouse you can use, serverless and running ones first);
+- the other facilitators' emails (you're always included);
+- a managed location, only if creating a catalog asks for one;
+- who to share the dashboards, Genie Agents and lab workbook with (default `users`: everyone in the workspace).
 
-Then attach it to **Serverless** and click **Run all**. Before it creates anything, it checks the prerequisites that most often break a setup: that Unity Catalog is attached, that both groups exist and are account-level, and that you can create the SQL warehouse. Then it runs steps 2–6 and 8 below in order. It finishes with links to everything it created and the requirement checks. In testing it took about 5 minutes, and it's safe to re-run. It needs a workspace admin who can create a catalog. Steps 7 and 9 are done by hand.
+Then attach it to **Serverless** and click **Run all**. Before it creates anything, it checks that Unity Catalog is attached and that you can run queries on the SQL warehouse. Then it runs steps 2–6 and 9 below in order, and finishes with links to everything it created, the requirement checks, and the name of the warehouse to give attendees. In testing it took about 5 minutes, and it's safe to re-run. It needs someone who can create the `smbc_workshop` catalog, or who already has `ALL PRIVILEGES` and `MANAGE` on it; no groups are needed. Steps 7, 8 and 10 are done by hand.
 
 You can also run the notebooks one at a time, in this order; for example, to repeat a single step.
 
 | Step | Notebook | Who | Time |
 |---|---|---|---|
 | 1 | *(Optional, local)* `python data/generate_data.py --out data/output`, then `python data/validate_data.py --data data/output` (needs pandas) | Facilitator | 1 min |
-| 2 | `setup/01_setup_workspace`: creates the catalog, schemas, volumes, ops tables, per-attendee schemas and grants, and generates the data into the landing volume. Set the widgets: groups, and attendee emails if known. | Facilitator with catalog rights | 3 min |
+| 2 | `setup/01_setup_workspace`: creates the catalog, schemas, volumes and ops tables, generates the data into the landing volume, and gives the facilitators `ALL PRIVILEGES` and `MANAGE` on the catalog | Facilitator who can create the catalog | 3 min |
 | 3 | `setup/02_build_checkpoints` (SQL): builds the bronze, silver and gold save-point tables | Facilitator | 2 min |
 | 4 | `setup/03_validate_checkpoints`: compares the checkpoint tables with the answer key; every row must say PASS | Facilitator | 1 min |
 | 5 | `setup/05_governance_demo`: row-filter and column-mask demo table | Facilitator | 2 min |
-| 6 | `setup/06_deploy_dashboards_and_agents`: creates the **SMBC Workshop** SQL warehouse if it doesn't exist (3.4); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the participants' **Lab workbook** notebook; and shares all of them with the attendee and facilitator groups. Creating the warehouse needs workspace admin rights. | Facilitator (workspace admin) | 5 min |
-| 7 | Set up the Genie One homepage (3.3) | Workspace admin | 5 min |
-| 8 | `setup/07_check_requirements`: automated checks of the requirements in section 3, including whether the groups are account-level and a live question to the reference Genie Agent. Every row should say PASS. | Facilitator | 2 min |
-| 9 | Run the smoke tests (3.8) | Facilitator with an SMBC volunteer | 30 min |
+| 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse (3.4); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the participants' **Lab workbook** notebook; and shares all of them with everyone in the workspace | Facilitator | 5 min |
+| 7 | Give attendees access to `smbc_workshop`: the three grants in 3.6 | Catalog owner or metastore admin | 1 min |
+| 8 | Set up the Genie One homepage (3.3) | Workspace admin | 5 min |
+| 9 | `setup/07_check_requirements`: automated checks of the requirements in section 3, including attendee access and a live question to the reference Genie Agent. Every row should say PASS; the attendee-access check warns until step 7 is done, so run it again afterwards. | Facilitator | 2 min |
+| 10 | Run the smoke tests (3.8) | Facilitator with an SMBC volunteer | 30 min |
 
 Between a dry run and the workshop, `setup/08_reset_or_teardown` empties the progress board and drops attendee schemas; after the workshop it tears everything down. It only lists what it would change until you set `dry_run` to `no`.
 
 The tools behind step 6 (`setup/tools/dashboards.py` and `genie_agents.py`) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the `starter` agent, which has no fiscal-year instruction.
 
-The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running `00_master_setup` is safe, for example after adding late registrations: add their emails and set **Generate the synthetic data** to `no`.
+The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running `00_master_setup` is safe. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.
 
 ---
 
@@ -1009,12 +1035,19 @@ Send on **Tuesday 20 October**:
 > Hi all, we're looking forward to seeing you on Thursday 22 October. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:
 >
 > 1. Open **`<workspace URL>`** in Microsoft Edge or Google Chrome on the laptop you'll bring, and sign in with your SMBC account.
-> 2. Open **SQL Editor**, choose the **SMBC Workshop** warehouse, paste the line below and click **Run**:
->    `INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();`
->    (Change `DA` to `DE` if you're a data engineer.)
+> 2. Open **SQL Editor**, choose the **`<warehouse name>`** SQL warehouse, paste the check-in block from the end of this email and click **Run**. It checks you in and creates your schema for the labs. (Change `DA` to `DE` if you're a data engineer.)
 > 3. If anything doesn't work, reply to this email. We'll also have a help desk open 30 minutes before the start.
 >
 > Please bring your laptop and charger, and your phone for the quiz. No preparation or software installation is needed. All workshop data is synthetic.
+>
+> Check-in block:
+>
+>     BEGIN
+>       DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+>       INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+>       CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+>       SELECT 'smbc_workshop.' || my_schema AS your_schema;
+>     END
 
 ---
 
@@ -1037,7 +1070,9 @@ Send on **Tuesday 20 October**:
 *0:00 · 10 min*
 
 - Most people should already be signed in from the pre-work email; this slot only confirms everyone is in.
-- The check-in line writes one row to smbc_workshop.ops.checkin, and the progress board counts check-ins live. Put the board on the second screen.
+- Fill in the warehouse name that 00_master_setup printed at the end.
+- The check-in block writes one row to smbc_workshop.ops.checkin and creates the attendee's Lab 1 schema; the progress board shows both live. Put the board on the second screen.
+- A permission error means the person doesn't have access to smbc_workshop yet (guide 3.6): a facilitator fixes it.
 - Run the Slido poll while people sign in: Excel, SQL, Python, Power BI, ADF or Synapse, something else. It shows the room's mix of tools.
 - Red card up: a helper comes over. Pair anyone who is still blocked with a neighbour so they don't miss Lab 1.
 
@@ -1355,7 +1390,7 @@ Helpers, watch for:
 
 *2:35 · 3 min*
 
-- The demo agent "Credit Risk (secured demo)" sits on a copy of the facility table with a row filter (Singapore branch only, unless you're in the facilitator group) and a mask on borrower names.
+- The demo agent "Credit Risk (secured demo)" sits on a copy of the facility table with a row filter (Singapore branch only, unless you're on the facilitator list) and a mask on borrower names.
 - A facilitator and a volunteer ask the same question on screen.
 - In testing, the facilitator saw all 12 branches; the attendee saw SIN only, with names masked.
 

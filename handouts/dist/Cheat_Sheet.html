@@ -22,7 +22,7 @@ header h1 { font-size: 15pt; margin: 0; line-height: 1.15; }
 header p { margin: 0.8mm 0 0; font-size: 8.4pt; color: #D7E0E3; }
 header .tag { font-size: 7.6pt; text-align: right; color: #D7E0E3; }
 main { display: grid; grid-template-columns: 1fr 1fr; column-gap: 5mm; margin-top: 3.6mm; }
-section { margin: 0 0 3.6mm; break-inside: avoid; }
+section { margin: 0 0 3.2mm; break-inside: avoid; }
 h2 { font-size: 10pt; margin: 0 0 1.4mm; padding-bottom: 0.8mm; border-bottom: 1px solid var(--lava); }
 h2 .n { display: inline-block; min-width: 4.2mm; height: 4.2mm; line-height: 4.2mm; border-radius: 2.1mm; background: var(--lava);
         color: #fff; text-align: center; font-size: 7.4pt; margin-right: 1.4mm; vertical-align: 0.3mm; }
@@ -59,24 +59,27 @@ footer { margin-top: 1mm; padding-top: 1.6mm; border-top: 1px solid var(--rule);
 <div>
   <section><h2><span class="n">1</span>Sign in</h2>
     <div class="signin"><div class="qr placeholder">QR code<br>for the<br>workspace</div><div><div class="url">&lt;workspace URL&gt;</div>
-      <p>Microsoft Edge or Google Chrome; sign in with your SMBC account. Warehouse: <b>SMBC Workshop</b>.</p></div></div>
+      <p>Microsoft Edge or Google Chrome; sign in with your SMBC account.</p></div></div>
   </section>
   <section><h2><span class="n">2</span>Check in</h2>
-    <p>SQL Editor → <b>SMBC Workshop</b> → paste and <b>Run</b>. Use <code>'DE'</code> if you're a data engineer.</p>
-    <pre><code>INSERT INTO smbc_workshop.ops.checkin
-SELECT current_user(), &#x27;DA&#x27;, current_timestamp();</code></pre>
-  </section>
-  <section><h2><span class="n">3</span>Your schema</h2>
-    <p><code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email before the @, in lower case, other characters
-    replaced by <code>_</code>. <code>jane.tan@…</code> → <code>jane_tan</code></p>
+    <p>SQL Editor → the workshop's warehouse → paste, <b>Run</b> (<code>'DE'</code> for engineers). It shows your Lab 1 schema.</p>
+    <pre><code>BEGIN
+  DECLARE my_schema STRING DEFAULT
+      regexp_replace(lower(split_part(current_user(),
+      &#x27;@&#x27;, 1)), &#x27;[^a-z0-9_]&#x27;, &#x27;_&#x27;);
+  INSERT INTO smbc_workshop.ops.checkin
+  SELECT current_user(), &#x27;DA&#x27;, current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS
+      IDENTIFIER(&#x27;smbc_workshop.&#x27; || my_schema);
+  SELECT &#x27;smbc_workshop.&#x27; || my_schema AS your_schema;
+END</code></pre>
   </section>
   <section><h2>Lab 1 · Build the trusted exposure table</h2>
-    <ol class="steps"><li><b>Find your schema</b> in Catalog Explorer → <code>smbc_workshop</code>.</li><li><b>+ New → Visual data prep</b>. Name it <i>Monday exposure report</i>; compute: <b>Serverless</b>.</li><li><b>Sources</b> from <code>smbc_workshop.raw.landing</code>: <code>counterparties</code>, <code>facilities</code>, <code>monthly_balances</code>, <code>fx_rates</code>, and the limits (<code>group_limits.xlsx</code> or its folder).</li><li><b>Unique</b> on counterparties, all columns: 2,370 → 2,325 rows.</li><li><b>Genie Code</b> on facilities: clean <code>currency</code>, parse both date formats (prompt in A.2).</li><li><b>Guardrails</b>: <code>committed_amount</code> &gt; 0, <code>maturity_date &gt;= start_date</code>, dates not null. <b>Failed</b> → Output <code>quarantine_facilities</code>: 21 failed rows.</li><li><b>Balances</b>: parse <code>as_of_date</code>, add <code>month</code>; <b>Unique</b> on <code>facility_id</code>, <code>as_of_date</code>, latest <code>extract_ts</code>: 74,799 → 74,757. <b>FX</b>: add <code>rate_month</code>.</li><li><b>Join</b> with Genie Code (A.2): balances → facilities → counterparties → FX on currency and month; add <code>exposure_usd</code>, <code>exposure_jpy</code>.</li><li><b>Aggregate</b> by <code>as_of_date</code>, <code>parent_group_id</code>; <b>Join</b> the limits; <code>utilisation_pct</code> = 100 × exposure ÷ limit.</li><li><b>Output</b> <code>gold_group_exposure</code> (Overwrite) → <b>Run</b> → <b>Schedule</b> daily, 07:00 Singapore time.</li></ol>
+    <ol class="steps from1"><li><b>+ New → Visual data prep</b>. Name it <i>Monday exposure report</i>; compute: <b>Serverless</b>.</li><li><b>Sources</b> from <code>smbc_workshop.raw.landing</code>: <code>counterparties</code>, <code>facilities</code>, <code>monthly_balances</code>, <code>fx_rates</code>, and the limits (<code>group_limits.xlsx</code> or its folder).</li><li><b>Unique</b> on counterparties, all columns: 2,370 → 2,325 rows.</li><li><b>Genie Code</b> on facilities: clean <code>currency</code>, parse both date formats (prompt in A.2).</li><li><b>Guardrails</b>: <code>committed_amount</code> &gt; 0, <code>maturity_date &gt;= start_date</code>, dates not null. <b>Failed</b> → Output <code>quarantine_facilities</code>: 21 failed rows.</li><li><b>Balances</b>: parse <code>as_of_date</code>, add <code>month</code>; <b>Unique</b> on <code>facility_id</code>, <code>as_of_date</code>, latest <code>extract_ts</code>: 74,799 → 74,757. <b>FX</b>: add <code>rate_month</code>.</li><li><b>Join</b> with Genie Code (A.2): balances → facilities → counterparties → FX on currency and month; add <code>exposure_usd</code>, <code>exposure_jpy</code>.</li><li><b>Aggregate</b> by <code>as_of_date</code>, <code>parent_group_id</code>; <b>Join</b> the limits; <code>utilisation_pct</code> = 100 × exposure ÷ limit.</li><li><b>Output</b> <code>gold_group_exposure</code> (Overwrite) → <b>Run</b> → <b>Schedule</b> daily, 07:00 Singapore time.</li></ol>
     <p><b>✅ Checkpoint:</b> the two totals should be identical.</p>
     <pre><code>SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
 FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure
 WHERE as_of_date = &#x27;2026-09-30&#x27;;
-
 SELECT round(sum(exposure_usd) / 1e6, 1)
     AS reference_usd_m
 FROM smbc_workshop.checkpoint.gold_group_exposure
@@ -85,7 +88,7 @@ WHERE as_of_date = &#x27;2026-09-30&#x27;;</code></pre>
 </div>
 <div>
   <section><h2>Lab 2 · Credit Committee in 30 seconds</h2>
-    <ol class="steps from1"><li><b>Dashboard</b>: + New → Dashboard on both <code>checkpoint</code> gold tables. Ask the AI assistant for the top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open <code>&lt;workspace URL&gt;/one</code>.</li><li><b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, warehouse <b>SMBC Workshop</b>; add the instructions (A.3), example SQL (A.5) and questions (A.6).</li><li><b>Ask, then open the SQL.</b> Trust, but verify.</li><li><b>Fiscal-year test</b>: ask about Q1 FY2026 and FY2025 and check the dates in the SQL. Add A.4, ask again.</li></ol>
+    <ol class="steps from1"><li><b>Dashboard</b>: + New → Dashboard on both <code>checkpoint</code> gold tables. Ask the AI assistant for the top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open <code>&lt;workspace URL&gt;/one</code>.</li><li><b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, the warehouse you checked in with; add the instructions (A.3), example SQL (A.5) and questions (A.6).</li><li><b>Ask, then open the SQL.</b> Trust, but verify.</li><li><b>Fiscal-year test</b>: ask about Q1 FY2026 and FY2025 and check the dates in the SQL. Add A.4, ask again.</li></ol>
     <p><b>✅ Checkpoint:</b> ask <i>"Which groups were above 90% of their limit at the end of FY2026 H1?"</i>, then submit the group's name:</p>
     <pre><code>INSERT INTO smbc_workshop.ops.lab_answers
 SELECT current_user(), &#x27;lab2&#x27;, &#x27;&lt;group name&gt;&#x27;,

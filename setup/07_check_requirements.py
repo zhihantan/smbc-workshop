@@ -12,9 +12,9 @@
 # COMMAND ----------
 
 dbutils.widgets.text("folder", "", "Folder used by 06 (blank: <your home folder>/SMBC Workshop)")
-dbutils.widgets.text("warehouse_name", "SMBC Workshop", "SQL warehouse name")
-dbutils.widgets.text("attendee_group", "smbc_workshop_attendees", "Attendee group")
-dbutils.widgets.text("facilitator_group", "smbc_workshop_facilitators", "Facilitator group")
+dbutils.widgets.text("warehouse", "", "SQL warehouse name or ID (blank: the one the dashboards use)")
+dbutils.widgets.text("share_with", "users", "Who 06 shared with (users: everyone in the workspace)")
+dbutils.widgets.text("facilitator_emails", "", "Other facilitators' emails, comma-separated")
 dbutils.widgets.dropdown("ask_genie", "yes", ["yes", "no"], "Ask the reference Genie Agent a question (about 30 s)")
 dbutils.widgets.dropdown("raise_on_failure", "yes", ["yes", "no"], "Fail the run if a check fails")
 
@@ -36,9 +36,8 @@ w = WorkspaceClient()
 workspace_api.use_client(w)
 me = w.current_user.me().user_name
 folder = dbutils.widgets.get("folder").strip().rstrip("/") or f"/Workspace/Users/{me}/SMBC Workshop"
-attendees = dbutils.widgets.get("attendee_group").strip()
-facilitators = dbutils.widgets.get("facilitator_group").strip()
-warehouse_name = dbutils.widgets.get("warehouse_name").strip()
+share_with = dbutils.widgets.get("share_with").strip()
+facilitators = {me.lower()} | {e.strip().lower() for e in dbutils.widgets.get("facilitator_emails").split(",") if e.strip()}
 CATALOG = "smbc_workshop"
 results = []
 
@@ -61,12 +60,6 @@ def levels(object_type, object_id, principal):
     return {p["permission_level"] for e in acl if principal in (e.get("group_name"), e.get("user_name"), e.get("service_principal_name"))
             for p in e.get("all_permissions", [])}
 
-
-def scim_group(name):
-    found = api("get", "/api/2.0/preview/scim/v2/Groups",
-                {"filter": f'displayName eq "{name}"', "attributes": "displayName,meta,entitlements"}).get("Resources", [])
-    return found[0] if found else None
-
 # COMMAND ----------
 
 # MAGIC %md ## Platform, identity and Unity Catalog
@@ -78,27 +71,16 @@ def _():
     return "PASS", f"metastore {spark.sql('SELECT current_metastore()').first()[0]}"
 
 
-@check("7", "Groups are account-level", "Create the groups in the account console (or sync them from Entra ID) and "
-       "assign them to this workspace; workspace-local groups can't receive Unity Catalog privileges (guide 3.5).")
-def _():
-    kinds = {}
-    for g in (attendees, facilitators):
-        group = scim_group(g)
-        kinds[g] = "missing" if group is None else group.get("meta", {}).get("resourceType")
-    bad = {g: k for g, k in kinds.items() if k != "Group"}
-    return ("FAIL" if bad else "PASS"), ", ".join(f"{g}: {'account-level' if k == 'Group' else k}" for g, k in kinds.items())
-
-
-@check("7", "Attendee entitlements", "Give the attendee group Workspace access and Databricks SQL access (guide 3.5).")
+@check("7", "Workspace entitlements", "Give workspace users Workspace access and Databricks SQL access (guide 3.5).")
 def _():
     needed = {"workspace-access", "databricks-sql-access"}
-    group = scim_group(attendees) or {}
-    everyone = scim_group("users") or {}
-    have = {e["value"] for e in group.get("entitlements", []) + everyone.get("entitlements", [])}
+    found = api("get", "/api/2.0/preview/scim/v2/Groups",
+                {"filter": 'displayName eq "users"', "attributes": "displayName,entitlements"}).get("Resources", [])
+    have = {e["value"] for e in (found[0].get("entitlements", []) if found else [])}
     missing = needed - have
     if not missing:
-        return "PASS", "Workspace access and Databricks SQL access"
-    return "WARN", f"not granted to {attendees} or to all users: {', '.join(sorted(missing))} (check individual users)"
+        return "PASS", "everyone in the workspace has Workspace access and Databricks SQL access"
+    return "WARN", f"not given to all workspace users: {', '.join(sorted(missing))} (check individual attendees)"
 
 
 @check("9", "Catalog, schemas and volumes", "Run 01_setup_workspace.")
@@ -119,36 +101,42 @@ def _():
     return ("PASS" if counts == expected else "FAIL"), ", ".join(f"{t} {n:,} rows" for t, n in counts.items())
 
 
-@check("9", "Attendee grants", "Re-run 01_setup_workspace with the right attendee group.")
-def _():
-    expected = [
-        ("CATALOG", CATALOG, "USE CATALOG"),
-        ("SCHEMA", f"{CATALOG}.raw", "USE SCHEMA"),
-        ("VOLUME", f"{CATALOG}.raw.landing", "READ VOLUME"),
-        ("SCHEMA", f"{CATALOG}.checkpoint", "USE SCHEMA"),
-        ("SCHEMA", f"{CATALOG}.checkpoint", "SELECT"),
-        ("SCHEMA", f"{CATALOG}.ops", "USE SCHEMA"),
-        ("TABLE", f"{CATALOG}.ops.checkin", "MODIFY"),
-        ("TABLE", f"{CATALOG}.ops.lab_answers", "MODIFY"),
-    ]
-    missing = []
-    for kind, obj, privilege in expected:
-        rows = spark.sql(f"SHOW GRANTS `{attendees}` ON {kind} {obj}").collect()
-        if not any(r["ActionType"] in (privilege, "ALL PRIVILEGES") for r in rows):
-            missing.append(f"{privilege} on {obj}")
-    return ("FAIL" if missing else "PASS"), ("missing " + "; ".join(missing)) if missing else f"{len(expected)} grants to {attendees}"
+# What every attendee needs, as (securable, privilege). A privilege granted on a parent covers its children.
+ATTENDEE_NEEDS = [
+    (f"CATALOG {CATALOG}", "USE CATALOG"),
+    (f"CATALOG {CATALOG}", "CREATE SCHEMA"),
+    (f"SCHEMA {CATALOG}.raw", "USE SCHEMA"),
+    (f"VOLUME {CATALOG}.raw.landing", "READ VOLUME"),
+    (f"SCHEMA {CATALOG}.checkpoint", "USE SCHEMA"),
+    (f"SCHEMA {CATALOG}.checkpoint", "SELECT"),
+    (f"SCHEMA {CATALOG}.ops", "USE SCHEMA"),
+    (f"TABLE {CATALOG}.ops.checkin", "MODIFY"),
+    (f"TABLE {CATALOG}.ops.lab_answers", "MODIFY"),
+]
 
 
-@check("9", "Attendee schemas", "Add attendee emails to 01_setup_workspace and re-run it, or leave CREATE SCHEMA to attendees.")
+def chain(securable):
+    """The securable and its parents: TABLE c.s.t -> SCHEMA c.s -> CATALOG c."""
+    parts = securable.split(" ", 1)[1].split(".")
+    return [securable] + ([f"SCHEMA {'.'.join(parts[:2])}"] if len(parts) == 3 else []) + ([f"CATALOG {parts[0]}"] if len(parts) > 1 else [])
+
+
+@check("9", "Attendee access", "An admin grants attendees access to smbc_workshop: the three GRANT statements in guide 3.6.")
 def _():
-    system = {"information_schema", "default", "raw", "checkpoint", "ops"}
-    personal = [r[0] for r in spark.sql(f"SHOW SCHEMAS IN {CATALOG}").collect() if r[0] not in system]
-    if personal:
-        return "PASS", f"{len(personal)} attendee schema(s), e.g. {personal[0]}"
-    rows = spark.sql(f"SHOW GRANTS `{attendees}` ON CATALOG {CATALOG}").collect()
-    if any(r["ActionType"] == "CREATE SCHEMA" for r in rows):
-        return "WARN", "none yet; attendees can create their own (Lab 1, step 0)"
-    return "FAIL", "no attendee schemas, and attendees can't create them"
+    held = {}  # principal -> {(securable, privilege)}
+    for securable in sorted({s for need, _ in ATTENDEE_NEEDS for s in chain(need)}):
+        for row in spark.sql(f"SHOW GRANTS ON {securable}").collect():
+            if row["Principal"].lower() not in facilitators:
+                held.setdefault(row["Principal"], set()).add((securable, row["ActionType"]))
+    gaps = {p: [f"{priv} on {need.split(' ', 1)[1]}" for need, priv in ATTENDEE_NEEDS
+                if not any({(s, priv), (s, "ALL PRIVILEGES")} & grants for s in chain(need))] for p, grants in held.items()}
+    ready = sorted(p for p, missing in gaps.items() if not missing)
+    if ready:
+        return "PASS", f"{', '.join(ready)} can do everything the labs need"
+    if not gaps:
+        return "WARN", "only the facilitators have access to smbc_workshop so far"
+    closest = min(gaps, key=lambda p: len(gaps[p]))
+    return "WARN", f"nobody else has everything yet; {closest} is missing {'; '.join(gaps[closest])}"
 
 # COMMAND ----------
 
@@ -156,20 +144,25 @@ def _():
 
 # COMMAND ----------
 
-warehouse = next((wh for wh in api("get", "/api/2.0/sql/warehouses").get("warehouses", []) if wh["name"] == warehouse_name), None)
+reference_status = workspace_api.get_status(f"{folder}/{dashboards.REFERENCE_NAME}.lvdash.json")
+wanted = dbutils.widgets.get("warehouse").strip()
+if not wanted and reference_status:
+    wanted = api("get", f"/api/2.0/lakeview/dashboards/{reference_status['resource_id']}").get("warehouse_id", "")
 
 
-@check("3", "SQL warehouse", f"Run 06_deploy_dashboards_and_agents, or create '{warehouse_name}' and give attendees CAN USE (guide 3.4).")
+@check("3", "SQL warehouse", "Pick a pro or serverless warehouse that you and the attendees can use, and re-run 06 with it (guide 3.4).")
 def _():
-    if warehouse is None:
-        return "FAIL", f"no warehouse called '{warehouse_name}'"
-    problems = []
-    if not warehouse.get("enable_serverless_compute"):
-        problems.append("not serverless")
-    if not levels("warehouses", warehouse["id"], attendees) & {"CAN_USE", "CAN_MONITOR", "CAN_MANAGE"}:
-        problems.append(f"{attendees} lacks CAN USE")
-    detail = f"{warehouse['cluster_size']}, {warehouse['min_num_clusters']}-{warehouse['max_num_clusters']} clusters, auto-stop {warehouse['auto_stop_mins']} min"
-    return ("FAIL" if problems else "PASS"), "; ".join(problems) or detail
+    warehouse = workspace_api.pick_warehouse(wanted)
+    if not (warehouse.get("enable_serverless_compute") or warehouse.get("warehouse_type") == "PRO"):
+        return "FAIL", f"{warehouse['name']} is a classic warehouse: Genie Agents need pro or serverless"
+    detail = f"{warehouse['name']}: {'serverless' if warehouse.get('enable_serverless_compute') else 'pro'}, {warehouse['cluster_size']}"
+    try:
+        attendee_levels = levels("warehouses", warehouse["id"], share_with) if share_with else None
+    except workspace_api.ApiError:
+        return "PASS", f"{detail}; you can't see its permissions, so check that attendees have CAN USE"
+    if attendee_levels is not None and not attendee_levels & {"CAN_USE", "CAN_MONITOR", "CAN_MANAGE"}:
+        return "WARN", f"{detail}; {share_with} lacks CAN USE"
+    return "PASS", f"{detail}; attendees can use it" if share_with else detail
 
 
 @check("6", "Excel reader (Designer drag-and-drop is smoke test 5)", "Check the workspace Previews page for Excel file support.")
@@ -187,8 +180,8 @@ def _():
             notes.append(f"'{title}' not found in {folder}")
             continue
         api("get", f"/api/2.0/lakeview/dashboards/{status['resource_id']}/published")  # fails if it was never published
-        if not levels("dashboards", status["resource_id"], attendees) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
-            notes.append(f"{attendees} can't view '{title}'")
+        if share_with and not levels("dashboards", status["resource_id"], share_with) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
+            notes.append(f"{share_with} can't view '{title}'")
     return ("FAIL" if notes else "PASS"), "; ".join(notes) or "both published; attendees can view"
 
 
@@ -202,8 +195,8 @@ def _():
     for title, space_id in (("Credit Risk (reference)", reference_agent), ("Credit Risk (secured demo)", secured_agent)):
         if space_id is None:
             notes.append(f"'{title}' not found in {folder}")
-        elif not levels("genie", space_id, attendees) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
-            notes.append(f"{attendees} can't use '{title}'")
+        elif share_with and not levels("genie", space_id, share_with) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
+            notes.append(f"{share_with} can't use '{title}'")
     return ("FAIL" if notes else "PASS"), "; ".join(notes) or "both agents; attendees can ask questions"
 
 
@@ -221,12 +214,12 @@ if dbutils.widgets.get("ask_genie") == "yes":
         return "FAIL", f"status {answer['status']}: {(answer['error'] or answer['text'] or 'no Orchid in the answer')!s:.300}"
 
 
-@check("—", "Governance demo (05)", f"Run 05_governance_demo, and add yourself to {facilitators} (an account-level group).")
+@check("—", "Governance demo (05)", "Run 05_governance_demo again: whoever runs it is always a facilitator.")
 def _():
     branches = spark.sql(f"SELECT count(DISTINCT booking_branch) FROM {CATALOG}.checkpoint.gold_facility_exposure_secured").first()[0]
     if branches == 12:
         return "PASS", "as a facilitator you see all 12 branches; attendees see SIN only"
-    return "WARN", f"you see {branches} branch(es): you're not in {facilitators}, so the demo would show the attendee view"
+    return "WARN", f"you see {branches} branch(es): you're not on the facilitator list, so the demo would show the attendee view"
 
 # COMMAND ----------
 

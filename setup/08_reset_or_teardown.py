@@ -58,7 +58,7 @@ if action == "drop_attendee_schemas":
             tables = spark.sql(f"SHOW TABLES IN {CATALOG}.`{schema}`").count()
             do(f"drop schema {CATALOG}.{schema} ({tables} table(s))",
                lambda s=schema: spark.sql(f"DROP SCHEMA {CATALOG}.`{s}` CASCADE"))
-    print("\nIf 01_setup_workspace created the attendee schemas from a list of emails, re-run it to recreate them empty.")
+    print("\nAttendees get their schema back, empty, when they run the check-in block again.")
 
 if action == "teardown":
     for title in (dashboards.REFERENCE_NAME, dashboards.PROGRESS_NAME):
@@ -74,6 +74,6 @@ if action == "teardown":
         do(f"delete notebook {folder}/Lab workbook",
            lambda: api("post", "/api/2.0/workspace/delete", {"path": f"{folder}/Lab workbook"}))
     do(f"drop catalog {CATALOG} and everything in it", lambda: spark.sql(f"DROP CATALOG {CATALOG} CASCADE"))
-    print("\nThe SQL warehouse is left as it is. Delete it in SQL Warehouses if it's no longer needed.")
+    print("\nThe SQL warehouse is left as it is.")
 
 print("\nDry run only: set dry_run to 'no' to make these changes." if dry_run else "\nDone.")

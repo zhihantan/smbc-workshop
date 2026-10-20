@@ -7,14 +7,15 @@ Variants: `reference` (Lab 2 model answer: starter + fiscal-year instructions, e
 
 From a laptop, through the Databricks CLI:
 
-  genie_agents.py --profile P --warehouse W --parent /Workspace/Users/<you>/smbc_workshop create --variant reference --title "Credit Risk (reference)"
-  genie_agents.py --profile P --warehouse W --parent ... create --variant secured --title "Credit Risk (secured demo)"
+  genie_agents.py --profile P --parent "/Workspace/Users/<you>/SMBC Workshop" create --variant reference --title "Credit Risk (reference)"
+  genie_agents.py --profile P --parent ... create --variant secured --title "Credit Risk (secured demo)"
   genie_agents.py --profile P ask SPACE_ID "Which groups were above 90% of their limit at the end of FY2026 H1?"
-  genie_agents.py --profile P share SPACE_ID smbc_workshop_attendees CAN_RUN     # group, user email or service principal ID
+  genie_agents.py --profile P share SPACE_ID users CAN_RUN                       # group, user email or service principal ID
   genie_agents.py --profile P --warehouse W patch SPACE_ID --variant reference --title "Credit Risk (reference)"
   genie_agents.py build --variant reference                                      # print serialized_space only
 
-`create` updates the agent instead if one with the same title already exists in the folder. Inside the workspace,
+`create` and `patch` use the SQL warehouse in `--warehouse` (a name or ID), or the first pro or serverless warehouse you
+can use. `create` updates the agent instead if one with the same title already exists in the folder. Inside the workspace,
 `setup/06_deploy_dashboards_and_agents` creates and shares both agents without a laptop.
 """
 import argparse, json, sys, time, uuid
@@ -211,11 +212,13 @@ def main():
     ap.add_argument("--title", default="Credit Risk (reference)")
     ap.add_argument("--description")
     ap.add_argument("--profile", "-p", default="DEFAULT")
-    ap.add_argument("--warehouse", help="SQL warehouse ID (create/patch)")
+    ap.add_argument("--warehouse", default="", help="SQL warehouse name or ID (create/patch; default: pick one you can use)")
     ap.add_argument("--parent", help="workspace folder for the agent (create)")
     ap.add_argument("--conversation")
     a = ap.parse_args()
     workspace_api.use_profile(a.profile)
+    if a.cmd in ("create", "patch"):
+        a.warehouse = workspace_api.pick_warehouse(a.warehouse)["id"]
     if a.cmd == "build":
         print(json.dumps(build(a.variant), indent=2))
     elif a.cmd == "create":

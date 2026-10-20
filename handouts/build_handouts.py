@@ -51,7 +51,7 @@ SECTIONS = [
 BANNED = [r"(?i)answer key", r"facilitator/", r"What we saw when testing", r"Proposed follow-up", r"\bSAG\b",
           r"setup/", r"Facilitator close", r"Governance moment", r"§"]
 # Fixes in Appendix B that only an admin can carry out.
-ADMIN_FIX = re.compile(r"\]\(#[34]|Re-run `01_setup_workspace`|messaging team")
+ADMIN_FIX = re.compile(r"\]\(#[34]|messaging team")
 
 LAB1_CHECK_SQL = """-- Compare your Lab 1 result with the reference. Your schema is worked out from your login.
 BEGIN
@@ -152,6 +152,13 @@ def sql_line(text, prefix):
     return m.group(0)
 
 
+def sql_block(text, first_line):
+    """The SQL from the line starting `first_line` to the next line that is just END."""
+    m = re.search(rf"^{re.escape(first_line)}.*?^END$", text, re.M | re.S)
+    assert m, f"expected a block starting {first_line!r} in the guide"
+    return m.group(0)
+
+
 def extract(guide_text, url):
     """Return (workbook markdown without contents, contents markdown, snippets used elsewhere)."""
     sections = split_h2(guide_text)
@@ -174,7 +181,7 @@ def extract(guide_text, url):
     lab1_check = re.search(r"✅ \*\*Checkpoint:\*\*.*?```sql\n(.*?)```", body[lab1], re.S)
     assert lab1_check, "expected the Lab 1 checkpoint queries"
     snippets = {
-        "checkin": sql_line(kit, "INSERT INTO smbc_workshop.ops.checkin"),
+        "checkin": sql_block(kit, "-- Check in and create your Lab 1 schema"),
         "answer": sql_line(kit, "INSERT INTO smbc_workshop.ops.lab_answers"),
         "lab1_check": lab1_check.group(1).strip(),
     }
@@ -184,13 +191,13 @@ def extract(guide_text, url):
 
 **1. Sign in.** Open {url_md} in Microsoft Edge or Google Chrome and sign in with your SMBC account.
 
-**2. Check in.** Open **SQL Editor**, choose the **SMBC Workshop** warehouse, paste this line and click **Run**. Change `DA` to `DE` if you're a data engineer.
+**2. Check in.** Open **SQL Editor**, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click **Run**. It checks you in and creates your schema for Lab 1. Change `DA` to `DE` if you're a data engineer.
 
 ```sql
 {snippets["checkin"]}
 ```
 
-**3. Find your schema.** Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
+**3. Your schema.** The check-in shows its name. Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
 
 **4. Getting help.** Turn your card to red, or raise a hand, and a helper will come to you.
 
@@ -244,7 +251,7 @@ def notebook_cells(title, text, snippets):
         if heading.startswith("## "):
             h2 = heading[3:]
         if heading == "## Before you start":
-            cells_out.append(("sql", f"-- Check in. Change 'DA' to 'DE' if you're a data engineer.\n{snippets['checkin']}"))
+            cells_out.append(("sql", snippets["checkin"]))
             inserted.add("checkin")
         elif heading == "### Core path" and h2.startswith("2. Lab 1"):
             cells_out.append(("sql", LAB1_CHECK_SQL))
@@ -409,17 +416,22 @@ def code(text):
 
 
 def narrow_sql(sql, width=56):
-    """Re-break SQL for a narrow column: SELECT and WHERE on their own lines, long lines wrapped with an indent."""
-    sql = sql.replace(" SELECT current_user()", "\nSELECT current_user()").replace(" WHERE ", "\nWHERE ")
+    """Re-break SQL for a narrow column: SELECT and WHERE on their own lines, long lines wrapped with a further indent."""
     lines = []
-    for line in sql.splitlines():
-        while len(line) > width and " " in line[:width]:
-            cut = line.rindex(" ", 0, width)
-            if line[:cut].endswith(" AS"):  # keep an alias with its AS
-                cut -= 3
-            lines.append(line[:cut])
-            line = "    " + line[cut + 1:]
-        lines.append(line)
+    for source in sql.splitlines():
+        indent = source[:len(source) - len(source.lstrip())]
+        source = source.replace(" SELECT current_user()", f"\n{indent}SELECT current_user()").replace(" WHERE ", f"\n{indent}WHERE ")
+        for line in source.splitlines():
+            continuation = indent + ("-- " if line.lstrip().startswith("--") else "    ")  # a comment stays a comment
+            start = len(indent) + 1  # never break inside the indent
+            while len(line) > width and " " in line[start:width]:
+                cut = line.rindex(" ", start, width)
+                if line[:cut].endswith(" AS"):  # keep an alias with its AS
+                    cut -= 3
+                lines.append(line[:cut])
+                line = continuation + line[cut + 1:]
+                start = len(continuation) + 1
+            lines.append(line)
     return "\n".join(lines)
 
 
@@ -432,7 +444,7 @@ header h1 { font-size: 15pt; margin: 0; line-height: 1.15; }
 header p { margin: 0.8mm 0 0; font-size: 8.4pt; color: #D7E0E3; }
 header .tag { font-size: 7.6pt; text-align: right; color: #D7E0E3; }
 main { display: grid; grid-template-columns: 1fr 1fr; column-gap: 5mm; margin-top: 3.6mm; }
-section { margin: 0 0 3.6mm; break-inside: avoid; }
+section { margin: 0 0 3.2mm; break-inside: avoid; }
 h2 { font-size: 10pt; margin: 0 0 1.4mm; padding-bottom: 0.8mm; border-bottom: 1px solid var(--lava); }
 h2 .n { display: inline-block; min-width: 4.2mm; height: 4.2mm; line-height: 4.2mm; border-radius: 2.1mm; background: var(--lava);
         color: #fff; text-align: center; font-size: 7.4pt; margin-right: 1.4mm; vertical-align: 0.3mm; }
@@ -466,8 +478,8 @@ def cheat_sheet_html(url, snippets):
     qr = (f'<div class="qr">{qr_svg(url)}</div>' if url
           else '<div class="qr placeholder">QR code<br>for the<br>workspace</div>')
     one = f"{html.escape(shown_url)}/one"
-    lab1 = [
-        "<b>Find your schema</b> in Catalog Explorer → <code>smbc_workshop</code>.",
+    checkin_code = "\n".join(l for l in snippets["checkin"].splitlines() if not l.startswith("--"))  # the text says it
+    lab1 = [  # step 0 (find your schema) is covered by the check-in
         "<b>+ New → Visual data prep</b>. Name it <i>Monday exposure report</i>; compute: <b>Serverless</b>.",
         "<b>Sources</b> from <code>smbc_workshop.raw.landing</code>: <code>counterparties</code>, <code>facilities</code>, "
         "<code>monthly_balances</code>, <code>fx_rates</code>, and the limits (<code>group_limits.xlsx</code> or its folder).",
@@ -488,7 +500,7 @@ def cheat_sheet_html(url, snippets):
         f"top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open "
         f"<code>{one}</code>.",
         "<b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, "
-        "warehouse <b>SMBC Workshop</b>; add the instructions (A.3), example SQL (A.5) and questions (A.6).",
+        "the warehouse you checked in with; add the instructions (A.3), example SQL (A.5) and questions (A.6).",
         "<b>Ask, then open the SQL.</b> Trust, but verify.",
         "<b>Fiscal-year test</b>: ask about Q1 FY2026 and FY2025 and check the dates in the SQL. Add A.4, ask again.",
     ]
@@ -502,18 +514,14 @@ def cheat_sheet_html(url, snippets):
 <div>
   <section><h2><span class="n">1</span>Sign in</h2>
     <div class="signin">{qr}<div><div class="url">{html.escape(shown_url)}</div>
-      <p>Microsoft Edge or Google Chrome; sign in with your SMBC account. Warehouse: <b>SMBC Workshop</b>.</p></div></div>
+      <p>Microsoft Edge or Google Chrome; sign in with your SMBC account.</p></div></div>
   </section>
   <section><h2><span class="n">2</span>Check in</h2>
-    <p>SQL Editor → <b>SMBC Workshop</b> → paste and <b>Run</b>. Use <code>'DE'</code> if you're a data engineer.</p>
-    {code(narrow_sql(snippets["checkin"]))}
-  </section>
-  <section><h2><span class="n">3</span>Your schema</h2>
-    <p><code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email before the @, in lower case, other characters
-    replaced by <code>_</code>. <code>jane.tan@…</code> → <code>jane_tan</code></p>
+    <p>SQL Editor → the workshop's warehouse → paste, <b>Run</b> (<code>'DE'</code> for engineers). It shows your Lab 1 schema.</p>
+    {code(narrow_sql(checkin_code))}
   </section>
   <section><h2>Lab 1 · Build the trusted exposure table</h2>
-    <ol class="steps">{li(lab1)}</ol>
+    <ol class="steps from1">{li(lab1)}</ol>
     <p><b>✅ Checkpoint:</b> the two totals should be identical.</p>
     {code(narrow_sql(snippets["lab1_check"]))}
   </section>

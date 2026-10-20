@@ -16,11 +16,11 @@ Materials for a 3.5-hour hands-on workshop for SMBC APAC data analysts and data 
 
 ## Set up a workspace
 
-As a workspace admin who can create a catalog:
+As someone who can create a catalog and run queries on a pro or serverless SQL warehouse (no groups are needed):
 1. Import this repo as a Git folder.
-2. Open `setup/00_master_setup` and fill in the settings: the two account-level groups, and attendee emails if known.
+2. Open `setup/00_master_setup`. Every setting is optional: a SQL warehouse to use (blank picks one you can use), the other facilitators' emails, and a managed location only if creating the catalog asks for one.
 3. Attach it to **Serverless** and click **Run all**. It checks the prerequisites, builds everything, and ends with the links and the requirement checks (about 5–15 minutes; safe to re-run).
-4. Do the hand-run steps at the end of the notebook: the Genie One homepage, a Consumer-access demo user, and the smoke tests in §3.8 of the guide.
+4. Give attendees access to `smbc_workshop` with the three grants in §3.6 of the guide. Then do the other hand-run steps at the end of the notebook: the Genie One homepage, a Consumer-access demo user, and the smoke tests in §3.8.
 
 ## Rebuild the data and materials locally
 

@@ -35,11 +35,16 @@ All workshop data is synthetic: the borrowers, groups and figures are made up.
 # Get set up
 
 1. Open `<workspace URL>` in Microsoft Edge or Google Chrome, and sign in with your SMBC account.
-2. Open **SQL Editor** and choose the **SMBC Workshop** warehouse.
-3. Run the check-in line. Change `DA` to `DE` if you're a data engineer.
+2. Open **SQL Editor** and choose the **`<warehouse name>`** SQL warehouse.
+3. Run the check-in block (workbook A.1). It checks you in and creates your Lab 1 schema. Change `DA` to `DE` if you're a data engineer.
 
 ```sql
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 ```
 
 **Need help?** Turn your card to red. **Poll on Slido:** what do you use most today?
@@ -47,7 +52,9 @@ INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_times
 <!--
 [0:00 · 10 min]
 - Most people should already be signed in from the pre-work email; this slot only confirms everyone is in.
-- The check-in line writes one row to smbc_workshop.ops.checkin, and the progress board counts check-ins live. Put the board on the second screen.
+- Fill in the warehouse name that 00_master_setup printed at the end.
+- The check-in block writes one row to smbc_workshop.ops.checkin and creates the attendee's Lab 1 schema; the progress board shows both live. Put the board on the second screen.
+- A permission error means the person doesn't have access to smbc_workshop yet (guide 3.6): a facilitator fixes it.
 - Run the Slido poll while people sign in: Excel, SQL, Python, Power BI, ADF or Synapse, something else. It shows the room's mix of tools.
 - Red card up: a helper comes over. Pair anyone who is still blocked with a neighbour so they don't miss Lab 1.
 -->
@@ -276,7 +283,7 @@ Helpers, watch for:
 
 # Lab 1 · Steps 0–2: start and bring in the sources
 
-**0. Find your schema.** Catalog Explorer → `smbc_workshop` → the schema named after your email, e.g. `jane_tan`. None? Run `CREATE SCHEMA smbc_workshop.<your_name>;`
+**0. Find your schema.** Catalog Explorer → `smbc_workshop` → the schema your check-in created, e.g. `jane_tan`. Not there? Run the check-in block again.
 
 **1. Start a visual data prep.** **+ New → Visual data prep**. Rename it `Monday exposure report`; compute: **Serverless**.
 
@@ -625,7 +632,7 @@ Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_
 
 - **Genie Agents → New**, select the two checkpoint gold tables, click **Create**.
 - Genie Code suggests descriptions and example queries. Review them, and accept the ones that are right.
-- **Configure → Settings:** title `Credit Risk – <your name>`, default warehouse **SMBC Workshop**.
+- **Configure → Settings:** title `Credit Risk – <your name>`, default warehouse: the one you checked in with.
 - Add from the workbook: the starter instructions (**A.3**), the two example SQL queries (**A.5**) and the common questions (**A.6**).
 
 **Don't add the fiscal-year instruction (A.4) yet.**
@@ -749,7 +756,7 @@ Orchid Group at 30 Sep 2026: the only group above 90% of its limit. Its largest 
 
 <!--
 [2:35 · 3 min]
-- The demo agent "Credit Risk (secured demo)" sits on a copy of the facility table with a row filter (Singapore branch only, unless you're in the facilitator group) and a mask on borrower names.
+- The demo agent "Credit Risk (secured demo)" sits on a copy of the facility table with a row filter (Singapore branch only, unless you're on the facilitator list) and a mask on borrower names.
 - A facilitator and a volunteer ask the same question on screen.
 - In testing, the facilitator saw all 12 branches; the attendee saw SIN only, with names masked.
 -->

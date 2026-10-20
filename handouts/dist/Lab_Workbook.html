@@ -55,10 +55,16 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </ul>
 <h2 id="before-you-start">Before you start</h2>
 <p><strong>1. Sign in.</strong> Open <code>&lt;workspace URL&gt;</code> in Microsoft Edge or Google Chrome and sign in with your SMBC account.</p>
-<p><strong>2. Check in.</strong> Open <strong>SQL Editor</strong>, choose the <strong>SMBC Workshop</strong> warehouse, paste this line and click <strong>Run</strong>. Change <code>DA</code> to <code>DE</code> if you're a data engineer.</p>
-<pre><code class="language-sql">INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+<p><strong>2. Check in.</strong> Open <strong>SQL Editor</strong>, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click <strong>Run</strong>. It checks you in and creates your schema for Lab 1. Change <code>DA</code> to <code>DE</code> if you're a data engineer.</p>
+<pre><code class="language-sql">-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 </code></pre>
-<p><strong>3. Find your schema.</strong> Your Lab 1 tables go in <code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email address before the @, in lower case, with any other characters replaced by <code>_</code>. For example, <code>jane.tan@…</code> becomes <code>jane_tan</code>.</p>
+<p><strong>3. Your schema.</strong> The check-in shows its name. Your Lab 1 tables go in <code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email address before the @, in lower case, with any other characters replaced by <code>_</code>. For example, <code>jane.tan@…</code> becomes <code>jane_tan</code>.</p>
 <p><strong>4. Getting help.</strong> Turn your card to red, or raise a hand, and a helper will come to you.</p>
 <p><strong>5. Short on time?</strong> The checkpoint tables in <code>smbc_workshop.checkpoint</code> hold the reference result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1.</p>
 <hr />
@@ -160,7 +166,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
 </blockquote>
 <h3 id="core-path">Core path</h3>
-<p><strong>0. Find your schema (1 min).</strong> In <strong>Catalog Explorer</strong>, open <code>smbc_workshop</code>. Your schema is named after your email address, for example <code>jane_tan</code>. If you don't have one, run <code>CREATE SCHEMA smbc_workshop.&lt;your_name&gt;;</code> in the SQL editor.</p>
+<p><strong>0. Find your schema (1 min).</strong> Your check-in created it and showed its name: the part of your email address before the @, for example <code>jane_tan</code>. Find it in <strong>Catalog Explorer</strong> → <code>smbc_workshop</code>. Not there? Run the check-in block (A.1) again.</p>
 <p><strong>1. Start a visual data prep (1 min).</strong> Click <strong>+ New → Visual data prep</strong>. Rename the tab to <code>Monday exposure report</code>. In the compute picker at the top right, choose <strong>Serverless</strong>.</p>
 <p><strong>2. Bring in the sources (4 min).</strong> Add a <strong>Source</strong> operator → <strong>Browse existing</strong> → <code>smbc_workshop</code> → <code>raw</code> → <code>landing</code> → select the <strong><code>counterparties</code></strong> folder. Designer reads every file in a folder into one table. Do the same for <code>facilities</code>, <code>monthly_balances</code> and <code>fx_rates</code>. For the limits, drag <code>group_limits.xlsx</code> onto the canvas (download it from the landing volume first), or browse to the <code>group_limits</code> folder. Click each Source and look at the preview: can you see two date formats in <code>monthly_balances</code>?</p>
 <p><strong>3. De-duplicate the customer master (1 min).</strong> After <code>counterparties</code>, add <strong>Unique</strong> with <strong>Unique by: All columns</strong>. Row count: 2,370 → 2,325.</p>
@@ -239,7 +245,7 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 <ul>
 <li>Click <strong>Genie Agents → New</strong>, select the two checkpoint gold tables, and click <strong>Create</strong>.</li>
 <li>Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.</li>
-<li>In <strong>Configure → Settings</strong>, set the title to <code>Credit Risk – &lt;your name&gt;</code> and the default warehouse to <strong>SMBC Workshop</strong>.</li>
+<li>In <strong>Configure → Settings</strong>, set the title to <code>Credit Risk – &lt;your name&gt;</code> and the default warehouse to the SQL warehouse you checked in with.</li>
 <li>Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).</li>
 </ul>
 <p><strong>3. Ask, and check the SQL (5 min).</strong> Try <em>"Which counterparty groups are closest to their limits?"</em> and <em>"Show exposure in yen by booking branch at the latest month end."</em> Open the generated SQL for each answer. Trust, but verify.</p>
@@ -326,8 +332,13 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 <hr />
 <h2 class="newpage" id="appendix-a-copy-paste-kit">Appendix A: Copy-paste kit</h2>
 <h3 id="a1-check-in-and-checkpoint-queries">A.1 Check-in and checkpoint queries</h3>
-<pre><code class="language-sql">-- Check-in (change 'DA' to 'DE' if you're a data engineer)
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+<pre><code class="language-sql">-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 
 -- Lab 2 checkpoint
 INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
@@ -477,8 +488,8 @@ END
 <td>Ask a facilitator</td>
 </tr>
 <tr>
-<td>Can't see the <code>landing</code> volume</td>
-<td>Missing <code>READ VOLUME</code> grant</td>
+<td>The check-in fails with a permission error, or you can't see the <code>landing</code> volume</td>
+<td>No access to <code>smbc_workshop</code> yet</td>
 <td>Ask a facilitator</td>
 </tr>
 <tr>

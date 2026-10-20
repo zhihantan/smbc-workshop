@@ -17,13 +17,19 @@
 
 **1. Sign in.** Open `<workspace URL>` in Microsoft Edge or Google Chrome and sign in with your SMBC account.
 
-**2. Check in.** Open **SQL Editor**, choose the **SMBC Workshop** warehouse, paste this line and click **Run**. Change `DA` to `DE` if you're a data engineer.
+**2. Check in.** Open **SQL Editor**, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click **Run**. It checks you in and creates your schema for Lab 1. Change `DA` to `DE` if you're a data engineer.
 
 ```sql
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 ```
 
-**3. Find your schema.** Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
+**3. Your schema.** The check-in shows its name. Your Lab 1 tables go in `smbc_workshop.<your schema>`: the part of your email address before the @, in lower case, with any other characters replaced by `_`. For example, `jane.tan@…` becomes `jane_tan`.
 
 **4. Getting help.** Turn your card to red, or raise a hand, and a helper will come to you.
 
@@ -79,7 +85,7 @@ The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and
 
 ### Core path
 
-**0. Find your schema (1 min).** In **Catalog Explorer**, open `smbc_workshop`. Your schema is named after your email address, for example `jane_tan`. If you don't have one, run `CREATE SCHEMA smbc_workshop.<your_name>;` in the SQL editor.
+**0. Find your schema (1 min).** Your check-in created it and showed its name: the part of your email address before the @, for example `jane_tan`. Find it in **Catalog Explorer** → `smbc_workshop`. Not there? Run the check-in block (A.1) again.
 
 **1. Start a visual data prep (1 min).** Click **+ New → Visual data prep**. Rename the tab to `Monday exposure report`. In the compute picker at the top right, choose **Serverless**.
 
@@ -161,7 +167,7 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 **2. Create a Genie Agent (5 min).**
 - Click **Genie Agents → New**, select the two checkpoint gold tables, and click **Create**.
 - Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.
-- In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to **SMBC Workshop**.
+- In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to the SQL warehouse you checked in with.
 - Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).
 
 **3. Ask, and check the SQL (5 min).** Try *"Which counterparty groups are closest to their limits?"* and *"Show exposure in yen by booking branch at the latest month end."* Open the generated SQL for each answer. Trust, but verify.
@@ -225,8 +231,13 @@ INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group
 ### A.1 Check-in and checkpoint queries
 
 ```sql
--- Check-in (change 'DA' to 'DE' if you're a data engineer)
-INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
+BEGIN
+  DECLARE my_schema STRING DEFAULT regexp_replace(lower(split_part(current_user(), '@', 1)), '[^a-z0-9_]', '_');
+  INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
+  CREATE SCHEMA IF NOT EXISTS IDENTIFIER('smbc_workshop.' || my_schema);
+  SELECT 'smbc_workshop.' || my_schema AS your_schema;
+END
 
 -- Lab 2 checkpoint
 INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group name>', current_timestamp();
@@ -380,7 +391,7 @@ END
 |---|---|---|
 | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
 | Genie Code prompts in Designer or agent mode are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
-| Can't see the `landing` volume | Missing `READ VOLUME` grant | Ask a facilitator |
+| The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
 | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
 | Your total is higher than the checkpoint | Duplicates not removed (customer master or the re-sent Bangkok extract) | Lab 1, steps 3 and 6 |

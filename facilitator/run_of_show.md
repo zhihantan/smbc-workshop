@@ -23,13 +23,13 @@
 | 15 Oct | Dataset generated and validated. Checkpoint tables, dashboards and Genie Agents built and tested in the Databricks test workspace ([test report](test_report_2026-10-15.md)) | ✅ |
 | Fri 16 Oct | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
 | Mon 19 Oct | Internal dry run (section 6) | ☐ |
-| Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed". Then set up the Genie One homepage (guide §3.3) | ☐ |
+| Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
 | Tue 20 Oct | Smoke tests (guide §3.8) on an SMBC laptop, on the SMBC network, with 2–3 SMBC volunteers | ☐ |
-| Tue 20 Oct | Send the pre-work email (guide §5). Agree the executive briefing with Richard and Peter (section 7) | ☐ |
+| Tue 20 Oct | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 7) | ☐ |
 | Wed 21 Oct | Freeze the content. Set up the quiz ([quiz.md](quiz.md)), the polls and the survey ([polls_and_survey.md](polls_and_survey.md)) in Slido, and test them on a phone | ☐ |
 | Wed 21 Oct | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 5) | ☐ |
-| Wed 21 Oct | Late registrations: add their emails to `00_master_setup` and re-run it, with **Generate the synthetic data** set to `no`. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
-| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the SQL warehouse and lengthen its auto-stop for the day | ☐ |
+| Wed 21 Oct | Late registrations: check they can sign in and have access to `smbc_workshop`; their check-in creates their schema. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
+| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day | ☐ |
 | Day, −30 min | Doors open; check-in desk opens | ☐ |
 
 ## 3. Presenter laptop: tabs to open before the start
@@ -70,7 +70,7 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 | Nobody can reach the workspace | Present from the Databricks test workspace; people follow on the projector in pairs; play the recordings |
 | Designer's Genie Code prompts don't respond | Build the step by hand from the actions in Lab 1, step 4, and check cross-Geo processing (guide §3.2) |
 | Genie Agents error or are slow | Lab 2 carries on with the dashboard, Genie in pairs; check cross-Geo processing and partner-powered AI (`07_check_requirements` tests both) |
-| Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses |
+| Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses, or ask its owner to |
 | Lab 1 overruns | At 1:15 move everyone to the checkpoint tables; Lab 2 doesn't depend on Lab 1 |
 | AI output differs from the rehearsal | Say so: it's why you check the SQL. Show the recording if the difference matters |
 | Slido is blocked on the SMBC network | Phones on mobile data; or read the questions from `quiz.md` and take answers by show of hands |
@@ -86,14 +86,11 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 
 **Goal:** time the labs with first-time users, and test what the 15 Oct tests couldn't reach through the APIs (the test report's "Not tested" list).
 
-**Set up** (`fe-vm-zh-serverless-ws`, which has no SMBC groups):
+**Set up** (`fe-vm-zh-serverless-ws`; no groups are needed):
 1. Add 3–5 colleagues to the workspace, including at least one who hasn't used Designer.
 2. Run `08_reset_or_teardown` → `drop_attendee_schemas`, with `dry_run` = `no`.
-3. The test workspace has no SMBC groups, so run the notebooks one at a time rather than `00_master_setup`, whose pre-flight checks require account-level groups:
-   - `01_setup_workspace` with `attendee_group` = `account users` (Unity Catalog's built-in group for everyone in the account), `facilitator_group` = `meridian-admin`, `attendee_emails` = their emails, and `generate_data` = `no`;
-   - `05_governance_demo` with the same two groups;
-   - `06_deploy_dashboards_and_agents` with `folder` = `/Workspace/Users/zhihan.tan@databricks.com/smbc_workshop`, `attendee_group` = `users` (the workspace's all-users group) and `facilitator_group` = `meridian-admin`;
-   - `07_check_requirements` with the same values as `06`. Expect it to flag the two groups, because they're built-in groups rather than account groups; everything else should pass.
+3. Run `00_master_setup` with `folder` = `/Workspace/Users/zhihan.tan@databricks.com/smbc_workshop` and **Generate the synthetic data** = `no`. Leave the warehouse blank to let it pick one, or name one.
+4. Give the colleagues access to `smbc_workshop` with the three grants in guide §3.6, then run `07_check_requirements` again: every row should pass.
 
 **Time and test:**
 
@@ -141,6 +138,7 @@ Agree these by Tuesday 20 October. Fifteen minutes in three parts.
 - **Total too low:** only one date format was parsed, or `US$`, `S$` or `RMB` wasn't mapped. Look at the join's Left unmatched output.
 - **Months missing after the FX join:** joined on the exact date; join on currency and month.
 - **Permission error on Output:** the output location isn't the person's own schema.
+- **Permission error at check-in:** the person doesn't have access to `smbc_workshop` yet (guide §3.6); tell the lab lead.
 - **Genie reads FY2026 as a calendar year:** that's the point of step 4; add the fiscal-year instruction (A.4).
 
 **Catching up:** anyone can carry on from `smbc_workshop.checkpoint`.

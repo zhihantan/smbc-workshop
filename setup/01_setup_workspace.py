@@ -2,38 +2,39 @@
 # MAGIC %md
 # MAGIC # 01 · Set up the workshop workspace
 # MAGIC
-# MAGIC Run once as a workspace admin (or anyone who can create catalogs and grant privileges), on serverless
-# MAGIC compute. It is safe to re-run, for example after adding late registrations to `attendee_emails`.
+# MAGIC Run once on serverless compute, as someone who can create the `smbc_workshop` catalog (or who already has
+# MAGIC `ALL PRIVILEGES` and `MANAGE` on it). It is safe to re-run.
 # MAGIC
 # MAGIC It creates:
 # MAGIC
-# MAGIC | Object | Purpose | Attendee access |
+# MAGIC | Object | Purpose | What attendees need |
 # MAGIC |---|---|---|
 # MAGIC | `smbc_workshop.raw.landing` (volume) | The raw extracts and the limits spreadsheet | Read |
-# MAGIC | `smbc_workshop.raw.facilitator` (volume) | Answer key and a CSV copy of the limits | None |
+# MAGIC | `smbc_workshop.raw.facilitator` (volume) | Answer key and a CSV copy of the limits | Nothing |
 # MAGIC | `smbc_workshop.checkpoint` (schema) | Save-point tables built by `02_build_checkpoints` | Read |
-# MAGIC | `smbc_workshop.ops` (schema) | Check-in and lab-answer tables for the progress board | Read + write |
-# MAGIC | `smbc_workshop.<name>` (one schema per attendee) | Where each person's Lab 1 output goes | Full |
+# MAGIC | `smbc_workshop.ops` (schema) | Check-in and lab-answer tables for the progress board | Read and write |
 # MAGIC
-# MAGIC Before running: create the attendee and facilitator groups (account console or SCIM from Entra ID) and add
-# MAGIC them to this workspace. Next steps are listed at the end of the notebook.
+# MAGIC No groups are needed, and this notebook grants attendees nothing: an admin gives them access to the catalog (the
+# MAGIC statements are below, and in guide 3.6). Each attendee creates their own Lab 1 schema, named after their email
+# MAGIC address, when they run the check-in block. The facilitators (you, plus anyone in `facilitator_emails`) get
+# MAGIC `ALL PRIVILEGES` and `MANAGE` on the catalog, so the progress board can see every attendee's schema.
 
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "smbc_workshop", "Catalog")
 dbutils.widgets.text("managed_location", "", "Managed location (only if CREATE CATALOG asks for one)")
-dbutils.widgets.text("attendee_group", "smbc_workshop_attendees", "Attendee group")
-dbutils.widgets.text("facilitator_group", "smbc_workshop_facilitators", "Facilitator group")
-dbutils.widgets.text("attendee_emails", "", "Attendee emails, comma-separated (creates one schema each)")
+dbutils.widgets.text("facilitator_emails", "", "Other facilitators' emails, comma-separated (you're included)")
 dbutils.widgets.dropdown("generate_data", "yes", ["yes", "no"], "Generate data into the landing volume")
 dbutils.widgets.text("remove_after", "", "RemoveAfter tag, YYYYMMDD (Databricks FE workspaces only)")
 
 catalog = dbutils.widgets.get("catalog").strip()
 remove_after = dbutils.widgets.get("remove_after").strip()
 managed_location = dbutils.widgets.get("managed_location").strip()
-attendees = dbutils.widgets.get("attendee_group").strip()
-facilitators = dbutils.widgets.get("facilitator_group").strip()
-emails = [e.strip() for e in dbutils.widgets.get("attendee_emails").split(",") if e.strip()]
+me = spark.sql("SELECT current_user()").first()[0]
+facilitators = []
+for email in [me] + dbutils.widgets.get("facilitator_emails").split(","):
+    if email.strip() and email.strip().lower() not in {f.lower() for f in facilitators}:
+        facilitators.append(email.strip())
 
 if catalog != "smbc_workshop":
     print(f"Note: 02_build_checkpoints.sql and 04/05 use 'smbc_workshop'. Find-and-replace it with '{catalog}'.")
@@ -44,9 +45,14 @@ if catalog != "smbc_workshop":
 
 # COMMAND ----------
 
-location = f" MANAGED LOCATION '{managed_location}'" if managed_location else ""
-spark.sql(f"CREATE CATALOG IF NOT EXISTS `{catalog}`{location} "
-          "COMMENT 'SMBC Data & AI Workshop, 22 Oct 2026. All data is synthetic.'")
+# Only create the catalog if it's missing: on a metastore without root storage, even CREATE CATALOG IF NOT EXISTS
+# fails without a managed location, although the catalog is already there.
+if spark.sql(f"SHOW CATALOGS LIKE '{catalog}'").count():
+    print(f"Catalog {catalog} already exists")
+else:
+    location = f" MANAGED LOCATION '{managed_location}'" if managed_location else ""
+    spark.sql(f"CREATE CATALOG `{catalog}`{location} "
+              "COMMENT 'SMBC Data & AI Workshop, 22 Oct 2026. All data is synthetic.'")
 tags = {"synthetic_data": "true", "workshop_date": "2026-10-22"}
 if remove_after:
     tags["RemoveAfter"] = remove_after
@@ -97,64 +103,45 @@ if dbutils.widgets.get("generate_data") == "yes":
 
 # COMMAND ----------
 
-# MAGIC %md ## Grants
+# MAGIC %md ## Facilitator access
+# MAGIC
+# MAGIC Privileges granted on the catalog apply to everything in it, including the schemas attendees create, so the
+# MAGIC progress board (which runs as whoever deployed it) can see their tables, and `08_reset_or_teardown` can drop them.
 
 # COMMAND ----------
 
 failed_grants = []
-
-
-def grant(statement):
-    try:
-        spark.sql(statement)
-        print("OK  ", statement)
-    except Exception as err:
-        failed_grants.append((statement, str(err).splitlines()[0]))
-        print("FAIL", statement, "->", str(err).splitlines()[0])
-
-
-grant(f"GRANT ALL PRIVILEGES ON CATALOG `{catalog}` TO `{facilitators}`")
-grant(f"GRANT MANAGE ON CATALOG `{catalog}` TO `{facilitators}`")
-
-grant(f"GRANT USE CATALOG ON CATALOG `{catalog}` TO `{attendees}`")
-grant(f"GRANT USE SCHEMA ON SCHEMA `{catalog}`.raw TO `{attendees}`")
-grant(f"GRANT READ VOLUME ON VOLUME `{catalog}`.raw.landing TO `{attendees}`")
-grant(f"GRANT USE SCHEMA, SELECT ON SCHEMA `{catalog}`.checkpoint TO `{attendees}`")
-grant(f"GRANT USE SCHEMA ON SCHEMA `{catalog}`.ops TO `{attendees}`")
-grant(f"GRANT SELECT, MODIFY ON TABLE `{catalog}`.ops.checkin TO `{attendees}`")
-grant(f"GRANT SELECT, MODIFY ON TABLE `{catalog}`.ops.lab_answers TO `{attendees}`")
-if not emails:
-    # No attendee list yet: let people create their own schema in Lab 1, step 0.
-    grant(f"GRANT CREATE SCHEMA ON CATALOG `{catalog}` TO `{attendees}`")
-
-# COMMAND ----------
-
-# MAGIC %md ## One schema per attendee
-
-# COMMAND ----------
-
-import re
-
-
-def schema_for(email):
-    return re.sub(r"[^a-z0-9_]", "_", email.split("@")[0].lower())
-
-
-for email in emails:
-    schema = schema_for(email)
-    spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{catalog}`.`{schema}` COMMENT 'Lab workspace for {email}'")
-    grant(f"GRANT ALL PRIVILEGES ON SCHEMA `{catalog}`.`{schema}` TO `{email}`")
-
-display(spark.createDataFrame([(e, f"{catalog}.{schema_for(e)}") for e in emails] or [("(none)", "")],
-                              "email string, schema string"))
-
+for facilitator in facilitators:
+    for privilege in ("ALL PRIVILEGES", "MANAGE"):
+        statement = f"GRANT {privilege} ON CATALOG `{catalog}` TO `{facilitator}`"
+        try:
+            spark.sql(statement)
+            print("OK  ", statement)
+        except Exception as err:
+            failed_grants.append(statement)
+            print("FAIL", statement, "->", str(err).splitlines()[0])
 if failed_grants:
-    raise RuntimeError(
-        f"{len(failed_grants)} grant(s) failed, starting with: {failed_grants[0][1]}\n"
-        "Most often the group doesn't exist at account level. Unity Catalog can only grant to account-level groups "
-        "(created in the account console or synced from Entra ID) that are assigned to this workspace; groups created "
-        "inside the workspace are workspace-local and can't receive Unity Catalog privileges. Fix the groups, then re-run "
-        "this notebook (it's safe to re-run).")
+    print(f"\n{len(failed_grants)} grant(s) failed. If the catalog belongs to someone else, ask its owner to run them: "
+          "without them the progress board can't see attendees' schemas.")
+
+# COMMAND ----------
+
+# MAGIC %md ## Attendee access (for an admin)
+# MAGIC
+# MAGIC This notebook doesn't grant attendees anything. Whoever looks after the catalog gives them access, for example to
+# MAGIC everyone in the account with `account users`, or to an existing group (guide 3.6):
+# MAGIC
+# MAGIC ```sql
+# MAGIC GRANT USE CATALOG, USE SCHEMA, SELECT, CREATE SCHEMA ON CATALOG smbc_workshop TO `account users`;
+# MAGIC GRANT READ VOLUME ON VOLUME smbc_workshop.raw.landing TO `account users`;
+# MAGIC GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
+# MAGIC ```
+# MAGIC
+# MAGIC The current grants on the catalog:
+
+# COMMAND ----------
+
+display(spark.sql(f"SHOW GRANTS ON CATALOG `{catalog}`"))
 
 # COMMAND ----------
 
@@ -164,8 +151,8 @@ if failed_grants:
 # MAGIC `00_master_setup` runs all of these for you. To run the notebooks one at a time instead:
 # MAGIC 1. Run **`02_build_checkpoints`** to build the save-point tables, then **`03_validate_checkpoints`**: every
 # MAGIC    check should pass.
-# MAGIC 2. Run **`05_governance_demo`**, then **`06_deploy_dashboards_and_agents`**. It creates the **SMBC Workshop**
-# MAGIC    warehouse, the dashboards (including the progress board) and the Genie Agents, and shares them.
+# MAGIC 2. Run **`05_governance_demo`**, then **`06_deploy_dashboards_and_agents`**. It creates the dashboards (including
+# MAGIC    the progress board) and the Genie Agents on a SQL warehouse you can use, and shares them.
 # MAGIC 3. Run **`07_check_requirements`**: every row should say PASS.
 # MAGIC 4. Create one test user with **Consumer access** only, for the Genie One demo, and work through the smoke tests
 # MAGIC    in the workshop guide (section 3.8) as a test attendee, on an SMBC laptop.
