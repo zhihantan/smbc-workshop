@@ -81,7 +81,7 @@ END
 [0:02 · 1 min]
 - Two short intros, each followed by a 40-minute hands-on lab, then a Genie Code segment you can follow along with, and a quiz on phones.
 - Each lab has a 25-minute core path and 15 minutes of stretch exercises, so nobody waits and nobody gets left behind.
-- Save-point tables mean nobody gets stuck: if Lab 1 runs long, Lab 2 still works.
+- The reference tables in bronze, silver and gold mean nobody gets stuck: if Lab 1 runs long, Lab 2 still works.
 - Times are relative to the start time.
 -->
 
@@ -251,8 +251,8 @@ Work in pairs, ideally an analyst and an engineer: **the engineer drives.**
 <!--
 [0:45 · 40 min]
 - Goal: turn the raw extracts into gold_group_exposure, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.
-- Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result.
-- The full steps are in the lab workbook (PDF, and the "Lab workbook" notebook in the workspace).
+- Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result.
+- The full steps are in the lab workbook PDF and in the Labs folder in the workspace: notebook 01 is Lab 1.
 - Helpers: watch for red cards, and for anyone who hasn't added a Source after five minutes.
 -->
 
@@ -406,19 +406,19 @@ SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
 FROM smbc_workshop.<your_schema>.gold_group_exposure WHERE as_of_date = '2026-09-30';
 
 SELECT round(sum(exposure_usd) / 1e6, 1) AS reference_usd_m
-FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30';
+FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 ```
 
 - **Higher?** Duplicates not removed: steps 3 and 6.
 - **Much lower?** A date format or currency mapping missed: steps 4 and 6.
-- **Short on time?** Use `smbc_workshop.checkpoint`: the same result, ready for Lab 2.
+- **Short on time?** Use `smbc_workshop.gold`: the same result, ready for Lab 2.
 
 <!--
 [From about 1:10]
-- Run both queries in the SQL editor. The Lab workbook notebook has a version that works out your schema from your login.
+- Run both queries in the SQL editor. Notebook 01 in the Labs folder has a version that works out your schema from your login.
 - Total higher than the checkpoint: duplicates not removed, either in the customer master or from the re-sent Bangkok extract.
 - Total much lower: only one date format parsed, or currency codes not mapped. Check the join's Left unmatched output.
-- 1:15: anyone not past step 5 switches to the checkpoint tables.
+- 1:15: anyone not past step 5 switches to the gold reference tables.
 -->
 
 ---
@@ -467,7 +467,7 @@ What Bangkok's re-sent trade-finance extract would have added to the Credit Comm
 
 Back at __:__
 
-Lab 1 not finished? The checkpoint tables have the same result.
+Lab 1 not finished? The gold reference tables have the same result.
 
 <!--
 [1:25 · 15 min]
@@ -575,12 +575,12 @@ Fallback: if the Consumer-access user or Genie One chat fails, use the agent fro
 
 2:00 · 40 minutes: a 25-minute core path and 15 minutes of stretch
 
-Swap drivers: **the analyst drives.** Use the checkpoint tables, so everyone's answers match.
+Swap drivers: **the analyst drives.** Use the gold reference tables, so everyone's answers match.
 
 <!--
 [2:00 · 40 min]
 - Goal: a dashboard for the questions the Credit Committee always asks, and a Genie Agent for the ones they haven't asked yet. Teach the agent the bank's rules, and test that it's right.
-- The tables: smbc_workshop.checkpoint.gold_group_exposure and smbc_workshop.checkpoint.gold_facility_exposure.
+- The tables: smbc_workshop.gold.group_exposure and smbc_workshop.gold.facility_exposure.
 -->
 
 ---
@@ -609,7 +609,7 @@ Helpers, watch for:
 
 # Lab 2 · Step 1: build the dashboard
 
-- **+ New → Dashboard.** On the **Data** tab, add both checkpoint gold tables.
+- **+ New → Dashboard.** On the **Data** tab, add both gold tables.
 - Ask the AI assistant on the canvas:
 
 ```text
@@ -630,7 +630,7 @@ Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_
 
 # Lab 2 · Step 2: create a Genie Agent
 
-- **Genie Agents → New**, select the two checkpoint gold tables, click **Create**.
+- **Genie Agents → New**, select the two gold tables, click **Create**.
 - Genie Code suggests descriptions and example queries. Review them, and accept the ones that are right.
 - **Configure → Settings:** title `Credit Risk – <your name>`, default warehouse: the one you checked in with.
 - Add from the workbook: the starter instructions (**A.3**), the two example SQL queries (**A.5**) and the common questions (**A.6**).
@@ -798,7 +798,7 @@ Follow along: open a notebook on **Serverless** and paste the prompts from the w
 # Genie Code · 1. Explore
 
 ```text
-Profile smbc_workshop.checkpoint.gold_group_exposure and tell me what is unusual about the latest month
+Profile smbc_workshop.gold.group_exposure and tell me what is unusual about the latest month
 compared with April 2026.
 ```
 
@@ -817,7 +817,7 @@ Watch it plan, run code and summarise what it found.
 ```text
 For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026
 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using
-smbc_workshop.checkpoint.gold_facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
+smbc_workshop.gold.facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
 FX = Sep balance × (Sep rate − Apr rate). Chart it.
 ```
 
@@ -835,7 +835,7 @@ This answers the **"why"** behind the Credit Committee's question.
 
 ```text
 Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against
-the smbc_workshop.checkpoint tables. Just explain first, don't run any code.
+the smbc_workshop.gold tables. Just explain first, don't run any code.
 ```
 
 Then paste the legacy Synapse T-SQL procedure from the workbook (**A.9**).

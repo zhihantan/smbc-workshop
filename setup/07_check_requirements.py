@@ -86,18 +86,18 @@ def _():
 @check("9", "Catalog, schemas and volumes", "Run 01_setup_workspace.")
 def _():
     schemas = {r[0] for r in spark.sql(f"SHOW SCHEMAS IN {CATALOG}").collect()}
-    missing = {"raw", "checkpoint", "ops"} - schemas
+    missing = {"raw", "bronze", "silver", "gold", "ops"} - schemas
     folders = sorted(os.listdir(f"/Volumes/{CATALOG}/raw/landing"))
     expected = ["counterparties", "facilities", "fx_rates", "group_limits", "monthly_balances", "sector_emission_factors"]
     if missing or folders != expected:
         return "FAIL", f"missing schemas {sorted(missing)}; landing folders {folders}"
-    return "PASS", f"raw, checkpoint, ops; {len(folders)} landing folders"
+    return "PASS", f"raw, bronze, silver, gold, ops; {len(folders)} landing folders"
 
 
-@check("9", "Checkpoint tables", "Run 02_build_checkpoints, then 03_validate_checkpoints.")
+@check("9", "Gold tables", "Run 02_build_bronze_silver_gold, then 03_validate_bronze_silver_gold.")
 def _():
-    counts = {t: spark.table(f"{CATALOG}.checkpoint.{t}").count() for t in ("gold_group_exposure", "gold_facility_exposure")}
-    expected = {"gold_group_exposure": 7174, "gold_facility_exposure": 74283}
+    counts = {t: spark.table(f"{CATALOG}.{t}").count() for t in ("gold.group_exposure", "gold.facility_exposure")}
+    expected = {"gold.group_exposure": 7174, "gold.facility_exposure": 74283}
     return ("PASS" if counts == expected else "FAIL"), ", ".join(f"{t} {n:,} rows" for t, n in counts.items())
 
 
@@ -107,8 +107,8 @@ ATTENDEE_NEEDS = [
     (f"CATALOG {CATALOG}", "CREATE SCHEMA"),
     (f"SCHEMA {CATALOG}.raw", "USE SCHEMA"),
     (f"VOLUME {CATALOG}.raw.landing", "READ VOLUME"),
-    (f"SCHEMA {CATALOG}.checkpoint", "USE SCHEMA"),
-    (f"SCHEMA {CATALOG}.checkpoint", "SELECT"),
+    (f"SCHEMA {CATALOG}.gold", "USE SCHEMA"),
+    (f"SCHEMA {CATALOG}.gold", "SELECT"),
     (f"SCHEMA {CATALOG}.ops", "USE SCHEMA"),
     (f"TABLE {CATALOG}.ops.checkin", "MODIFY"),
     (f"TABLE {CATALOG}.ops.lab_answers", "MODIFY"),
@@ -200,6 +200,21 @@ def _():
     return ("FAIL" if notes else "PASS"), "; ".join(notes) or "both agents; attendees can ask questions"
 
 
+@check("—", "Lab notebooks", "Run 06_deploy_dashboards_and_agents: it copies the notebooks in labs/ to the Labs folder.")
+def _():
+    repo_labs = os.path.join(os.path.dirname(os.getcwd()), "labs")  # this notebook lives in <repo>/setup
+    expected = sorted(os.path.splitext(name)[0] for name in os.listdir(repo_labs) if not name.startswith("."))
+    labs = workspace_api.get_status(f"{folder}/Labs")
+    if labs is None:
+        return "FAIL", f"no Labs folder in {folder}"
+    found = sorted(o["path"].rsplit("/", 1)[1] for o in api("get", "/api/2.0/workspace/list", {"path": f"{folder}/Labs"}).get("objects", []))
+    if found != expected:
+        return "FAIL", f"the Labs folder has {found}, expected {expected}"
+    if share_with and not levels("directories", labs["object_id"], share_with) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
+        return "FAIL", f"{share_with} can't open the Labs folder"
+    return "PASS", f"{len(found)} notebooks; attendees can open them"
+
+
 if dbutils.widgets.get("ask_genie") == "yes":
     @check("4, 5", "Genie Agent answers (partner-powered AI, cross-Geo processing)",
            "Turn on partner-powered AI features for the account and workspace, and make sure cross-Geo processing "
@@ -216,7 +231,7 @@ if dbutils.widgets.get("ask_genie") == "yes":
 
 @check("—", "Governance demo (05)", "Run 05_governance_demo again: whoever runs it is always a facilitator.")
 def _():
-    branches = spark.sql(f"SELECT count(DISTINCT booking_branch) FROM {CATALOG}.checkpoint.gold_facility_exposure_secured").first()[0]
+    branches = spark.sql(f"SELECT count(DISTINCT booking_branch) FROM {CATALOG}.gold.facility_exposure_secured").first()[0]
     if branches == 12:
         return "PASS", "as a facilitator you see all 12 branches; attendees see SIN only"
     return "WARN", f"you see {branches} branch(es): you're not on the facilitator list, so the demo would show the attendee view"

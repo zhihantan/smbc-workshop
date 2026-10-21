@@ -14,7 +14,7 @@
 # MAGIC | Dashboard **SMBC Workshop: progress board**, published | CAN VIEW |
 # MAGIC | Genie Agent **Credit Risk (reference)**: the Lab 2 model answer | CAN RUN |
 # MAGIC | Genie Agent **Credit Risk (secured demo)**: the governance demo from `05` | CAN RUN |
-# MAGIC | Notebook **Lab workbook**: a read-only copy of `handouts/Lab_Workbook_notebook` | CAN READ |
+# MAGIC | Folder **Labs**: the attendee notebooks from `labs/`; attendees clone one to run it | CAN READ |
 # MAGIC
 # MAGIC `share_with` is `users` by default: the built-in group of everyone in this workspace, so no group has to be created.
 # MAGIC The facilitators in `facilitator_emails` get CAN MANAGE. The default folder is in your home folder rather than
@@ -74,7 +74,7 @@ print(f"Using warehouse {name} ({warehouse_id}), serverless={warehouse.get('enab
 
 dashboards.configure(warehouse_id, folder)
 if dashboards.test():
-    raise RuntimeError("A dashboard query failed (see above). Check that 02_build_checkpoints has run.")
+    raise RuntimeError("A dashboard query failed (see above). Check that 02_build_bronze_silver_gold has run.")
 dashboard_ids = dashboards.deploy_all()
 
 # COMMAND ----------
@@ -84,7 +84,7 @@ dashboard_ids = dashboards.deploy_all()
 # COMMAND ----------
 
 agents = {"Credit Risk (reference)": "reference", "Credit Risk (secured demo)": "secured"}
-if not spark.catalog.tableExists("smbc_workshop.checkpoint.gold_facility_exposure_secured"):
+if not spark.catalog.tableExists("smbc_workshop.gold.facility_exposure_secured"):
     print("Skipping the secured demo agent: run 05_governance_demo first.")
     del agents["Credit Risk (secured demo)"]
 
@@ -95,27 +95,35 @@ for title, variant in agents.items():
 
 # COMMAND ----------
 
-# MAGIC %md ## Lab workbook
+# MAGIC %md ## Labs folder
 # MAGIC
-# MAGIC Copies `handouts/Lab_Workbook_notebook` from this repo so attendees can read the lab steps inside the workspace.
-# MAGIC Run `handouts/build_handouts.py` first if the repo doesn't have it.
+# MAGIC Copies every notebook in this repo's `labs/` folder (built from the guide by `handouts/build_handouts.py`) into a
+# MAGIC **Labs** folder, where attendees open them. An earlier setup's single **Lab workbook** notebook is removed.
 
 # COMMAND ----------
 
-workbook_id = None
-source = f"{repo}/handouts/Lab_Workbook_notebook"
-status = workspace_api.get_status(source) or workspace_api.get_status(source + ".py")
-if status is None:
-    print(f"Skipping the lab workbook: {source} not found.")
+labs_folder, labs_id, lab_names = f"{folder}/Labs", None, []
+if workspace_api.get_status(f"{repo}/labs") is None:
+    print(f"Skipping the Labs folder: {repo}/labs not found.")
 else:
-    if status["object_type"] == "NOTEBOOK":
-        content = api("get", "/api/2.0/workspace/export", {"path": status["path"], "format": "SOURCE"})["content"]
-    else:  # a plain .py file
-        content = base64.b64encode(open(status["path"], "rb").read()).decode()
-    api("post", "/api/2.0/workspace/import", {"path": f"{folder}/Lab workbook", "format": "SOURCE", "language": "PYTHON",
-                                              "content": content, "overwrite": True})
-    workbook_id = workspace_api.get_status(f"{folder}/Lab workbook")["object_id"]
-    print("Lab workbook copied to", f"{folder}/Lab workbook")
+    api("post", "/api/2.0/workspace/mkdirs", {"path": labs_folder})
+    for entry in sorted(api("get", "/api/2.0/workspace/list", {"path": f"{repo}/labs"}).get("objects", []), key=lambda o: o["path"]):
+        name = os.path.splitext(entry["path"].rsplit("/", 1)[1])[0]
+        if entry["object_type"] == "NOTEBOOK":
+            content = api("get", "/api/2.0/workspace/export", {"path": entry["path"], "format": "SOURCE"})["content"]
+        elif entry["object_type"] == "FILE" and entry["path"].endswith(".py"):  # a notebook stored as a plain file
+            local = entry["path"] if entry["path"].startswith("/Workspace") else "/Workspace" + entry["path"]
+            content = base64.b64encode(open(local, "rb").read()).decode()
+        else:
+            continue
+        api("post", "/api/2.0/workspace/import", {"path": f"{labs_folder}/{name}", "format": "SOURCE", "language": "PYTHON",
+                                                  "content": content, "overwrite": True})
+        lab_names.append(name)
+    labs_id = workspace_api.get_status(labs_folder)["object_id"]
+    print(f"Copied {len(lab_names)} notebooks to {labs_folder}: {', '.join(lab_names)}")
+if workspace_api.get_status(f"{folder}/Lab workbook"):
+    api("post", "/api/2.0/workspace/delete", {"path": f"{folder}/Lab workbook"})
+    print("Removed the old Lab workbook notebook")
 
 # COMMAND ----------
 
@@ -137,8 +145,8 @@ def share(object_type, object_id, principal, level, what):
 
 objects = [("dashboards", i, "CAN_READ", title) for title, i in dashboard_ids.items()]
 objects += [("genie", i, "CAN_RUN", title) for title, i in agent_ids.items()]
-if workbook_id:
-    objects.append(("notebooks", workbook_id, "CAN_READ", "Lab workbook"))
+if labs_id:
+    objects.append(("directories", labs_id, "CAN_READ", "Labs folder"))
 for object_type, object_id, level, what in objects:
     if share_with:
         share(object_type, object_id, share_with, level, what)
@@ -154,8 +162,8 @@ for object_type, object_id, level, what in objects:
 links = [("Warehouse", name, f"{host}/sql/warehouses/{warehouse_id}")]
 links += [("Dashboard", title, f"{host}/dashboardsv3/{i}/published") for title, i in dashboard_ids.items()]
 links += [("Genie Agent", title, f"{host}/genie/rooms/{i}") for title, i in agent_ids.items()]
-if workbook_id:
-    links.append(("Notebook", "Lab workbook", f"{host}/#notebook/{workbook_id}"))
+if labs_id:
+    links.append(("Folder", "Labs (the attendee notebooks)", f"{host}/browse/folders/{labs_id}"))
 links.append(("Genie One", "What a business user sees", f"{host}/one"))
 display(spark.createDataFrame(links, "type string, name string, link string"))
 

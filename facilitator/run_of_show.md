@@ -20,7 +20,7 @@
 
 | When | Task | Status |
 |---|---|---|
-| 15 Oct | Dataset generated and validated. Checkpoint tables, dashboards and Genie Agents built and tested in the Databricks test workspace ([test report](test_report_2026-10-15.md)) | ✅ |
+| 15 Oct | Dataset generated and validated. Reference tables, dashboards and Genie Agents built and tested in the Databricks test workspace ([test report](test_report_2026-10-15.md)) | ✅ |
 | Fri 16 Oct | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
 | Mon 19 Oct | Internal dry run (section 6) | ☐ |
 | Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
@@ -51,7 +51,7 @@
 | 0:00 | **Welcome and check-in** (10) | Welcome slide, then the progress board | Host welcomes; everyone runs the check-in line; the poll runs (*"What do you use most today?"*). Anyone not checked in by 0:05 gets a helper. | 0:10, or 90% checked in |
 | 0:10 | **Executive briefing** (15) | Briefing slides | Richard 5 min, Peter 5 min, fireside 5 min (section 7). Richard asks *the CDAO's question*. | 0:25, hard stop |
 | 0:25 | **Lakeflow** (20) | At most 8 min of slides, then live Designer | The demo: drag `group_limits.xlsx` onto the canvas → one Genie Code prompt → preview → open the generated code | 0:45 |
-| 0:45 | **Lab 1** (40) | *Lab 1 at a glance*, then the progress board | Pairs, engineer driving. **0:55:** most pairs have their sources in (step 2). **1:10:** the core path should be done; call "stretch or catch up". **1:15:** anyone not past step 5 switches to the checkpoint tables. **1:22:** facilitator close (lineage, and the USD 366.9m reveal). | 1:25 |
+| 0:45 | **Lab 1** (40) | *Lab 1 at a glance*, then the progress board | Pairs, engineer driving. **0:55:** most pairs have their sources in (step 2). **1:10:** the core path should be done; call "stretch or catch up". **1:15:** anyone not past step 5 switches to the gold reference tables. **1:22:** facilitator close (lineage, and the USD 366.9m reveal). | 1:25 |
 | 1:25 | Break (15) | Progress board, "back at" slide | Helpers sort out anyone stuck | 1:40 |
 | 1:40 | **Self-service analytics** (20) | Slides, then live | The demo: reference dashboard → Genie One as the Consumer-access user → a question in English, then in Japanese → open the SQL | 2:00 |
 | 2:00 | **Lab 2** (40) | *Lab 2 at a glance*, then the progress board | **2:10:** dashboards published. **2:15:** Genie Agents created. **2:24:** the fiscal-year test done. **2:25:** answers submitted (the board shows them). **2:25–2:35:** stretch; Stump the Genie entries go to a facilitator. **2:35:** governance moment, facilitator and a volunteer (3 min). **2:38:** the fiscal-year debrief slide. | 2:40 |
@@ -71,7 +71,7 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 | Designer's Genie Code prompts don't respond | Build the step by hand from the actions in Lab 1, step 4, and check cross-Geo processing (guide §3.2) |
 | Genie Agents error or are slow | Lab 2 carries on with the dashboard, Genie in pairs; check cross-Geo processing and partner-powered AI (`07_check_requirements` tests both) |
 | Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses, or ask its owner to |
-| Lab 1 overruns | At 1:15 move everyone to the checkpoint tables; Lab 2 doesn't depend on Lab 1 |
+| Lab 1 overruns | At 1:15 move everyone to the gold reference tables; Lab 2 doesn't depend on Lab 1 |
 | AI output differs from the rehearsal | Say so: it's why you check the SQL. Show the recording if the difference matters |
 | Slido is blocked on the SMBC network | Phones on mobile data; or read the questions from `quiz.md` and take answers by show of hands |
 
@@ -141,7 +141,7 @@ Agree these by Tuesday 20 October. Fifteen minutes in three parts.
 - **Permission error at check-in:** the person doesn't have access to `smbc_workshop` yet (guide §3.6); tell the lab lead.
 - **Genie reads FY2026 as a calendar year:** that's the point of step 4; add the fiscal-year instruction (A.4).
 
-**Catching up:** anyone can carry on from `smbc_workshop.checkpoint`.
+**Catching up:** anyone can carry on from the reference tables in `smbc_workshop.gold`.
 
 **Escalation:** helper → lab lead → SMBC IT (sign-in and network).
 

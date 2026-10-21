@@ -3,7 +3,7 @@
 
 Variants: `reference` (Lab 2 model answer: starter + fiscal-year instructions, example SQL, benchmarks),
 `starter` (the same without the fiscal-year instruction, to rehearse the Lab 2 fiscal-year test) and `secured`
-(the governance demo on gold_facility_exposure_secured).
+(the governance demo on gold.facility_exposure_secured).
 
 From a laptop, through the Databricks CLI:
 
@@ -23,12 +23,12 @@ import argparse, json, sys, time, uuid
 import workspace_api
 from workspace_api import api
 
-CAT = "smbc_workshop.checkpoint"
+GOLD = "smbc_workshop.gold"
 
 STARTER = """This agent answers questions about SMBC APAC's corporate lending exposure. All data is synthetic.
 
 - Exposure means drawn balance. Use exposure_usd unless the user asks for yen; then use exposure_jpy.
-- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in gold_group_exposure). Above 90% is "near its limit"; above 100% is "in breach".
+- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in group_exposure). Above 90% is "near its limit"; above 100% is "in breach".
 - Balances are month-end snapshots. For "current" or "latest", use the most recent as_of_date. Never add balances across months; compare month ends instead.
 - A counterparty group's exposure includes all of its subsidiaries in every country (parent_group_id).
 - Booking branch codes: SIN Singapore, HKG Hong Kong, BKK Bangkok, SGN Ho Chi Minh City, JKT Jakarta, BOM Mumbai, SYD Sydney, SEL Seoul, SHA Shanghai, KUL Kuala Lumpur, MNL Manila, TPE Taipei.
@@ -47,10 +47,10 @@ SECURED_NOTE = """This demo agent uses a copy of the facility table protected by
 
 EXAMPLES = [
     ("Top 10 counterparty groups by exposure at the latest month end",
-     f"SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct\nFROM {CAT}.gold_group_exposure\n"
-     f"WHERE as_of_date = (SELECT max(as_of_date) FROM {CAT}.gold_group_exposure)\nORDER BY exposure_usd DESC\nLIMIT 10", None),
+     f"SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct\nFROM {GOLD}.group_exposure\n"
+     f"WHERE as_of_date = (SELECT max(as_of_date) FROM {GOLD}.group_exposure)\nORDER BY exposure_usd DESC\nLIMIT 10", None),
     ("Exposure by country and sector at a given month end",
-     f"SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m\nFROM {CAT}.gold_facility_exposure\n"
+     f"SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m\nFROM {GOLD}.facility_exposure\n"
      "WHERE as_of_date = :as_of_date\nGROUP BY country_code, sector\nORDER BY exposure_usd_m DESC",
      [{"name": "as_of_date", "type_hint": "DATE", "default_value": {"values": ["2026-09-30"]}}]),
 ]
@@ -63,16 +63,16 @@ QUESTIONS = [
 ]
 BENCHMARKS = [
     ("Total exposure in USD at 30 Sep 2026",
-     f"SELECT sum(exposure_usd) FROM {CAT}.gold_facility_exposure WHERE as_of_date = '2026-09-30'"),
+     f"SELECT sum(exposure_usd) FROM {GOLD}.facility_exposure WHERE as_of_date = '2026-09-30'"),
     ("Which groups were above 90% of their limit at the end of FY2026 H1?",
-     f"SELECT group_name, utilisation_pct FROM {CAT}.gold_group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct > 90"),
+     f"SELECT group_name, utilisation_pct FROM {GOLD}.group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct > 90"),
     ("Top 5 groups by exposure at the end of June 2026",
-     f"SELECT group_name, exposure_usd FROM {CAT}.gold_group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5"),
+     f"SELECT group_name, exposure_usd FROM {GOLD}.group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5"),
     ("Utilisation by month in FY2026 for the most utilised group",
-     f"SELECT as_of_date, utilisation_pct FROM {CAT}.gold_group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM "
-     f"{CAT}.gold_group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date >= '2026-04-30' ORDER BY as_of_date"),
+     f"SELECT as_of_date, utilisation_pct FROM {GOLD}.group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM "
+     f"{GOLD}.group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date >= '2026-04-30' ORDER BY as_of_date"),
     ("Share of SGN trade-finance exposure in arrears at 30 Sep 2026",
-     f"SELECT 100 * sum(CASE WHEN days_past_due > 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM {CAT}.gold_facility_exposure "
+     f"SELECT 100 * sum(CASE WHEN days_past_due > 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM {GOLD}.facility_exposure "
      "WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'"),
 ]
 
@@ -88,7 +88,7 @@ def lines(text):
 
 def build(variant):
     if variant == "secured":
-        tables = [{"identifier": f"{CAT}.gold_facility_exposure_secured"}]
+        tables = [{"identifier": f"{GOLD}.facility_exposure_secured"}]
         text = SECURED_NOTE
         examples, questions, benchmarks, joins = [], ["What is our total exposure by booking branch at the latest month end?"], [], []
     else:
@@ -97,18 +97,18 @@ def build(variant):
             return [{"column_name": c, "enable_format_assistance": True, **({"enable_entity_matching": True} if c in matching else {})}
                     for c in sorted(cols)]
         tables = [
-            {"identifier": f"{CAT}.gold_facility_exposure",
+            {"identifier": f"{GOLD}.facility_exposure",
              "column_configs": cfg(["booking_branch", "counterparty_name", "country_code", "group_name", "product_type", "sector"])},
-            {"identifier": f"{CAT}.gold_group_exposure", "column_configs": cfg(["group_name"])},
+            {"identifier": f"{GOLD}.group_exposure", "column_configs": cfg(["group_name"])},
         ]
         text = STARTER + ("\n\n" + FISCAL_YEAR if variant == "reference" else "")
         examples, questions = EXAMPLES, QUESTIONS
         benchmarks = BENCHMARKS if variant == "reference" else []
         joins = [{"id": oid(),
-                  "left": {"identifier": f"{CAT}.gold_facility_exposure", "alias": "gold_facility_exposure"},
-                  "right": {"identifier": f"{CAT}.gold_group_exposure", "alias": "gold_group_exposure"},
-                  "sql": ["`gold_facility_exposure`.`parent_group_id` = `gold_group_exposure`.`parent_group_id` AND "
-                          "`gold_facility_exposure`.`as_of_date` = `gold_group_exposure`.`as_of_date`",
+                  "left": {"identifier": f"{GOLD}.facility_exposure", "alias": "facility_exposure"},
+                  "right": {"identifier": f"{GOLD}.group_exposure", "alias": "group_exposure"},
+                  "sql": ["`facility_exposure`.`parent_group_id` = `group_exposure`.`parent_group_id` AND "
+                          "`facility_exposure`.`as_of_date` = `group_exposure`.`as_of_date`",
                           "--rt=FROM_RELATIONSHIP_TYPE_MANY_TO_ONE--"]}]
     space = {
         "version": 2,

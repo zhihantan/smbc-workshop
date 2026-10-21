@@ -18,7 +18,7 @@
 WITH participant_schemas AS (
   SELECT schema_name
   FROM smbc_workshop.information_schema.schemata
-  WHERE schema_name NOT IN ('information_schema', 'default', 'raw', 'checkpoint', 'ops')
+  WHERE schema_name NOT IN ('information_schema', 'default', 'raw', 'bronze', 'silver', 'gold', 'ops', 'checkpoint')
 ),
 lab1 AS (
   SELECT DISTINCT table_schema
@@ -41,7 +41,7 @@ SELECT
 WITH participant_schemas AS (
   SELECT schema_name
   FROM smbc_workshop.information_schema.schemata
-  WHERE schema_name NOT IN ('information_schema', 'default', 'raw', 'checkpoint', 'ops')
+  WHERE schema_name NOT IN ('information_schema', 'default', 'raw', 'bronze', 'silver', 'gold', 'ops', 'checkpoint')
 ),
 tables AS (
   SELECT table_schema, lower(table_name) AS table_name, created
@@ -69,7 +69,7 @@ ORDER BY group_gold DESC, quarantine_table DESC, tables_written DESC, first_tabl
 SELECT table_schema AS participant, min(created) AS finished_at
 FROM smbc_workshop.information_schema.tables
 WHERE lower(table_name) LIKE '%group_exposure%'
-  AND table_schema NOT IN ('checkpoint', 'raw', 'ops', 'default', 'information_schema')
+  AND table_schema NOT IN ('information_schema', 'default', 'raw', 'bronze', 'silver', 'gold', 'ops', 'checkpoint')
 GROUP BY table_schema
 ORDER BY finished_at
 LIMIT 10;

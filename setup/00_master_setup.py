@@ -20,11 +20,11 @@
 # MAGIC
 # MAGIC | Step | Notebook | What it creates |
 # MAGIC |---|---|---|
-# MAGIC | 1 | `01_setup_workspace` | Catalog `smbc_workshop` with its schemas, volumes and ops tables; the synthetic data; full access for the facilitators |
-# MAGIC | 2 | `02_build_checkpoints` | The save-point tables (the Lab 1 reference solution) |
-# MAGIC | 3 | `03_validate_checkpoints` | Nothing: checks the save-point tables against the answer key |
+# MAGIC | 1 | `01_setup_workspace` | Catalog `smbc_workshop` with its schemas (`raw`, `bronze`, `silver`, `gold`, `ops`), volumes and ops tables; the synthetic data; full access for the facilitators |
+# MAGIC | 2 | `02_build_bronze_silver_gold` | The bronze, silver and gold reference tables (the Lab 1 reference solution) |
+# MAGIC | 3 | `03_validate_bronze_silver_gold` | Nothing: checks those tables against the answer key |
 # MAGIC | 4 | `05_governance_demo` | The row-filtered, column-masked copy of the facility table |
-# MAGIC | 5 | `06_deploy_dashboards_and_agents` | Two dashboards, two Genie Agents and the lab workbook, on the chosen SQL warehouse, shared with everyone in the workspace |
+# MAGIC | 5 | `06_deploy_dashboards_and_agents` | Two dashboards, two Genie Agents and the attendees' Labs folder, on the chosen SQL warehouse, shared with everyone in the workspace |
 # MAGIC | 6 | `07_check_requirements` | Nothing: automated checks of the requirements, including a live question to a Genie Agent |
 
 # COMMAND ----------
@@ -32,7 +32,7 @@
 dbutils.widgets.text("warehouse", "", "1. SQL warehouse name or ID (blank: pick one you can use)")
 dbutils.widgets.text("facilitator_emails", "", "2. Other facilitators' emails, comma-separated (you're included)")
 dbutils.widgets.text("managed_location", "", "3. Managed location (only if CREATE CATALOG asks for one)")
-dbutils.widgets.text("share_with", "users", "4. Share dashboards, agents and workbook with (users: everyone)")
+dbutils.widgets.text("share_with", "users", "4. Share dashboards, agents and Labs with (users: everyone)")
 dbutils.widgets.text("folder", "", "5. Folder for dashboards and agents (blank: <your home folder>/SMBC Workshop)")
 dbutils.widgets.dropdown("generate_data", "yes", ["yes", "no"], "6. Generate the synthetic data")
 
@@ -95,10 +95,10 @@ steps = [
     ("01_setup_workspace", "Catalog, schemas and volumes; the synthetic data; facilitator access",
      {"catalog": "smbc_workshop", "managed_location": settings["managed_location"], "generate_data": settings["generate_data"],
       "remove_after": "", **facilitators}),
-    ("02_build_checkpoints", "Save-point tables (the Lab 1 reference solution)", {}),
-    ("03_validate_checkpoints", "Save-point tables checked against the answer key", {"catalog": "smbc_workshop"}),
+    ("02_build_bronze_silver_gold", "Bronze, silver and gold reference tables (the Lab 1 reference solution)", {}),
+    ("03_validate_bronze_silver_gold", "Reference tables checked against the answer key", {"catalog": "smbc_workshop"}),
     ("05_governance_demo", "Row filter and column mask for the governance demo", facilitators),
-    ("06_deploy_dashboards_and_agents", "Dashboards, Genie Agents and lab workbook", {**place, **facilitators}),
+    ("06_deploy_dashboards_and_agents", "Dashboards, Genie Agents and the Labs folder", {**place, **facilitators}),
     ("07_check_requirements", "Requirement checks, including a live Genie Agent question",
      {**place, **facilitators, "ask_genie": "yes", "raise_on_failure": "no"}),
 ]

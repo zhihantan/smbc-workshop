@@ -1,6 +1,6 @@
 # Test report: FEVM workspace `fe-vm-zh-serverless-ws`, 15 Oct 2026 (internal)
 
-> **Since 20 Oct the setup needs no groups.** It assumes attendees have access to `smbc_workshop`, uses an existing SQL warehouse instead of creating one, shares with the workspace's built-in `users` group, and recognises facilitators by email. The results below are for the earlier, group-based version; the group and grant steps they describe no longer apply.
+> **Since 20 Oct the setup needs no groups.** It assumes attendees have access to `smbc_workshop`, uses an existing SQL warehouse instead of creating one, shares with the workspace's built-in `users` group, and recognises facilitators by email. **Since 21 Oct** the reference tables live in `bronze`, `silver` and `gold` schemas instead of one `checkpoint` schema, and the attendee notebooks are in `labs/`. The results below are for the earlier version; the group, grant and `checkpoint` details they describe no longer apply.
 
 Everything was deployed with the repo scripts and tested through the APIs. A service principal, **meridian-ava**, stood in for a non-admin attendee: it has Workspace access and Databricks SQL access, and no admin rights.
 

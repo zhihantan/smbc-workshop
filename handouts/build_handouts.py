@@ -10,7 +10,8 @@ left out, and the build stops if the guide changes in a way that could let one t
 
 Writes:
   handouts/Lab_Workbook.md             participant version of the guide: data, labs, Genie Code, copy-paste kit
-  handouts/Lab_Workbook_notebook.py    the same as a Databricks notebook, with runnable check-in and checkpoint cells
+  labs/*.py                            the notebooks attendees open in the workspace, one per session, with runnable
+                                       check-in and checkpoint cells (06_deploy_dashboards_and_agents shares them)
   handouts/dist/Lab_Workbook.html|pdf  A4, for printing or sharing
   handouts/dist/Cheat_Sheet.html|pdf   one A4 page, with QR codes
   handouts/dist/SMBC_Workshop_Guide.html|pdf     the whole guide, unfiltered, for sharing with SMBC
@@ -28,6 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUIDE = os.path.join(ROOT, "docs", "SMBC_Workshop_Guide.md")
 OUT = os.path.join(ROOT, "handouts")
 DIST = os.path.join(OUT, "dist")
+LABS_DIR = os.path.join(ROOT, "labs")
 CHROME = os.environ.get("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
 PLACEHOLDER = "<workspace URL>"
@@ -59,7 +61,7 @@ BEGIN
   SELECT my_schema,
          (SELECT round(sum(exposure_usd) / 1e6, 1) FROM IDENTIFIER('smbc_workshop.' || my_schema || '.gold_group_exposure')
           WHERE as_of_date = '2026-09-30') AS mine_usd_m,
-         (SELECT round(sum(exposure_usd) / 1e6, 1) FROM smbc_workshop.checkpoint.gold_group_exposure
+         (SELECT round(sum(exposure_usd) / 1e6, 1) FROM smbc_workshop.gold.group_exposure
           WHERE as_of_date = '2026-09-30') AS reference_usd_m;
 END"""
 
@@ -189,7 +191,7 @@ def extract(guide_text, url):
     url_md = f"[{url}]({url})" if url else f"`{PLACEHOLDER}`"
     before = f"""## Before you start
 
-**1. Sign in.** Open {url_md} in Microsoft Edge or Google Chrome and sign in with your SMBC account.
+**1. Sign in.** Open {url_md} in Microsoft Edge or Google Chrome and sign in with your SMBC account. The workshop's **Labs** folder has one notebook per session, from *00 Start here* to *04 Kit and help*; clone one (**File → Clone**) to run its cells.
 
 **2. Check in.** Open **SQL Editor**, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click **Run**. It checks you in and creates your schema for Lab 1. Change `DA` to `DE` if you're a data engineer.
 
@@ -201,7 +203,7 @@ def extract(guide_text, url):
 
 **4. Getting help.** Turn your card to red, or raise a hand, and a helper will come to you.
 
-**5. Short on time?** The checkpoint tables in `smbc_workshop.checkpoint` hold the reference result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1."""
+**5. Short on time?** The reference tables in `smbc_workshop.gold` hold the Lab 1 result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1."""
 
     parts = [before] + [f"## {h}\n\n{b}" for h, b in body.items()]
     text = "\n\n---\n\n".join(parts)
@@ -229,10 +231,41 @@ def check_banned(text, what):
 # Notebook
 # ---------------------------------------------------------------------------
 
-def notebook_cells(title, text, snippets):
-    """One markdown cell per H2/H3 section, plus runnable SQL at the check-in and the two lab checkpoints."""
+# The notebooks attendees open in the workspace's Labs folder: (file name in labs/, title, workbook sections,
+# copy-paste kit subsections to repeat at the end). Every workbook section goes into exactly one notebook.
+LABS = [
+    ("00_Start_here", "Start here", ["Before you start", "1. The scenario and the data"], []),
+    ("01_Lab_1_Trusted_exposure_table", "Lab 1: Build the trusted exposure table", ["2. Lab 1: Build the trusted exposure table"], []),
+    ("02_Lab_2_Credit_Committee", "Lab 2: Credit Committee in 30 seconds", ["3. Lab 2: Credit Committee in 30 seconds"], []),
+    ("03_Genie_Code", "AI-assisted development with Genie Code", ["4. AI-assisted development with Genie Code"], ["A.8", "A.9"]),
+    ("04_Kit_and_help", "Copy-paste kit, troubleshooting and resources",
+     ["Appendix A: Copy-paste kit", "Appendix B: Troubleshooting", "5. Resources"], []),
+]
+RUNNABLE = {"00_Start_here": "checkin", "01_Lab_1_Trusted_exposure_table": "lab1", "02_Lab_2_Credit_Committee": "lab2"}
+READ_ONLY = ("This is a read-only copy. To run its cells, use **File → Clone** to copy it to your own folder, or paste the "
+             "SQL into the SQL editor.")
+READ_ONLY_GENIE = ("This is a read-only copy. Use **File → Clone** to copy it to your own folder, attach it to **Serverless**, "
+                   "then open **Genie Code** and use the prompts below.")
+
+
+def h3_sections(body):
+    """Return {heading: text including the heading} for every '### ' heading outside code fences."""
+    sections, current, fence = {}, None, False
+    for line in body.splitlines():
+        if line.startswith("```"):
+            fence = not fence
+        if not fence and line.startswith("### "):
+            current = line[4:].strip()
+            sections[current] = []
+        if current is not None:
+            sections[current].append(line)
+    return {k: "\n".join(v).strip() for k, v in sections.items()}
+
+
+def section_cells(md_text, snippets):
+    """One markdown cell per H2/H3 section, plus runnable SQL after the check-in and the two lab core paths."""
     chunks, current, fence = [], [], False
-    for line in text.splitlines():
+    for line in md_text.splitlines():
         if line.startswith("```"):
             fence = not fence
         if not fence and re.match(r"^#{2,3} ", line) and current:
@@ -240,28 +273,58 @@ def notebook_cells(title, text, snippets):
             current = []
         current.append(line)
     chunks.append(current)
-
-    cells_out = [("md", f"{title}\n\nThis is a read-only copy. To run the SQL cells, use **File → Clone** to copy it to "
-                        "your own folder, or paste the SQL into the SQL editor.")]
-    inserted, h2 = set(), ""
+    cells, h2 = [], ""
     for chunk in chunks:
         md_text = "\n".join(l for l in chunk if l.strip() != "---").strip()
-        cells_out.append(("md", md_text))
+        md_text = re.sub(r"\[([^\]]+)\]\(#[^)]+\)", r"\1", md_text)  # anchors may be in another notebook
+        if not md_text:
+            continue
+        cells.append(("md", md_text))
         heading = chunk[0]
         if heading.startswith("## "):
             h2 = heading[3:]
         if heading == "## Before you start":
-            cells_out.append(("sql", snippets["checkin"]))
-            inserted.add("checkin")
+            cells.append(("sql", snippets["checkin"]))
         elif heading == "### Core path" and h2.startswith("2. Lab 1"):
-            cells_out.append(("sql", LAB1_CHECK_SQL))
-            inserted.add("lab1")
+            cells.append(("sql", LAB1_CHECK_SQL))
         elif heading == "### Core path" and h2.startswith("3. Lab 2"):
-            cells_out.append(("sql", "-- Lab 2 checkpoint. Replace <group name> with the group you found, then run the cell.\n"
-                                     + snippets["answer"]))
-            inserted.add("lab2")
-    assert inserted == {"checkin", "lab1", "lab2"}, f"runnable cells not placed: {inserted}"
-    return cells_out
+            cells.append(("sql", "-- Lab 2 checkpoint. Replace <group name> with the group you found, then run the cell.\n"
+                                 + snippets["answer"]))
+    return cells
+
+
+def write_labs(title, text, snippets):
+    """Write one notebook per LABS entry to labs/ and remove anything else there. Returns {name: number of cells}."""
+    notice = title.split("\n\n", 1)[1]
+    bodies = split_h2(text)
+    used = [h for _, _, headings, _ in LABS for h in headings]
+    assert sorted(used) == sorted(bodies), f"the workbook sections and LABS differ: {sorted(set(bodies) ^ set(used))}"
+    kit = h3_sections(bodies["Appendix A: Copy-paste kit"])
+    os.makedirs(LABS_DIR, exist_ok=True)
+    written = {}
+    for name, lab_title, headings, kit_parts in LABS:
+        note = READ_ONLY_GENIE if name == "03_Genie_Code" else READ_ONLY
+        cells = [("md", f"# {lab_title}\n\n*SMBC Data & AI Workshop · Thursday 22 October 2026*\n\n{notice}\n\n{note}")]
+        for heading in headings:
+            cells += section_cells(f"## {heading}\n\n{bodies[heading]}", snippets)
+        for part in kit_parts:
+            found = [t for h, t in kit.items() if h.startswith(part + " ")]
+            assert len(found) == 1, f"expected one '### {part} …' subsection in the copy-paste kit"
+            cells += section_cells(found[0], snippets)
+        want = {"checkin": snippets["checkin"], "lab1": LAB1_CHECK_SQL, "lab2": snippets["answer"]}.get(RUNNABLE.get(name))
+        runnable = [t for kind, t in cells if kind == "sql"]
+        assert len(runnable) == (1 if want else 0) and all(t.endswith(want) for t in runnable), f"{name}: runnable cells misplaced"
+        source = notebook_source(cells)
+        check_banned(source, f"labs/{name}")
+        written[name] = check_notebook(source, cells)
+        write(os.path.join(LABS_DIR, f"{name}.py"), source)
+    for f in os.listdir(LABS_DIR):
+        if f.endswith(".py") and f[:-3] not in written:
+            os.remove(os.path.join(LABS_DIR, f))
+    old = os.path.join(OUT, "Lab_Workbook_notebook.py")  # the single notebook the labs replace
+    if os.path.exists(old):
+        os.remove(old)
+    return written
 
 
 def notebook_source(cells_in):
@@ -496,7 +559,7 @@ def cheat_sheet_html(url, snippets):
         "<b>Output</b> <code>gold_group_exposure</code> (Overwrite) → <b>Run</b> → <b>Schedule</b> daily, 07:00 Singapore time.",
     ]
     lab2 = [
-        "<b>Dashboard</b>: + New → Dashboard on both <code>checkpoint</code> gold tables. Ask the AI assistant for the "
+        "<b>Dashboard</b>: + New → Dashboard on both <code>gold</code> tables. Ask the AI assistant for the "
         f"top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open "
         f"<code>{one}</code>.",
         "<b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, "
@@ -533,14 +596,14 @@ def cheat_sheet_html(url, snippets):
     {code(narrow_sql(snippets["answer"]))}
   </section>
   <section><h2>Genie Code · Ask why, safely</h2>
-    <div class="prompt"><b>Explore:</b> "Profile <code>smbc_workshop.checkpoint.gold_group_exposure</code> and tell me what is unusual about the latest month compared with April 2026."</div>
+    <div class="prompt"><b>Explore:</b> "Profile <code>smbc_workshop.gold.group_exposure</code> and tell me what is unusual about the latest month compared with April 2026."</div>
     <div class="prompt"><b>Generate:</b> "For the group with the highest utilisation at 30 Sep 2026, split its change in exposure since April into an FX effect and a new-drawdowns effect, by subsidiary. Chart it."</div>
     <div class="prompt"><b>Explain and convert:</b> "Explain this procedure and point out any risks, then rewrite it as Databricks SQL. Just explain first, don't run any code." Paste the legacy procedure from A.9.</div>
-    <p>Full prompts: workbook A.8.</p>
+    <p>Full prompts: workbook A.8, or notebook 03 in the Labs folder.</p>
   </section>
   <section><h2>Getting help</h2>
     <div class="cards"><div class="card red">Red: I need help</div><div class="card green">Green: all good</div></div>
-    <p><b>Stuck or short on time?</b> Carry on from the reference tables in <code>smbc_workshop.checkpoint</code>: nothing
+    <p><b>Stuck or short on time?</b> Carry on from the reference tables in <code>smbc_workshop.gold</code>: nothing
     later depends on finishing Lab 1. Common problems and fixes: workbook Appendix B.</p>
   </section>
   <section><h2>Keep learning</h2>
@@ -599,11 +662,7 @@ def main(argv=None):
     os.makedirs(DIST, exist_ok=True)
     write(os.path.join(OUT, "Lab_Workbook.md"), workbook)
 
-    cells_in = notebook_cells(title, text, snippets)
-    source = notebook_source(cells_in)
-    check_banned(source, "the notebook")
-    n_cells = check_notebook(source, cells_in)
-    write(os.path.join(OUT, "Lab_Workbook_notebook.py"), source)
+    labs = write_labs(title, text, snippets)
 
     pages_out = [
         ("Lab_Workbook", render_html(workbook, *TITLE.split(" · ", 1))),
@@ -619,7 +678,8 @@ def main(argv=None):
             print(f"wrote {os.path.relpath(pdf_path, ROOT)} ({pages} pages)")
             if name == "Cheat_Sheet":
                 assert pages == 1, f"the cheat sheet must fit on one page; it has {pages}"
-    print(f"notebook: {n_cells} cells; workspace URL: {url or 'placeholder'}")
+    print(f"labs: {len(labs)} notebooks ({', '.join(f'{n} {c} cells' for n, c in labs.items())}); "
+          f"workspace URL: {url or 'placeholder'}")
 
 
 if __name__ == "__main__":

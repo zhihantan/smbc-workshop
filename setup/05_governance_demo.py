@@ -6,7 +6,7 @@
 # MAGIC different, correct answers. Works on a **copy** of the gold table so participants' own Genie Agents are
 # MAGIC unaffected.
 # MAGIC
-# MAGIC 1. Run this notebook after `02_build_checkpoints`. The facilitators are you plus anyone in `facilitator_emails`;
+# MAGIC 1. Run this notebook after `02_build_bronze_silver_gold`. The facilitators are you plus anyone in `facilitator_emails`;
 # MAGIC    no groups are needed. Re-run it to change the list.
 # MAGIC 2. `06_deploy_dashboards_and_agents` then creates the Genie Agent **Credit Risk (secured demo)** on this table and
 # MAGIC    shares it with everyone in the workspace.
@@ -26,11 +26,11 @@ for email in [me] + dbutils.widgets.get("facilitator_emails").split(","):
     if email and email not in facilitators:
         facilitators.append(email)
 is_facilitator = "lower(session_user()) IN (" + ", ".join(f"'{f}'" for f in facilitators) + ")"
-table = "smbc_workshop.checkpoint.gold_facility_exposure_secured"
+table = "smbc_workshop.gold.facility_exposure_secured"
 
 spark.sql(f"""CREATE OR REPLACE TABLE {table}
-  COMMENT 'Copy of gold_facility_exposure with a row filter (Singapore branch only unless you are a facilitator) and a masked borrower name. SYNTHETIC DATA.'
-  AS SELECT * FROM smbc_workshop.checkpoint.gold_facility_exposure""")
+  COMMENT 'Copy of gold.facility_exposure with a row filter (Singapore branch only unless you are a facilitator) and a masked borrower name. SYNTHETIC DATA.'
+  AS SELECT * FROM smbc_workshop.gold.facility_exposure""")
 
 # Row filter: facilitators see everything; everyone else sees only facilities booked in Singapore.
 spark.sql(f"""CREATE OR REPLACE FUNCTION smbc_workshop.ops.singapore_branch_only(booking_branch STRING)
@@ -67,7 +67,7 @@ display(spark.sql(f"""
 
 # MAGIC %md To undo after the session (`08_reset_or_teardown` → `teardown` also removes them):
 # MAGIC ```sql
-# MAGIC DROP TABLE smbc_workshop.checkpoint.gold_facility_exposure_secured;
+# MAGIC DROP TABLE smbc_workshop.gold.facility_exposure_secured;
 # MAGIC DROP FUNCTION smbc_workshop.ops.singapore_branch_only;
 # MAGIC DROP FUNCTION smbc_workshop.ops.mask_borrower_name;
 # MAGIC ```

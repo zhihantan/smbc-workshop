@@ -11,7 +11,7 @@
 # MAGIC |---|---|---|
 # MAGIC | `smbc_workshop.raw.landing` (volume) | The raw extracts and the limits spreadsheet | Read |
 # MAGIC | `smbc_workshop.raw.facilitator` (volume) | Answer key and a CSV copy of the limits | Nothing |
-# MAGIC | `smbc_workshop.checkpoint` (schema) | Save-point tables built by `02_build_checkpoints` | Read |
+# MAGIC | `smbc_workshop.bronze`, `silver`, `gold` (schemas) | The reference tables built by `02_build_bronze_silver_gold` | Read |
 # MAGIC | `smbc_workshop.ops` (schema) | Check-in and lab-answer tables for the progress board | Read and write |
 # MAGIC
 # MAGIC No groups are needed, and this notebook grants attendees nothing: an admin gives them access to the catalog (the
@@ -37,7 +37,7 @@ for email in [me] + dbutils.widgets.get("facilitator_emails").split(","):
         facilitators.append(email.strip())
 
 if catalog != "smbc_workshop":
-    print(f"Note: 02_build_checkpoints.sql and 04/05 use 'smbc_workshop'. Find-and-replace it with '{catalog}'.")
+    print(f"Note: 02_build_bronze_silver_gold.sql and 04/05 use 'smbc_workshop'. Find-and-replace it with '{catalog}'.")
 
 # COMMAND ----------
 
@@ -64,10 +64,17 @@ for key, value in tags.items():
 
 for schema, comment in [
     ("raw", "Raw extracts as delivered by the source systems"),
-    ("checkpoint", "Save-point tables: the reference solution for Lab 1"),
+    ("bronze", "Bronze: the source extracts as tables, exactly as delivered"),
+    ("silver", "Silver: cleaned, typed and de-duplicated, plus the rows held back by the data-quality checks"),
+    ("gold", "Gold: exposure per facility and per counterparty group, for Lab 2 and Genie"),
     ("ops", "Workshop operations: check-in and lab answers"),
 ]:
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{catalog}`.`{schema}` COMMENT '{comment}'")
+
+# The reference tables used to live in a single `checkpoint` schema: drop it if an earlier setup left it behind.
+if spark.sql(f"SHOW SCHEMAS IN `{catalog}` LIKE 'checkpoint'").count():
+    spark.sql(f"DROP SCHEMA `{catalog}`.checkpoint CASCADE")
+    print("Dropped the old checkpoint schema: its tables now live in bronze, silver and gold")
 
 spark.sql(f"CREATE VOLUME IF NOT EXISTS `{catalog}`.raw.landing COMMENT 'Source extracts for Lab 1 (synthetic)'")
 spark.sql(f"CREATE VOLUME IF NOT EXISTS `{catalog}`.raw.facilitator COMMENT 'Answer key. Facilitators only.'")
@@ -149,8 +156,8 @@ display(spark.sql(f"SHOW GRANTS ON CATALOG `{catalog}`"))
 # MAGIC ## Next steps
 # MAGIC
 # MAGIC `00_master_setup` runs all of these for you. To run the notebooks one at a time instead:
-# MAGIC 1. Run **`02_build_checkpoints`** to build the save-point tables, then **`03_validate_checkpoints`**: every
-# MAGIC    check should pass.
+# MAGIC 1. Run **`02_build_bronze_silver_gold`** to build the reference tables, then **`03_validate_bronze_silver_gold`**:
+# MAGIC    every check should pass.
 # MAGIC 2. Run **`05_governance_demo`**, then **`06_deploy_dashboards_and_agents`**. It creates the dashboards (including
 # MAGIC    the progress board) and the Genie Agents on a SQL warehouse you can use, and shares them.
 # MAGIC 3. Run **`07_check_requirements`**: every row should say PASS.

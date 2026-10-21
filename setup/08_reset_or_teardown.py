@@ -6,7 +6,7 @@
 # MAGIC |---|---|---|
 # MAGIC | `reset_progress` | Empties `ops.checkin` and `ops.lab_answers`, so the progress board starts at zero | Before each run |
 # MAGIC | `drop_attendee_schemas` | `reset_progress`, then drops every attendee schema **and everything people built in it** | After a dry run |
-# MAGIC | `teardown` | Drops the whole `smbc_workshop` catalog, and deletes the dashboards, Genie Agents and lab workbook in the 06 folder | When the workshop environment is no longer needed |
+# MAGIC | `teardown` | Drops the whole `smbc_workshop` catalog, and deletes the dashboards, Genie Agents and Labs folder in the 06 folder | When the workshop environment is no longer needed |
 # MAGIC
 # MAGIC **`dry_run` is on by default:** the notebook only lists what it would change. Set it to `no` to make the changes.
 # MAGIC None of this touches the SQL warehouse, or the dashboards and Genie Agents that attendees saved in their own folders.
@@ -37,7 +37,7 @@ folder = dbutils.widgets.get("folder").strip().rstrip("/") or f"/Workspace/Users
 action = dbutils.widgets.get("action")
 dry_run = dbutils.widgets.get("dry_run") == "yes"
 CATALOG = "smbc_workshop"
-SYSTEM_SCHEMAS = {"information_schema", "default", "raw", "checkpoint", "ops"}
+SYSTEM_SCHEMAS = {"information_schema", "default", "raw", "bronze", "silver", "gold", "ops", "checkpoint"}
 
 
 def do(description, fn):
@@ -70,9 +70,10 @@ if action == "teardown":
         space_id = genie_agents.find(title, folder)
         if space_id:
             do(f"delete Genie Agent '{title}' ({space_id})", lambda i=space_id: api("delete", f"/api/2.0/genie/spaces/{i}"))
-    if workspace_api.get_status(f"{folder}/Lab workbook"):
-        do(f"delete notebook {folder}/Lab workbook",
-           lambda: api("post", "/api/2.0/workspace/delete", {"path": f"{folder}/Lab workbook"}))
+    for path, what in ((f"{folder}/Labs", "folder"), (f"{folder}/Lab workbook", "notebook")):  # the workbook is from an earlier setup
+        if workspace_api.get_status(path):
+            do(f"delete {what} {path}",
+               lambda p=path: api("post", "/api/2.0/workspace/delete", {"path": p, "recursive": True}))
     do(f"drop catalog {CATALOG} and everything in it", lambda: spark.sql(f"DROP CATALOG {CATALOG} CASCADE"))
     print("\nThe SQL warehouse is left as it is.")
 

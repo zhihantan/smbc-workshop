@@ -19,10 +19,10 @@ from workspace_api import api
 WAREHOUSE, PARENT = None, None  # set by configure()
 REFERENCE_NAME = "Credit Committee: APAC exposure (reference)"
 PROGRESS_NAME = "SMBC Workshop: progress board"
-G = "smbc_workshop.checkpoint.gold_group_exposure"
-F = "smbc_workshop.checkpoint.gold_facility_exposure"
+G = "smbc_workshop.gold.group_exposure"
+F = "smbc_workshop.gold.facility_exposure"
 LATEST = f"(SELECT max(as_of_date) FROM {G})"
-EXCLUDED = "('information_schema', 'default', 'raw', 'checkpoint', 'ops')"
+EXCLUDED = "('information_schema', 'default', 'raw', 'bronze', 'silver', 'gold', 'ops', 'checkpoint')"
 
 REFERENCE = {
     "ds_kpis": ("Headline KPIs (latest month end)",

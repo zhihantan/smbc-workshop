@@ -1,13 +1,19 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC # 02 · Build the checkpoint ("save point") tables
+-- MAGIC # 02 · Build the bronze, silver and gold reference tables
 -- MAGIC
--- MAGIC The reference solution for Lab 1, written as plain SQL. It turns the raw extracts in
--- MAGIC `/Volumes/smbc_workshop/raw/landing/` into the tables Lab 2 and the Genie Code segment use, so anyone
--- MAGIC whose Lab 1 isn't finished can carry on from `smbc_workshop.checkpoint`.
+-- MAGIC The reference solution for Lab 1, written as plain SQL in the medallion layout. It turns the raw extracts in
+-- MAGIC `/Volumes/smbc_workshop/raw/landing/` into the tables Lab 2 and the Genie Code segment use, so anyone whose
+-- MAGIC Lab 1 isn't finished can carry on from `smbc_workshop.gold`:
 -- MAGIC
--- MAGIC Run after `01_setup_workspace`, on serverless compute or a serverless SQL warehouse. It uses the catalog
--- MAGIC `smbc_workshop`; if yours is named differently, find-and-replace it in this file.
+-- MAGIC | Schema | Tables |
+-- MAGIC |---|---|
+-- MAGIC | `bronze` | `counterparties`, `facilities`, `balances`: the extracts exactly as delivered |
+-- MAGIC | `silver` | `counterparties`, `facilities`, `balances`, `fx_rates`, `group_limits`: cleaned, typed and de-duplicated; plus `facilities_all` and `silver.quarantine_facilities`, the rows held back with a reason |
+-- MAGIC | `gold` | `facility_exposure` and `group_exposure`: what Lab 2 and Genie use |
+-- MAGIC
+-- MAGIC Run after `01_setup_workspace`, which creates the schemas, on serverless compute or a serverless SQL warehouse.
+-- MAGIC It uses the catalog `smbc_workshop`; if yours is named differently, find-and-replace it in this file.
 -- MAGIC
 -- MAGIC The cleaning rules are the ones participants apply in Lab 1, and the same ones
 -- MAGIC `data/validate_data.py` checks against the answer key:
@@ -23,7 +29,6 @@
 -- COMMAND ----------
 
 USE CATALOG smbc_workshop;
-USE SCHEMA checkpoint;
 
 -- COMMAND ----------
 
@@ -31,7 +36,7 @@ USE SCHEMA checkpoint;
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE bronze_counterparties
+CREATE OR REPLACE TABLE bronze.counterparties
 COMMENT 'Raw customer-master extract, as delivered. SYNTHETIC DATA for the SMBC Data & AI Workshop.' AS
 SELECT counterparty_id, counterparty_name, counterparty_name_local, parent_group_id, country_code, sector,
        internal_rating, relationship_manager, onboarded_on, last_updated_at
@@ -42,7 +47,7 @@ FROM read_files(
              parent_group_id STRING, country_code STRING, sector STRING, internal_rating STRING,
              relationship_manager STRING, onboarded_on STRING, last_updated_at STRING');
 
-CREATE OR REPLACE TABLE bronze_facilities
+CREATE OR REPLACE TABLE bronze.facilities
 COMMENT 'Raw facility extract (JSON Lines), as delivered. SYNTHETIC DATA for the SMBC Data & AI Workshop.' AS
 SELECT facility_id, counterparty_id, product_type, currency, committed_amount, start_date, maturity_date,
        booking_branch, secured, collateral, source_system
@@ -53,7 +58,7 @@ FROM read_files(
              committed_amount DOUBLE, start_date STRING, maturity_date STRING, booking_branch STRING,
              secured BOOLEAN, collateral STRUCT<type: STRING, value_usd: DOUBLE>, source_system STRING');
 
-CREATE OR REPLACE TABLE bronze_balances
+CREATE OR REPLACE TABLE bronze.balances
 COMMENT 'Raw month-end balance extracts, as delivered. SYNTHETIC DATA for the SMBC Data & AI Workshop.' AS
 SELECT as_of_date, facility_id, drawn_amount, days_past_due, source_system, extract_ts
 FROM read_files(
@@ -68,7 +73,7 @@ FROM read_files(
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE silver_counterparties
+CREATE OR REPLACE TABLE silver.counterparties
 COMMENT 'Customer master, one row per counterparty (exact duplicate rows removed). SYNTHETIC DATA.' AS
 SELECT DISTINCT
   counterparty_id,
@@ -81,9 +86,9 @@ SELECT DISTINCT
   relationship_manager,
   CAST(onboarded_on AS DATE) AS onboarded_on,
   CAST(last_updated_at AS TIMESTAMP) AS last_updated_at
-FROM bronze_counterparties;
+FROM bronze.counterparties;
 
-CREATE OR REPLACE TABLE silver_fx_rates
+CREATE OR REPLACE TABLE silver.fx_rates
 COMMENT 'Month-end FX rates. rate_date is the last business day of the month; join on rate_month. SYNTHETIC DATA.' AS
 SELECT
   CAST(rate_date AS DATE) AS rate_date,
@@ -100,7 +105,7 @@ FROM read_files(
 -- landing/group_limits/group_limits.xlsx. To read the Excel file directly instead, use:
 --   read_files('/Volumes/smbc_workshop/raw/landing/group_limits/', format => 'excel', headerRows => 1,
 --              schemaEvolutionMode => 'none')
-CREATE OR REPLACE TABLE silver_group_limits
+CREATE OR REPLACE TABLE silver.group_limits
 COMMENT 'Approved credit limit per counterparty group (from the risk team spreadsheet). SYNTHETIC DATA.' AS
 SELECT
   group_id,
@@ -116,7 +121,7 @@ FROM read_files(
   schema => 'group_id STRING, group_name STRING, home_country STRING, primary_sector STRING,
              group_limit_usd DOUBLE, limit_approved_on STRING, credit_officer STRING');
 
-CREATE OR REPLACE TABLE silver_facilities_all
+CREATE OR REPLACE TABLE silver.facilities_all
 COMMENT 'Facilities with standardised currency codes and parsed dates, plus the reason a row is quarantined (if any). SYNTHETIC DATA.' AS
 WITH typed AS (
   SELECT
@@ -140,7 +145,7 @@ WITH typed AS (
     collateral.type AS collateral_type,
     collateral.value_usd AS collateral_value_usd,
     source_system
-  FROM bronze_facilities
+  FROM bronze.facilities
 )
 SELECT
   t.*,
@@ -152,18 +157,18 @@ SELECT
     WHEN t.start_date IS NULL OR t.maturity_date IS NULL THEN 'BAD_DATE'
   END AS quarantine_reason
 FROM typed t
-LEFT JOIN (SELECT DISTINCT counterparty_id FROM silver_counterparties) c ON t.counterparty_id = c.counterparty_id
-LEFT JOIN (SELECT DISTINCT currency_code FROM silver_fx_rates) x ON t.currency = x.currency_code;
+LEFT JOIN (SELECT DISTINCT counterparty_id FROM silver.counterparties) c ON t.counterparty_id = c.counterparty_id
+LEFT JOIN (SELECT DISTINCT currency_code FROM silver.fx_rates) x ON t.currency = x.currency_code;
 
-CREATE OR REPLACE TABLE quarantine_facilities
+CREATE OR REPLACE TABLE silver.quarantine_facilities
 COMMENT 'Facilities held back by the data-quality checks, with the reason. SYNTHETIC DATA.' AS
-SELECT * FROM silver_facilities_all WHERE quarantine_reason IS NOT NULL;
+SELECT * FROM silver.facilities_all WHERE quarantine_reason IS NOT NULL;
 
-CREATE OR REPLACE TABLE silver_facilities
+CREATE OR REPLACE TABLE silver.facilities
 COMMENT 'Facilities that passed every data-quality check. SYNTHETIC DATA.' AS
-SELECT * EXCEPT (quarantine_reason) FROM silver_facilities_all WHERE quarantine_reason IS NULL;
+SELECT * EXCEPT (quarantine_reason) FROM silver.facilities_all WHERE quarantine_reason IS NULL;
 
-CREATE OR REPLACE TABLE silver_balances
+CREATE OR REPLACE TABLE silver.balances
 COMMENT 'Month-end drawn balances, one row per facility and month (re-loaded extract rows removed, latest extract_ts kept). SYNTHETIC DATA.' AS
 SELECT *
 FROM (
@@ -175,7 +180,7 @@ FROM (
     CAST(days_past_due AS INT) AS days_past_due,
     source_system,
     CAST(extract_ts AS TIMESTAMP) AS extract_ts
-  FROM bronze_balances
+  FROM bronze.balances
 )
 QUALIFY row_number() OVER (PARTITION BY facility_id, as_of_date ORDER BY extract_ts DESC) = 1;
 
@@ -185,7 +190,7 @@ QUALIFY row_number() OVER (PARTITION BY facility_id, as_of_date ORDER BY extract
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE gold_facility_exposure (
+CREATE OR REPLACE TABLE gold.facility_exposure (
   as_of_date DATE COMMENT 'Month-end reporting date',
   facility_id STRING COMMENT 'Credit facility identifier',
   product_type STRING COMMENT 'Term Loan, Revolving Credit Facility, Working Capital Loan, Project Finance Loan, or Trade Finance',
@@ -209,7 +214,7 @@ CREATE OR REPLACE TABLE gold_facility_exposure (
 )
 COMMENT 'Month-end exposure per credit facility with borrower and group attributes. Exposure means drawn balance. SYNTHETIC DATA for the SMBC Data & AI Workshop.';
 
-INSERT OVERWRITE gold_facility_exposure
+INSERT OVERWRITE gold.facility_exposure
 SELECT
   b.as_of_date,
   f.facility_id,
@@ -231,13 +236,13 @@ SELECT
   b.drawn_amount * x.usd_rate,
   b.drawn_amount * x.jpy_rate,
   b.days_past_due
-FROM silver_balances b
-JOIN silver_facilities f ON b.facility_id = f.facility_id
-JOIN silver_counterparties c ON f.counterparty_id = c.counterparty_id
-JOIN silver_group_limits g ON c.parent_group_id = g.group_id
-JOIN silver_fx_rates x ON x.currency_code = f.currency AND x.rate_month = trunc(b.as_of_date, 'MM');
+FROM silver.balances b
+JOIN silver.facilities f ON b.facility_id = f.facility_id
+JOIN silver.counterparties c ON f.counterparty_id = c.counterparty_id
+JOIN silver.group_limits g ON c.parent_group_id = g.group_id
+JOIN silver.fx_rates x ON x.currency_code = f.currency AND x.rate_month = trunc(b.as_of_date, 'MM');
 
-CREATE OR REPLACE TABLE gold_group_exposure (
+CREATE OR REPLACE TABLE gold.group_exposure (
   as_of_date DATE COMMENT 'Month-end reporting date',
   parent_group_id STRING COMMENT 'Counterparty group identifier',
   group_name STRING COMMENT 'Counterparty group name',
@@ -250,7 +255,7 @@ CREATE OR REPLACE TABLE gold_group_exposure (
 )
 COMMENT 'Month-end exposure and limit utilisation per counterparty group, aggregated across all subsidiaries and countries. SYNTHETIC DATA for the SMBC Data & AI Workshop.';
 
-INSERT OVERWRITE gold_group_exposure
+INSERT OVERWRITE gold.group_exposure
 SELECT
   e.as_of_date,
   e.parent_group_id,
@@ -261,18 +266,18 @@ SELECT
   ROUND(100 * SUM(e.exposure_usd) / g.group_limit_usd, 2),
   COUNT(DISTINCT e.counterparty_id),
   COUNT(DISTINCT e.facility_id)
-FROM gold_facility_exposure e
-JOIN silver_group_limits g ON e.parent_group_id = g.group_id
+FROM gold.facility_exposure e
+JOIN silver.group_limits g ON e.parent_group_id = g.group_id
 GROUP BY e.as_of_date, e.parent_group_id, e.group_name, g.group_limit_usd;
 
 -- COMMAND ----------
 
--- MAGIC %md ## Quick look (the full comparison with the answer key is in `03_validate_checkpoints`)
+-- MAGIC %md ## Quick look (the full comparison with the answer key is in `03_validate_bronze_silver_gold`)
 
 -- COMMAND ----------
 
 SELECT as_of_date, group_name, ROUND(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct
-FROM gold_group_exposure
+FROM gold.group_exposure
 WHERE as_of_date IN ('2026-06-30', '2026-09-30')
 QUALIFY row_number() OVER (PARTITION BY as_of_date ORDER BY exposure_usd DESC) <= 5
 ORDER BY as_of_date, exposure_usd DESC;

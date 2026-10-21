@@ -54,7 +54,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <li><a href="#appendix-b-troubleshooting">Appendix B: Troubleshooting</a></li>
 </ul>
 <h2 id="before-you-start">Before you start</h2>
-<p><strong>1. Sign in.</strong> Open <code>&lt;workspace URL&gt;</code> in Microsoft Edge or Google Chrome and sign in with your SMBC account.</p>
+<p><strong>1. Sign in.</strong> Open <code>&lt;workspace URL&gt;</code> in Microsoft Edge or Google Chrome and sign in with your SMBC account. The workshop's <strong>Labs</strong> folder has one notebook per session, from <em>00 Start here</em> to <em>04 Kit and help</em>; clone one (<strong>File → Clone</strong>) to run its cells.</p>
 <p><strong>2. Check in.</strong> Open <strong>SQL Editor</strong>, choose the workshop's SQL warehouse (your facilitator will name it), paste this block and click <strong>Run</strong>. It checks you in and creates your schema for Lab 1. Change <code>DA</code> to <code>DE</code> if you're a data engineer.</p>
 <pre><code class="language-sql">-- Check in and create your Lab 1 schema. Change 'DA' to 'DE' if you're a data engineer.
 BEGIN
@@ -66,7 +66,7 @@ END
 </code></pre>
 <p><strong>3. Your schema.</strong> The check-in shows its name. Your Lab 1 tables go in <code>smbc_workshop.&lt;your schema&gt;</code>: the part of your email address before the @, in lower case, with any other characters replaced by <code>_</code>. For example, <code>jane.tan@…</code> becomes <code>jane_tan</code>.</p>
 <p><strong>4. Getting help.</strong> Turn your card to red, or raise a hand, and a helper will come to you.</p>
-<p><strong>5. Short on time?</strong> The checkpoint tables in <code>smbc_workshop.checkpoint</code> hold the reference result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1.</p>
+<p><strong>5. Short on time?</strong> The reference tables in <code>smbc_workshop.gold</code> hold the Lab 1 result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1.</p>
 <hr />
 <h2 class="newpage" id="1-the-scenario-and-the-data">1. The scenario and the data</h2>
 <p>The labs use a synthetic <strong>SMBC APAC</strong> corporate lending book with about USD 27bn of drawn exposure across 12 booking branches in Asia Pacific. Every borrower, group and figure is made up. Borrowers belong to counterparty groups, such as a conglomerate and its subsidiaries in several countries, and each group has an approved credit limit set by the risk team. As at SMBC, the fiscal year runs from April to March.</p>
@@ -129,8 +129,8 @@ END
 <li><em>"FX rates are captured on the last business day of each month, not always the calendar month end."</em></li>
 <li><em>"A few facilities were booked before the customer record was created in the master."</em></li>
 </ul>
-<h3 id="save-point-tables-smbc_workshopcheckpoint">Save-point tables (<code>smbc_workshop.checkpoint</code>)</h3>
-<p>The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and the Genie Code segment.</p>
+<h3 id="reference-tables-bronze-silver-and-gold">Reference tables (<code>bronze</code>, <code>silver</code> and <code>gold</code>)</h3>
+<p>The reference solution to Lab 1, in the medallion layout. Anyone can use the gold tables to carry on with Lab 2 and the Genie Code segment.</p>
 <table>
 <thead>
 <tr>
@@ -141,19 +141,24 @@ END
 </thead>
 <tbody>
 <tr>
-<td><code>gold_group_exposure</code></td>
+<td><code>gold.group_exposure</code></td>
 <td>Counterparty group × month</td>
 <td>Exposure, limit and <code>utilisation_pct</code> per group</td>
 </tr>
 <tr>
-<td><code>gold_facility_exposure</code></td>
+<td><code>gold.facility_exposure</code></td>
 <td>Facility × month</td>
 <td>Exposure with borrower, country, sector, branch, product, currency and days past due</td>
 </tr>
 <tr>
-<td><code>silver_*</code>, <code>quarantine_facilities</code></td>
+<td><code>silver.*</code>, including <code>silver.quarantine_facilities</code></td>
 <td>Cleaned inputs, and the rows held back with a reason</td>
 <td>For comparing with your own Lab 1 output</td>
+</tr>
+<tr>
+<td><code>bronze.*</code></td>
+<td>The extracts as delivered, as tables</td>
+<td>Where the cleaning starts</td>
 </tr>
 </tbody>
 </table>
@@ -163,7 +168,7 @@ END
 <strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
 <strong>Tools:</strong> Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.</p>
 <blockquote>
-<p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
+<p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
 </blockquote>
 <h3 id="core-path">Core path</h3>
 <p><strong>0. Find your schema (1 min).</strong> Your check-in created it and showed its name: the part of your email address before the @, for example <code>jane_tan</code>. Find it in <strong>Catalog Explorer</strong> → <code>smbc_workshop</code>. Not there? Run the check-in block (A.1) again.</p>
@@ -204,12 +209,12 @@ END
 <li>Add a <strong>Prepare</strong> Formula: <em>"<code>utilisation_pct</code> = 100 × exposure_usd ÷ group_limit_usd"</em>.</li>
 </ul>
 <p><strong>9. Write and schedule (2 min).</strong> Add an <strong>Output</strong>: <strong>Table</strong> <code>gold_group_exposure</code> in your schema, <strong>Write mode: Overwrite</strong>, then <strong>Run</strong>. Click <strong>Schedule</strong> to run it daily at 07:00 Singapore time.</p>
-<p>✅ <strong>Checkpoint:</strong> your row on the progress board turns green. To check your result against the reference, run both queries; the two totals should be identical:</p>
+<p>✅ <strong>Checkpoint:</strong> your row on the progress board turns green. To check your result against the reference, run both queries (notebook <em>01</em> in the Labs folder works out your schema for you); the two totals should be identical:</p>
 <pre><code class="language-sql">SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
 FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure WHERE as_of_date = '2026-09-30';
 
 SELECT round(sum(exposure_usd) / 1e6, 1) AS reference_usd_m
-FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30';
+FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 </code></pre>
 <h3 id="stretch-pick-any">Stretch (pick any)</h3>
 <ul>
@@ -224,12 +229,12 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 <strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
 <strong>Tools:</strong> AI/BI dashboards, Genie Agents, Genie One, Unity Catalog.</p>
 <blockquote>
-<p>Use the <strong>checkpoint</strong> tables (<code>smbc_workshop.checkpoint.gold_group_exposure</code> and <code>gold_facility_exposure</code>) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.</p>
+<p>Use the <strong>gold</strong> reference tables (<code>smbc_workshop.gold.group_exposure</code> and <code>smbc_workshop.gold.facility_exposure</code>) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.</p>
 </blockquote>
 <h3 id="core-path_1">Core path</h3>
 <p><strong>1. Build the dashboard (10 min).</strong></p>
 <ul>
-<li>Click <strong>+ New → Dashboard</strong>. On the <strong>Data</strong> tab, add both checkpoint gold tables.</li>
+<li>Click <strong>+ New → Dashboard</strong>. On the <strong>Data</strong> tab, add both gold tables.</li>
 <li>On the canvas, ask the AI assistant: <em>"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."</em></li>
 <li>Add these widgets:<ul>
 <li>a <strong>counter</strong> for total exposure at the latest month end;</li>
@@ -243,7 +248,7 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 </ul>
 <p><strong>2. Create a Genie Agent (5 min).</strong></p>
 <ul>
-<li>Click <strong>Genie Agents → New</strong>, select the two checkpoint gold tables, and click <strong>Create</strong>.</li>
+<li>Click <strong>Genie Agents → New</strong>, select the two gold tables (<code>group_exposure</code> and <code>facility_exposure</code>), and click <strong>Create</strong>.</li>
 <li>Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.</li>
 <li>In <strong>Configure → Settings</strong>, set the title to <code>Credit Risk – &lt;your name&gt;</code> and the default warehouse to the SQL warehouse you checked in with.</li>
 <li>Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).</li>
@@ -272,9 +277,9 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 </ul>
 <hr />
 <h2 class="newpage" id="4-ai-assisted-development-with-genie-code">4. AI-assisted development with Genie Code</h2>
-<p><strong>15 minutes</strong>, mostly a live demo; participants can follow along in a notebook. The prompts are in A.8.</p>
+<p><strong>15 minutes</strong>, mostly a live demo; participants can follow along in notebook <em>03</em> in the Labs folder, which has the prompts (A.8) and the legacy procedure (A.9).</p>
 <ol>
-<li><strong>Explore:</strong> profile <code>gold_group_exposure</code> and ask what is unusual about the latest month compared with April.</li>
+<li><strong>Explore:</strong> profile <code>gold.group_exposure</code> and ask what is unusual about the latest month compared with April.</li>
 <li><strong>Generate:</strong> split one group's exposure change since April into an <strong>FX effect</strong> and a <strong>new-drawdowns effect</strong>, by subsidiary, and chart it. This answers the "why" behind the Credit Committee's question.</li>
 <li><strong>Explain and convert:</strong> paste a legacy Synapse T-SQL procedure (A.9). Genie Code explains what it does, points out logic risks, and rewrites it as Databricks SQL against the workshop tables.</li>
 <li><strong>Iterate safely:</strong><ul>
@@ -353,7 +358,7 @@ Then join fx_rates on currency = currency_code and month = rate_month, and add e
 <pre><code class="language-text">This agent answers questions about SMBC APAC's corporate lending exposure. All data is synthetic.
 
 - Exposure means drawn balance. Use exposure_usd unless the user asks for yen; then use exposure_jpy.
-- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in gold_group_exposure). Above 90% is &quot;near its limit&quot;; above 100% is &quot;in breach&quot;.
+- Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in group_exposure). Above 90% is &quot;near its limit&quot;; above 100% is &quot;in breach&quot;.
 - Balances are month-end snapshots. For &quot;current&quot; or &quot;latest&quot;, use the most recent as_of_date. Never add balances across months; compare month ends instead.
 - A counterparty group's exposure includes all of its subsidiaries in every country (parent_group_id).
 - Booking branch codes: SIN Singapore, HKG Hong Kong, BKK Bangkok, SGN Ho Chi Minh City, JKT Jakarta, BOM Mumbai, SYD Sydney, SEL Seoul, SHA Shanghai, KUL Kuala Lumpur, MNL Manila, TPE Taipei.
@@ -369,14 +374,14 @@ Q1 = April–June, Q2 = July–September, Q3 = October–December, Q4 = January�
 <h3 id="a5-example-sql-queries">A.5 Example SQL queries</h3>
 <p><strong>"Top 10 counterparty groups by exposure at the latest month end"</strong></p>
 <pre><code class="language-sql">SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct
-FROM smbc_workshop.checkpoint.gold_group_exposure
-WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.checkpoint.gold_group_exposure)
+FROM smbc_workshop.gold.group_exposure
+WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.gold.group_exposure)
 ORDER BY exposure_usd DESC
 LIMIT 10;
 </code></pre>
 <p><strong>"Exposure by country and sector at a given month end"</strong> (parameterised)</p>
 <pre><code class="language-sql">SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m
-FROM smbc_workshop.checkpoint.gold_facility_exposure
+FROM smbc_workshop.gold.facility_exposure
 WHERE as_of_date = :as_of_date
 GROUP BY country_code, sector
 ORDER BY exposure_usd_m DESC;
@@ -399,33 +404,33 @@ Which booking branch has the highest share of trade finance in arrears?
 <tbody>
 <tr>
 <td>Total exposure in USD at 30 Sep 2026</td>
-<td><code>SELECT sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30'</code></td>
+<td><code>SELECT sum(exposure_usd) FROM smbc_workshop.gold.facility_exposure WHERE as_of_date = '2026-09-30'</code></td>
 </tr>
 <tr>
 <td>Which groups were above 90% of their limit at the end of FY2026 H1?</td>
-<td><code>SELECT group_name, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct &gt; 90</code></td>
+<td><code>SELECT group_name, utilisation_pct FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct &gt; 90</code></td>
 </tr>
 <tr>
 <td>Top 5 groups by exposure at the end of June 2026</td>
-<td><code>SELECT group_name, exposure_usd FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5</code></td>
+<td><code>SELECT group_name, exposure_usd FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5</code></td>
 </tr>
 <tr>
 <td>Utilisation by month in FY2026 for the most utilised group</td>
-<td><code>SELECT as_of_date, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date &gt;= '2026-04-30' ORDER BY as_of_date</code></td>
+<td><code>SELECT as_of_date, utilisation_pct FROM smbc_workshop.gold.group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date &gt;= '2026-04-30' ORDER BY as_of_date</code></td>
 </tr>
 <tr>
 <td>Share of SGN trade-finance exposure in arrears at 30 Sep 2026</td>
-<td><code>SELECT 100 * sum(CASE WHEN days_past_due &gt; 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'</code></td>
+<td><code>SELECT 100 * sum(CASE WHEN days_past_due &gt; 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.gold.facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'</code></td>
 </tr>
 </tbody>
 </table>
 <h3 id="a8-genie-code-prompts-ai-assisted-development-segment">A.8 Genie Code prompts (AI-assisted development segment)</h3>
-<pre><code class="language-text">Profile smbc_workshop.checkpoint.gold_group_exposure and tell me what is unusual about the latest month compared with April 2026.
+<pre><code class="language-text">Profile smbc_workshop.gold.group_exposure and tell me what is unusual about the latest month compared with April 2026.
 </code></pre>
-<pre><code class="language-text">For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using smbc_workshop.checkpoint.gold_facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
+<pre><code class="language-text">For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using smbc_workshop.gold.facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
 FX = Sep balance × (Sep rate − Apr rate). Chart it.
 </code></pre>
-<pre><code class="language-text">Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against the smbc_workshop.checkpoint tables. Just explain first, don't run any code.
+<pre><code class="language-text">Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against the smbc_workshop.gold tables. Just explain first, don't run any code.
 &lt;paste A.9&gt;
 </code></pre>
 <h3 id="a9-legacy-synapse-procedure-synthetic-example">A.9 Legacy Synapse procedure (synthetic example)</h3>

@@ -2,7 +2,7 @@
 """Check the generated workshop data against its answer key.
 
 Reads only the files a participant would see, applies the Lab 1 cleaning rules
-(the same rules as setup/02_build_checkpoints.sql), recomputes every planted
+(the same rules as setup/02_build_bronze_silver_gold.sql), recomputes every planted
 answer, and compares it with facilitator/answer_key.json. Also writes
 facilitator/answer_key.md, a one-page summary for facilitators.
 

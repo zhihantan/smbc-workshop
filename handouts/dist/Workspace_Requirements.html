@@ -241,7 +241,7 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </tr>
 </tbody>
 </table>
-<p>Sign-in is through SSO (Microsoft Entra ID). <strong>No groups need to be created.</strong> The setup shares the dashboards, Genie Agents and lab workbook with the workspace's built-in <code>users</code> group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set <code>share_with</code> in <code>00_master_setup</code>.</p>
+<p>Sign-in is through SSO (Microsoft Entra ID). <strong>No groups need to be created.</strong> The setup shares the dashboards, Genie Agents and Labs folder with the workspace's built-in <code>users</code> group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set <code>share_with</code> in <code>00_master_setup</code>.</p>
 <h3 id="36-unity-catalog-objects">3.6 Unity Catalog objects</h3>
 <p>The setup notebook creates these objects. Creating a catalog needs the <code>CREATE CATALOG</code> privilege, and on metastores without root storage a managed location: set it in the setup, or create <code>smbc_workshop</code> yourself in Catalog Explorer, which can use Default Storage. If the catalog already exists, whoever runs the setup needs <code>ALL PRIVILEGES</code> and <code>MANAGE</code> on it.</p>
 <table>
@@ -269,8 +269,8 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 <td>Nothing</td>
 </tr>
 <tr>
-<td>Schema <code>smbc_workshop.checkpoint</code></td>
-<td>Save-point tables (Lab 1 reference solution)</td>
+<td>Schemas <code>smbc_workshop.bronze</code>, <code>silver</code> and <code>gold</code></td>
+<td>The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses</td>
 <td><code>USE SCHEMA</code>, <code>SELECT</code></td>
 </tr>
 <tr>
@@ -342,13 +342,13 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>6</td>
-<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.checkpoint.gold_group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
+<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.gold.group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
 <td>Chart created; dashboard published</td>
 <td>AI/BI, AI-assisted charts</td>
 </tr>
 <tr>
 <td>7</td>
-<td><strong>Genie Agents → New</strong> on the two checkpoint gold tables; ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
+<td><strong>Genie Agents → New</strong> on the two gold tables (<code>group_exposure</code>, <code>facility_exposure</code>); ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
 <td>Answer with SQL; agent-mode report</td>
 <td>Genie Agents (chat and agent mode)</td>
 </tr>
@@ -360,7 +360,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>9</td>
-<td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.checkpoint.gold_group_exposure"</em></td>
+<td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.gold.group_exposure"</em></td>
 <td>It plans, runs code, summarises</td>
 <td>Genie Code agent mode</td>
 </tr>

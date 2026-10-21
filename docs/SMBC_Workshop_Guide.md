@@ -151,7 +151,7 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 | Facilitators | Workspace admin (recommended) | Run the setup notebooks and the governance demo. List the other facilitators' emails in the setup's `facilitator_emails` setting: they get full access to the catalog, see every branch in the governance demo, and can edit the reference dashboards and Genie Agents. |
 | Genie One demo user (one account) | **Consumer access** only | Shows what a business user sees: dashboards and Genie Agents, no notebooks or compute. |
 
-Sign-in is through SSO (Microsoft Entra ID). **No groups need to be created.** The setup shares the dashboards, Genie Agents and lab workbook with the workspace's built-in `users` group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set `share_with` in `00_master_setup`.
+Sign-in is through SSO (Microsoft Entra ID). **No groups need to be created.** The setup shares the dashboards, Genie Agents and Labs folder with the workspace's built-in `users` group, which is everyone in the workspace, and recognises facilitators by email. To share with an existing group instead, set `share_with` in `00_master_setup`.
 
 ### 3.6 Unity Catalog objects
 
@@ -162,7 +162,7 @@ The setup notebook creates these objects. Creating a catalog needs the `CREATE C
 | Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` and `workshop_date` (any tag a governed tag policy rejects is skipped) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
 | Volume `smbc_workshop.raw.landing` | Raw source extracts and the limits spreadsheet | `READ VOLUME` |
 | Volume `smbc_workshop.raw.facilitator` | Answer key | Nothing |
-| Schema `smbc_workshop.checkpoint` | Save-point tables (Lab 1 reference solution) | `USE SCHEMA`, `SELECT` |
+| Schemas `smbc_workshop.bronze`, `silver` and `gold` | The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses | `USE SCHEMA`, `SELECT` |
 | Schema `smbc_workshop.ops` | Check-in and lab-answer tables | `USE SCHEMA`, `MODIFY` |
 | One schema per attendee, e.g. `smbc_workshop.jane_tan` | Each person's Lab 1 output; their check-in block creates it | They own it |
 
@@ -194,10 +194,10 @@ Run these as a **test attendee** (not an admin), **on an SMBC laptop, on the SMB
 | 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code agentic) |
 | 4 | Add an **Output** to your own schema and **Run**; click **Schedule** | Table written; a job created | Schema grants, Jobs |
 | 5 | Drag `group_limits.xlsx` (downloaded from the landing volume) onto the canvas | A Source operator for the spreadsheet | Excel file support |
-| 6 | **+ New → Dashboard**; add `smbc_workshop.checkpoint.gold_group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
-| 7 | **Genie Agents → New** on the two checkpoint gold tables; ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
+| 6 | **+ New → Dashboard**; add `smbc_workshop.gold.group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
+| 7 | **Genie Agents → New** on the two gold tables (`group_exposure`, `facility_exposure`); ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
 | 8 | Open `<workspace URL>/one` and use chat | Genie One loads; chat answers | Genie One chat |
-| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.checkpoint.gold_group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
+| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.gold.group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
 | 10 | In Catalog Explorer, open a table → AI-suggested description; open the **Lineage** tab | Suggestion shown; lineage graph | AI-generated comments, lineage |
 | 11 | Sign in as the **Consumer access** user | Lands in Genie One; sees shared dashboard and Genie Agent | Consumer experience |
 
@@ -233,7 +233,7 @@ The scripts are in this repository. Import it into the workspace as a **Git fold
 - a SQL warehouse to use (blank: the first pro or serverless warehouse you can use, serverless and running ones first);
 - the other facilitators' emails (you're always included);
 - a managed location, only if creating a catalog asks for one;
-- who to share the dashboards, Genie Agents and lab workbook with (default `users`: everyone in the workspace).
+- who to share the dashboards, Genie Agents and Labs folder with (default `users`: everyone in the workspace).
 
 Then attach it to **Serverless** and click **Run all**. Before it creates anything, it checks that Unity Catalog is attached and that you can run queries on the SQL warehouse. Then it runs steps 2–6 and 9 below in order, and finishes with links to everything it created, the requirement checks, and the name of the warehouse to give attendees. In testing it took about 5 minutes, and it's safe to re-run. It needs someone who can create the `smbc_workshop` catalog, or who already has `ALL PRIVILEGES` and `MANAGE` on it; no groups are needed. Steps 7, 8 and 10 are done by hand.
 
@@ -243,10 +243,10 @@ You can also run the notebooks one at a time, in this order; for example, to rep
 |---|---|---|---|
 | 1 | *(Optional, local)* `python data/generate_data.py --out data/output`, then `python data/validate_data.py --data data/output` (needs pandas) | Facilitator | 1 min |
 | 2 | `setup/01_setup_workspace`: creates the catalog, schemas, volumes and ops tables, generates the data into the landing volume, and gives the facilitators `ALL PRIVILEGES` and `MANAGE` on the catalog | Facilitator who can create the catalog | 3 min |
-| 3 | `setup/02_build_checkpoints` (SQL): builds the bronze, silver and gold save-point tables | Facilitator | 2 min |
-| 4 | `setup/03_validate_checkpoints`: compares the checkpoint tables with the answer key; every row must say PASS | Facilitator | 1 min |
+| 3 | `setup/02_build_bronze_silver_gold` (SQL): builds the reference tables in the `bronze`, `silver` and `gold` schemas | Facilitator | 2 min |
+| 4 | `setup/03_validate_bronze_silver_gold`: compares those tables with the answer key; every row must say PASS | Facilitator | 1 min |
 | 5 | `setup/05_governance_demo`: row-filter and column-mask demo table | Facilitator | 2 min |
-| 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse ([3.4](#34-compute)); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the participants' **Lab workbook** notebook; and shares all of them with everyone in the workspace | Facilitator | 5 min |
+| 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse ([3.4](#34-compute)); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the attendee notebooks in `labs/` into a **Labs** folder; and shares all of them with everyone in the workspace | Facilitator | 5 min |
 | 7 | Give attendees access to `smbc_workshop`: the three grants in [3.6](#36-unity-catalog-objects) | Catalog owner or metastore admin | 1 min |
 | 8 | Set up the Genie One homepage ([3.3](#33-workspace-level-settings-workspace-admin)) | Workspace admin | 5 min |
 | 9 | `setup/07_check_requirements`: automated checks of the requirements in [section 3](#3-workspace-requirements-what-must-be-enabled), including attendee access and a live question to the reference Genie Agent. Every row should say PASS; the attendee-access check warns until step 7 is done, so run it again afterwards. | Facilitator | 2 min |
@@ -311,15 +311,16 @@ These are the kind of handover notes a data team gets, and Lab 1 deals with each
 - *"FX rates are captured on the last business day of each month, not always the calendar month end."*
 - *"A few facilities were booked before the customer record was created in the master."*
 
-### Save-point tables (`smbc_workshop.checkpoint`)
+### Reference tables (`bronze`, `silver` and `gold`)
 
-The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and the Genie Code segment.
+The reference solution to Lab 1, in the medallion layout. Anyone can use the gold tables to carry on with Lab 2 and the Genie Code segment.
 
 | Table | Grain | Use |
 |---|---|---|
-| `gold_group_exposure` | Counterparty group × month | Exposure, limit and `utilisation_pct` per group |
-| `gold_facility_exposure` | Facility × month | Exposure with borrower, country, sector, branch, product, currency and days past due |
-| `silver_*`, `quarantine_facilities` | Cleaned inputs, and the rows held back with a reason | For comparing with your own Lab 1 output |
+| `gold.group_exposure` | Counterparty group × month | Exposure, limit and `utilisation_pct` per group |
+| `gold.facility_exposure` | Facility × month | Exposure with borrower, country, sector, branch, product, currency and days past due |
+| `silver.*`, including `silver.quarantine_facilities` | Cleaned inputs, and the rows held back with a reason | For comparing with your own Lab 1 output |
+| `bronze.*` | The extracts as delivered, as tables | Where the cleaning starts |
 
 ---
 
@@ -329,7 +330,7 @@ The reference solution to Lab 1. Anyone can use these to carry on with Lab 2 and
 **Time:** 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.
 **Tools:** Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.
 
-> **Short on time?** Nothing in Lab 2 depends on finishing Lab 1: the checkpoint tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.
+> **Short on time?** Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.
 
 ### Core path
 
@@ -372,14 +373,14 @@ Check the Join outputs:
 
 **9. Write and schedule (2 min).** Add an **Output**: **Table** `gold_group_exposure` in your schema, **Write mode: Overwrite**, then **Run**. Click **Schedule** to run it daily at 07:00 Singapore time.
 
-✅ **Checkpoint:** your row on the progress board turns green. To check your result against the reference, run both queries; the two totals should be identical:
+✅ **Checkpoint:** your row on the progress board turns green. To check your result against the reference, run both queries (notebook *01* in the Labs folder works out your schema for you); the two totals should be identical:
 
 ```sql
 SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
 FROM smbc_workshop.<your_schema>.gold_group_exposure WHERE as_of_date = '2026-09-30';
 
 SELECT round(sum(exposure_usd) / 1e6, 1) AS reference_usd_m
-FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30';
+FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 ```
 
 ### Stretch (pick any)
@@ -402,12 +403,12 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 **Time:** 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.
 **Tools:** AI/BI dashboards, Genie Agents, Genie One, Unity Catalog.
 
-> Use the **checkpoint** tables (`smbc_workshop.checkpoint.gold_group_exposure` and `gold_facility_exposure`) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.
+> Use the **gold** reference tables (`smbc_workshop.gold.group_exposure` and `smbc_workshop.gold.facility_exposure`) so everyone's answers match. If you finished Lab 1, your own tables give the same numbers.
 
 ### Core path
 
 **1. Build the dashboard (10 min).**
-- Click **+ New → Dashboard**. On the **Data** tab, add both checkpoint gold tables.
+- Click **+ New → Dashboard**. On the **Data** tab, add both gold tables.
 - On the canvas, ask the AI assistant: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
 - Add these widgets:
   - a **counter** for total exposure at the latest month end;
@@ -418,7 +419,7 @@ FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30
 - Open `<workspace URL>/one`: this is Genie One, what a business user sees.
 
 **2. Create a Genie Agent (5 min).**
-- Click **Genie Agents → New**, select the two checkpoint gold tables, and click **Create**.
+- Click **Genie Agents → New**, select the two gold tables (`group_exposure` and `facility_exposure`), and click **Create**.
 - Genie Code reads the tables and suggests descriptions and example queries. Review them, and accept the ones that are right.
 - In **Configure → Settings**, set the title to `Credit Risk – <your name>` and the default warehouse to the SQL warehouse you checked in with.
 - Add the starter instructions (A.3), the two example SQL queries (A.5) and the common questions (A.6).
@@ -457,9 +458,9 @@ A demo Genie Agent sits on a copy of the facility table that has a **row filter*
 
 ## 9. AI-assisted development with Genie Code
 
-**15 minutes**, mostly a live demo; participants can follow along in a notebook. The prompts are in A.8.
+**15 minutes**, mostly a live demo; participants can follow along in notebook *03* in the Labs folder, which has the prompts (A.8) and the legacy procedure (A.9).
 
-1. **Explore:** profile `gold_group_exposure` and ask what is unusual about the latest month compared with April.
+1. **Explore:** profile `gold.group_exposure` and ask what is unusual about the latest month compared with April.
 2. **Generate:** split one group's exposure change since April into an **FX effect** and a **new-drawdowns effect**, by subsidiary, and chart it. This answers the "why" behind the Credit Committee's question.
 3. **Explain and convert:** paste a legacy Synapse T-SQL procedure (A.9). Genie Code explains what it does, points out logic risks, and rewrites it as Databricks SQL against the workshop tables.
 4. **Iterate safely:**
@@ -532,7 +533,7 @@ This agent answers questions about SMBC APAC's corporate lending exposure. All d
 
 - Exposure means drawn balance. Use exposure_usd unless the user asks for yen; then use exposure_jpy.
 - Utilisation means a counterparty group's exposure divided by its approved group limit (utilisation_pct in
-  gold_group_exposure). Above 90% is "near its limit"; above 100% is "in breach".
+  group_exposure). Above 90% is "near its limit"; above 100% is "in breach".
 - Balances are month-end snapshots. For "current" or "latest", use the most recent as_of_date. Never add balances
   across months; compare month ends instead.
 - A counterparty group's exposure includes all of its subsidiaries in every country (parent_group_id).
@@ -556,8 +557,8 @@ Q1 = April–June, Q2 = July–September, Q3 = October–December, Q4 = January�
 **"Top 10 counterparty groups by exposure at the latest month end"**
 ```sql
 SELECT group_name, round(exposure_usd / 1e6, 1) AS exposure_usd_m, utilisation_pct
-FROM smbc_workshop.checkpoint.gold_group_exposure
-WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.checkpoint.gold_group_exposure)
+FROM smbc_workshop.gold.group_exposure
+WHERE as_of_date = (SELECT max(as_of_date) FROM smbc_workshop.gold.group_exposure)
 ORDER BY exposure_usd DESC
 LIMIT 10;
 ```
@@ -565,7 +566,7 @@ LIMIT 10;
 **"Exposure by country and sector at a given month end"** (parameterised)
 ```sql
 SELECT country_code, sector, round(sum(exposure_usd) / 1e6, 1) AS exposure_usd_m
-FROM smbc_workshop.checkpoint.gold_facility_exposure
+FROM smbc_workshop.gold.facility_exposure
 WHERE as_of_date = :as_of_date
 GROUP BY country_code, sector
 ORDER BY exposure_usd_m DESC;
@@ -585,29 +586,29 @@ Which booking branch has the highest share of trade finance in arrears?
 
 | Question | Expected SQL |
 |---|---|
-| Total exposure in USD at 30 Sep 2026 | `SELECT sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30'` |
-| Which groups were above 90% of their limit at the end of FY2026 H1? | `SELECT group_name, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct > 90` |
-| Top 5 groups by exposure at the end of June 2026 | `SELECT group_name, exposure_usd FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5` |
-| Utilisation by month in FY2026 for the most utilised group | `SELECT as_of_date, utilisation_pct FROM smbc_workshop.checkpoint.gold_group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.checkpoint.gold_group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date >= '2026-04-30' ORDER BY as_of_date` |
-| Share of SGN trade-finance exposure in arrears at 30 Sep 2026 | `SELECT 100 * sum(CASE WHEN days_past_due > 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.checkpoint.gold_facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'` |
+| Total exposure in USD at 30 Sep 2026 | `SELECT sum(exposure_usd) FROM smbc_workshop.gold.facility_exposure WHERE as_of_date = '2026-09-30'` |
+| Which groups were above 90% of their limit at the end of FY2026 H1? | `SELECT group_name, utilisation_pct FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30' AND utilisation_pct > 90` |
+| Top 5 groups by exposure at the end of June 2026 | `SELECT group_name, exposure_usd FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-06-30' ORDER BY exposure_usd DESC LIMIT 5` |
+| Utilisation by month in FY2026 for the most utilised group | `SELECT as_of_date, utilisation_pct FROM smbc_workshop.gold.group_exposure WHERE parent_group_id = (SELECT parent_group_id FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30' ORDER BY utilisation_pct DESC LIMIT 1) AND as_of_date >= '2026-04-30' ORDER BY as_of_date` |
+| Share of SGN trade-finance exposure in arrears at 30 Sep 2026 | `SELECT 100 * sum(CASE WHEN days_past_due > 30 THEN exposure_usd ELSE 0 END) / sum(exposure_usd) FROM smbc_workshop.gold.facility_exposure WHERE as_of_date = '2026-09-30' AND booking_branch = 'SGN' AND source_system = 'TRADE_FIN'` |
 
 ### A.8 Genie Code prompts (AI-assisted development segment)
 
 ```text
-Profile smbc_workshop.checkpoint.gold_group_exposure and tell me what is unusual about the latest month
+Profile smbc_workshop.gold.group_exposure and tell me what is unusual about the latest month
 compared with April 2026.
 ```
 
 ```text
 For the group with the highest utilisation at 30 Sep 2026, split the change in USD exposure between 30 Apr 2026
 and 30 Sep 2026 into an FX effect and a new-drawdowns (volume) effect, by subsidiary, using
-smbc_workshop.checkpoint.gold_facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
+smbc_workshop.gold.facility_exposure. Use: volume = (Sep balance − Apr balance) × Apr rate;
 FX = Sep balance × (Sep rate − Apr rate). Chart it.
 ```
 
 ```text
 Explain what this procedure does and point out any risks in its logic. Then rewrite it as Databricks SQL against
-the smbc_workshop.checkpoint tables. Just explain first, don't run any code.
+the smbc_workshop.gold tables. Just explain first, don't run any code.
 <paste A.9>
 ```
 

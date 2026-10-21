@@ -82,27 +82,27 @@ FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure
 WHERE as_of_date = &#x27;2026-09-30&#x27;;
 SELECT round(sum(exposure_usd) / 1e6, 1)
     AS reference_usd_m
-FROM smbc_workshop.checkpoint.gold_group_exposure
+FROM smbc_workshop.gold.group_exposure
 WHERE as_of_date = &#x27;2026-09-30&#x27;;</code></pre>
   </section>
 </div>
 <div>
   <section><h2>Lab 2 · Credit Committee in 30 seconds</h2>
-    <ol class="steps from1"><li><b>Dashboard</b>: + New → Dashboard on both <code>checkpoint</code> gold tables. Ask the AI assistant for the top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open <code>&lt;workspace URL&gt;/one</code>.</li><li><b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, the warehouse you checked in with; add the instructions (A.3), example SQL (A.5) and questions (A.6).</li><li><b>Ask, then open the SQL.</b> Trust, but verify.</li><li><b>Fiscal-year test</b>: ask about Q1 FY2026 and FY2025 and check the dates in the SQL. Add A.4, ask again.</li></ol>
+    <ol class="steps from1"><li><b>Dashboard</b>: + New → Dashboard on both <code>gold</code> tables. Ask the AI assistant for the top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open <code>&lt;workspace URL&gt;/one</code>.</li><li><b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, the warehouse you checked in with; add the instructions (A.3), example SQL (A.5) and questions (A.6).</li><li><b>Ask, then open the SQL.</b> Trust, but verify.</li><li><b>Fiscal-year test</b>: ask about Q1 FY2026 and FY2025 and check the dates in the SQL. Add A.4, ask again.</li></ol>
     <p><b>✅ Checkpoint:</b> ask <i>"Which groups were above 90% of their limit at the end of FY2026 H1?"</i>, then submit the group's name:</p>
     <pre><code>INSERT INTO smbc_workshop.ops.lab_answers
 SELECT current_user(), &#x27;lab2&#x27;, &#x27;&lt;group name&gt;&#x27;,
     current_timestamp();</code></pre>
   </section>
   <section><h2>Genie Code · Ask why, safely</h2>
-    <div class="prompt"><b>Explore:</b> "Profile <code>smbc_workshop.checkpoint.gold_group_exposure</code> and tell me what is unusual about the latest month compared with April 2026."</div>
+    <div class="prompt"><b>Explore:</b> "Profile <code>smbc_workshop.gold.group_exposure</code> and tell me what is unusual about the latest month compared with April 2026."</div>
     <div class="prompt"><b>Generate:</b> "For the group with the highest utilisation at 30 Sep 2026, split its change in exposure since April into an FX effect and a new-drawdowns effect, by subsidiary. Chart it."</div>
     <div class="prompt"><b>Explain and convert:</b> "Explain this procedure and point out any risks, then rewrite it as Databricks SQL. Just explain first, don't run any code." Paste the legacy procedure from A.9.</div>
-    <p>Full prompts: workbook A.8.</p>
+    <p>Full prompts: workbook A.8, or notebook 03 in the Labs folder.</p>
   </section>
   <section><h2>Getting help</h2>
     <div class="cards"><div class="card red">Red: I need help</div><div class="card green">Green: all good</div></div>
-    <p><b>Stuck or short on time?</b> Carry on from the reference tables in <code>smbc_workshop.checkpoint</code>: nothing
+    <p><b>Stuck or short on time?</b> Carry on from the reference tables in <code>smbc_workshop.gold</code>: nothing
     later depends on finishing Lab 1. Common problems and fixes: workbook Appendix B.</p>
   </section>
   <section><h2>Keep learning</h2>
