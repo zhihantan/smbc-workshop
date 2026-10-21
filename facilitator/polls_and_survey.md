@@ -1,6 +1,6 @@
 # Polls and feedback survey (facilitators)
 
-Set these up by **Wednesday 21 October**: polls and Q&A in Slido, and the survey in Slido or Microsoft Forms, whichever SMBC allows. The quiz runs in Slido too: enter the 12 questions from [`quiz.md`](quiz.md) as a Slido quiz.
+Set these up **the day before the workshop**: polls and Q&A in Slido, and the survey in Slido or Microsoft Forms, whichever SMBC allows. The quiz runs in Slido too: enter the 12 questions from [`quiz.md`](quiz.md) as a Slido quiz.
 
 ## During the day
 

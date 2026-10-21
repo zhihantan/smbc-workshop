@@ -22,7 +22,7 @@ import uuid
 from build_walkthrough import OUT_DOCX
 
 QUOTA_PROJECT = "gcp-dev-field-eng-aiapiquota"
-NAME = "SMBC Data & AI Workshop: full walkthrough (22 Oct 2026)"
+NAME = "SMBC Data & AI Workshop: full walkthrough"
 DESCRIPTION = "Facilitator guide, attendee guide, workspace setup and presenter script. Built by facilitator/build_walkthrough.py. All data is synthetic."
 DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 

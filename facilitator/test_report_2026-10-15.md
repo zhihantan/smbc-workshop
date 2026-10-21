@@ -1,6 +1,6 @@
 # Test report: FEVM workspace `fe-vm-zh-serverless-ws`, 15 Oct 2026 (internal)
 
-> **Since 20 Oct the setup needs no groups.** It assumes attendees have access to `smbc_workshop`, uses an existing SQL warehouse instead of creating one, shares with the workspace's built-in `users` group, and recognises facilitators by email. **Since 21 Oct** the reference tables live in `bronze`, `silver` and `gold` schemas instead of one `checkpoint` schema, and the attendee notebooks are in `labs/`. The results below are for the earlier version; the group, grant and `checkpoint` details they describe no longer apply.
+> **Since 20 Oct the setup needs no groups.** It assumes attendees have access to `smbc_workshop`, uses an existing SQL warehouse instead of creating one, shares with the workspace's built-in `users` group, and recognises facilitators by email. **Since 21 Oct** the reference tables live in `bronze`, `silver` and `gold` schemas instead of one `checkpoint` schema, and the attendee notebooks are in `labs/`. `06` also creates the job **SMBC Workshop: daily data refresh**, which regenerates the data and rebuilds and validates the reference tables every day at 06:00 Singapore time; on Azure, its three tasks passed in under 3 minutes. The results below are for the earlier version; the group, grant and `checkpoint` details they describe no longer apply.
 
 Everything was deployed with the repo scripts and tested through the APIs. A service principal, **meridian-ava**, stood in for a non-admin attendee: it has Workspace access and Databricks SQL access, and no admin rights.
 
@@ -56,7 +56,7 @@ Setup no longer needs a laptop or CLI. The dashboard and Genie Agent tools now r
 | Japanese demo question for the analytics intro: 「2026年度第2四半期末時点の、計上店別の円建てエクスポージャーを教えてください。」 | ✅ Read as 30 Sep 2026 and answered from `exposure_jpy` by booking branch, in Japanese, in 24 s. It doesn't give away the Lab 2 answer, unlike the question used in Lab 2's stretch exercise |
 | Renamed the setting from the fictional "Meridian Bank APAC" to a synthetic **SMBC APAC** lending book | ✅ The data files are byte-identical; only wording changed. After re-running `00_master_setup` (13 checks, none failed), neither Genie Agent, neither dashboard, the Lab workbook nor any Unity Catalog comment mentions Meridian. The `meridian-*` accounts are existing test principals in this workspace, not part of the materials |
 
-## Not tested (needs a person in the UI on Mon 19 Oct)
+## Not tested (needs a person in the UI, at the dry run)
 
 - **Lakeflow Designer:** the canvas steps, Genie Code prompts, Guardrails, the Unique operator, Excel drag-and-drop from a laptop, and the Schedule button. These are UI-only; the underlying data and grants are verified.
 - **Genie Code** in notebooks (agent mode, approvals, the legacy-SQL conversion), **AI-generated comments**, and **Lineage**.
@@ -67,5 +67,5 @@ Setup no longer needs a laptop or CLI. The dashboard and Genie Agent tools now r
 
 - **Done (15 Oct, evening):** `08_reset_or_teardown` → `drop_attendee_schemas` emptied the progress board and dropped meridian-ava's schema and the temporary `zhihan_tan` schema. The workspace is ready for the dry-run setup in section 6 of the [run of show](run_of_show.md); run the same reset again after the dry run.
 - For the test, `meridian-support` (attendees) and `meridian-admin` (facilitators) hold the workshop's grants and sharing. For the dry run, section 6 of the run of show switches them to `account users` and `users`.
-- The FEVM workspace expires on **28 Oct**, and its 3 Oct extension request is still pending. The workshop on 22 Oct falls inside that window.
+- The FEVM workspace expires on **28 Oct**, and its 3 Oct extension request is still pending.
 - On SMBC's workspace, run `00_master_setup` with the account-level groups. Its pre-flight checks stop before anything is created if a group is missing or workspace-local.

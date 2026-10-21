@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the synthetic dataset for the SMBC Data & AI Workshop (22 Oct 2026).
+"""Generate the synthetic dataset for the SMBC Data & AI Workshop.
 
 The data describes a made-up SMBC APAC corporate lending book: counterparty
 groups and their subsidiaries, credit facilities, month-end balances, FX rates,

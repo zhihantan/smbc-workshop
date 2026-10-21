@@ -3,7 +3,7 @@
 <style>
 :root { --navy: #1B3139; --lava: #FF3621; --oat: #F9F7F4; --oat2: #EEEDE9; --slate: #5A6F77; --rule: #D5D2CC; }
 @page { size: A4; margin: 15mm 15mm 17mm 15mm;
-  @bottom-left { content: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
+  @bottom-left { content: "SMBC Data & AI Workshop · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
   @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; } }
 html { font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
        color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -39,7 +39,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </style></head>
 <body>
 <h1 id="smbc-data--ai-workshop-workshop-guide">SMBC Data &amp; AI Workshop: Workshop Guide</h1>
-<p><strong>Thursday 22 October 2026 · SMBC Asia Pacific · Data Analysts and Data Engineers</strong></p>
+<p><strong>SMBC Asia Pacific · Data Analysts and Data Engineers</strong></p>
 <p><em>Version 0.1, draft of 15 October 2026. Prepared by the Databricks account team (Siu-Li Choa, Zhi Han Tan) with SMBC (contacts TBC).</em></p>
 <blockquote>
 <p><strong>All workshop data is synthetic.</strong> The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.</p>
@@ -74,8 +74,8 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </thead>
 <tbody>
 <tr>
-<td><strong>When</strong></td>
-<td>Thursday 22 October 2026, 3 hours 35 minutes (start time TBC)</td>
+<td><strong>Length</strong></td>
+<td>3 hours 35 minutes</td>
 </tr>
 <tr>
 <td><strong>Who</strong></td>
@@ -197,7 +197,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <hr />
 <h2 class="newpage" id="3-workspace-requirements-what-must-be-enabled">3. Workspace requirements: what must be enabled</h2>
 <blockquote>
-<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by <strong>Tuesday 20 October</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
+<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm <strong>at least two days before the workshop</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
 </blockquote>
 <p><strong>Already confirmed:</strong> the workshop uses a new, dedicated workspace with <strong>serverless compute enabled</strong>, and <strong>Genie has no question-rate limit</strong> to plan around. The <strong>SAG team owns the cross-Geo processing setting</strong> (item 5).</p>
 <p><strong>No groups are needed.</strong> The setup shares everything with the workspace's built-in <code>users</code> group (everyone in the workspace) and recognises facilitators by email. Attendees need access to the <code>smbc_workshop</code> catalog (<a href="#36-unity-catalog-objects">3.6</a>) and to a SQL warehouse (<a href="#34-compute">3.4</a>).</p>
@@ -651,7 +651,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>6</td>
-<td><code>setup/06_deploy_dashboards_and_agents</code>: picks the SQL warehouse (<a href="#34-compute">3.4</a>); tests and publishes the <strong>reference dashboard</strong> and the <strong>progress board</strong>; creates the <strong>reference</strong> and <strong>secured demo</strong> Genie Agents; copies the attendee notebooks in <code>labs/</code> into a <strong>Labs</strong> folder; and shares all of them with everyone in the workspace</td>
+<td><code>setup/06_deploy_dashboards_and_agents</code>: picks the SQL warehouse (<a href="#34-compute">3.4</a>); tests and publishes the <strong>reference dashboard</strong> and the <strong>progress board</strong>; creates the <strong>reference</strong> and <strong>secured demo</strong> Genie Agents; copies the attendee notebooks in <code>labs/</code> into a <strong>Labs</strong> folder; and shares all of them with everyone in the workspace. It also creates the job <strong>SMBC Workshop: daily data refresh</strong>, which regenerates the data and rebuilds and validates the reference tables every day at 06:00 Singapore time</td>
 <td>Facilitator</td>
 <td>5 min</td>
 </tr>
@@ -682,14 +682,14 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tbody>
 </table>
 <p>Between a dry run and the workshop, <code>setup/08_reset_or_teardown</code> empties the progress board and drops attendee schemas; after the workshop it tears everything down. It only lists what it would change until you set <code>dry_run</code> to <code>no</code>.</p>
-<p>The tools behind step 6 (<code>setup/tools/dashboards.py</code> and <code>genie_agents.py</code>) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the <code>starter</code> agent, which has no fiscal-year instruction.</p>
-<p>The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running <code>00_master_setup</code> is safe. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.</p>
+<p>The tools behind step 6 (<code>setup/tools/dashboards.py</code>, <code>genie_agents.py</code> and <code>data_job.py</code>) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the <code>starter</code> agent, which has no fiscal-year instruction.</p>
+<p>The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running <code>00_master_setup</code> is safe, and so is the daily data job: each morning it writes the same files and tables, an hour before the 07:00 schedule attendees give their Lab 1 pipeline. If a run fails, whoever ran step 6 gets an email. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.</p>
 <hr />
 <h2 class="newpage" id="5-participant-pre-work">5. Participant pre-work</h2>
-<p>Send on <strong>Tuesday 20 October</strong>:</p>
+<p>Send <strong>two days before the workshop</strong>:</p>
 <blockquote>
-<p><strong>Subject: Before Thursday's Databricks workshop: 2-minute login check</strong></p>
-<p>Hi all, we're looking forward to seeing you on Thursday 22 October. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:</p>
+<p><strong>Subject: Before the Databricks workshop: 2-minute login check</strong></p>
+<p>Hi all, we're looking forward to seeing you at the workshop. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:</p>
 <ol>
 <li>Open <strong><code>&lt;workspace URL&gt;</code></strong> in Microsoft Edge or Google Chrome on the laptop you'll bring, and sign in with your SMBC account.</li>
 <li>Open <strong>SQL Editor</strong>, choose the <strong><code>&lt;warehouse name&gt;</code></strong> SQL warehouse, paste the check-in block from the end of this email and click <strong>Run</strong>. It checks you in and creates your schema for the labs. (Change <code>DA</code> to <code>DE</code> if you're a data engineer.)</li>

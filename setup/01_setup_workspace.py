@@ -51,16 +51,17 @@ if spark.sql(f"SHOW CATALOGS LIKE '{catalog}'").count():
     print(f"Catalog {catalog} already exists")
 else:
     location = f" MANAGED LOCATION '{managed_location}'" if managed_location else ""
-    spark.sql(f"CREATE CATALOG `{catalog}`{location} "
-              "COMMENT 'SMBC Data & AI Workshop, 22 Oct 2026. All data is synthetic.'")
-tags = {"synthetic_data": "true", "workshop_date": "2026-10-22"}
+    spark.sql(f"CREATE CATALOG `{catalog}`{location}")
+statements = [f"COMMENT ON CATALOG `{catalog}` IS 'SMBC Data & AI Workshop. All data is synthetic.'",
+              f"ALTER CATALOG `{catalog}` UNSET TAGS ('workshop_date')",  # an earlier setup tagged the original date
+              f"ALTER CATALOG `{catalog}` SET TAGS ('synthetic_data' = 'true')"]
 if remove_after:
-    tags["RemoveAfter"] = remove_after
-for key, value in tags.items():
+    statements.append(f"ALTER CATALOG `{catalog}` SET TAGS ('RemoveAfter' = '{remove_after}')")
+for statement in statements:
     try:
-        spark.sql(f"ALTER CATALOG `{catalog}` SET TAGS ('{key}' = '{value}')")
-    except Exception as err:  # a governed tag policy may restrict a key; tags are optional
-        print(f"Skipped tag {key}:", str(err).splitlines()[0])
+        spark.sql(statement)
+    except Exception as err:  # e.g. a governed tag policy restricts a key; the comment and tags are optional
+        print("Skipped:", statement, "->", str(err).splitlines()[0])
 
 for schema, comment in [
     ("raw", "Raw extracts as delivered by the source systems"),

@@ -1,5 +1,5 @@
 ---
-# SMBC Data & AI Workshop, 22 October 2026: slides for the labs and hands-on segments.
+# SMBC Data & AI Workshop: slides for the labs and hands-on segments.
 # One slide per block between "---" lines. Speaker notes are in <!-- --> comments under each slide.
 # The executive briefing uses Richard's and Peter's own slides, so it isn't here.
 # Generate a deck with any Markdown-to-slides tool. With Marp, for example:
@@ -9,7 +9,7 @@ marp: true
 theme: default
 paginate: true
 title: "SMBC Data & AI Workshop: labs and hands-on"
-footer: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"
+footer: "SMBC Data & AI Workshop · All data is synthetic"
 ---
 
 <!-- _class: invert -->
@@ -19,7 +19,7 @@ footer: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"
 
 ## SMBC Data & AI Workshop: labs and hands-on
 
-Thursday 22 October 2026 · Data analysts and data engineers
+Data analysts and data engineers
 
 All workshop data is synthetic: the borrowers, groups and figures are made up.
 

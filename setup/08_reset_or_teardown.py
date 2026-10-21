@@ -6,7 +6,7 @@
 # MAGIC |---|---|---|
 # MAGIC | `reset_progress` | Empties `ops.checkin` and `ops.lab_answers`, so the progress board starts at zero | Before each run |
 # MAGIC | `drop_attendee_schemas` | `reset_progress`, then drops every attendee schema **and everything people built in it** | After a dry run |
-# MAGIC | `teardown` | Drops the whole `smbc_workshop` catalog, and deletes the dashboards, Genie Agents and Labs folder in the 06 folder | When the workshop environment is no longer needed |
+# MAGIC | `teardown` | Drops the whole `smbc_workshop` catalog, deletes the dashboards, Genie Agents and Labs folder in the 06 folder, and deletes the daily data job | When the workshop environment is no longer needed |
 # MAGIC
 # MAGIC **`dry_run` is on by default:** the notebook only lists what it would change. Set it to `no` to make the changes.
 # MAGIC None of this touches the SQL warehouse, or the dashboards and Genie Agents that attendees saved in their own folders.
@@ -24,9 +24,9 @@ import sys
 from databricks.sdk import WorkspaceClient
 
 sys.path.insert(0, os.path.abspath("tools"))
-import workspace_api, dashboards, genie_agents
+import workspace_api, dashboards, genie_agents, data_job
 
-for module in (workspace_api, dashboards, genie_agents):
+for module in (workspace_api, dashboards, genie_agents, data_job):
     importlib.reload(module)
 from workspace_api import api
 
@@ -74,6 +74,9 @@ if action == "teardown":
         if workspace_api.get_status(path):
             do(f"delete {what} {path}",
                lambda p=path: api("post", "/api/2.0/workspace/delete", {"path": p, "recursive": True}))
+    job_id = data_job.find()
+    if job_id:
+        do(f"delete job '{data_job.NAME}' ({job_id})", lambda: api("post", "/api/2.1/jobs/delete", {"job_id": job_id}))
     do(f"drop catalog {CATALOG} and everything in it", lambda: spark.sql(f"DROP CATALOG {CATALOG} CASCADE"))
     print("\nThe SQL warehouse is left as it is.")
 

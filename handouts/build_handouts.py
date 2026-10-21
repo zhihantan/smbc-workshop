@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the participant handouts for the SMBC Data & AI Workshop (22 Oct 2026) from the workshop guide.
+"""Build the participant handouts for the SMBC Data & AI Workshop from the workshop guide.
 
 Everything participants read is taken from docs/SMBC_Workshop_Guide.md at build time, so the handouts can't drift
 from the guide. Facilitator-only passages (setup, the facilitator close, the governance moment, test findings) are
@@ -34,10 +34,10 @@ CHROME = os.environ.get("CHROME", "/Applications/Google Chrome.app/Contents/MacO
 
 PLACEHOLDER = "<workspace URL>"
 TRAINING_URL = "https://www.databricks.com/learn/training"
-TITLE = "Lab workbook · SMBC Data & AI Workshop · Thursday 22 October 2026"
+TITLE = "Lab workbook · SMBC Data & AI Workshop"
 REQUIREMENTS = "3. Workspace requirements: what must be enabled"
-REQUIREMENTS_TITLE = "SMBC Data & AI Workshop · 22 October 2026 · Workspace requirements"
-FOOTER = "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"
+REQUIREMENTS_TITLE = "SMBC Data & AI Workshop · Workspace requirements"
+FOOTER = "SMBC Data & AI Workshop · All data is synthetic"
 
 # (heading in the guide, heading in the workbook). Everything else in the guide is for facilitators and admins.
 SECTIONS = [
@@ -304,7 +304,7 @@ def write_labs(title, text, snippets):
     written = {}
     for name, lab_title, headings, kit_parts in LABS:
         note = READ_ONLY_GENIE if name == "03_Genie_Code" else READ_ONLY
-        cells = [("md", f"# {lab_title}\n\n*SMBC Data & AI Workshop · Thursday 22 October 2026*\n\n{notice}\n\n{note}")]
+        cells = [("md", f"# {lab_title}\n\n*SMBC Data & AI Workshop*\n\n{notice}\n\n{note}")]
         for heading in headings:
             cells += section_cells(f"## {heading}\n\n{bodies[heading]}", snippets)
         for part in kit_parts:
@@ -570,7 +570,7 @@ def cheat_sheet_html(url, snippets):
     li = lambda items: "".join(f"<li>{i}</li>" for i in items)
     body = f"""
 <header>
-  <div><h1>SMBC Data &amp; AI Workshop · Cheat sheet</h1><p>Thursday 22 October 2026 · Lakeflow, AI/BI, Genie Agents and Genie Code</p></div>
+  <div><h1>SMBC Data &amp; AI Workshop · Cheat sheet</h1><p>Lakeflow, AI/BI, Genie Agents and Genie Code</p></div>
   <div class="tag">All data is synthetic</div>
 </header>
 <main>

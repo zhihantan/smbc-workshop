@@ -24,7 +24,7 @@
 # MAGIC | 2 | `02_build_bronze_silver_gold` | The bronze, silver and gold reference tables (the Lab 1 reference solution) |
 # MAGIC | 3 | `03_validate_bronze_silver_gold` | Nothing: checks those tables against the answer key |
 # MAGIC | 4 | `05_governance_demo` | The row-filtered, column-masked copy of the facility table |
-# MAGIC | 5 | `06_deploy_dashboards_and_agents` | Two dashboards, two Genie Agents and the attendees' Labs folder, on the chosen SQL warehouse, shared with everyone in the workspace |
+# MAGIC | 5 | `06_deploy_dashboards_and_agents` | Two dashboards, two Genie Agents and the attendees' Labs folder, on the chosen SQL warehouse, shared with everyone in the workspace; and a job that rebuilds the data every day at 06:00 Singapore time |
 # MAGIC | 6 | `07_check_requirements` | Nothing: automated checks of the requirements, including a live question to a Genie Agent |
 
 # COMMAND ----------
@@ -98,7 +98,8 @@ steps = [
     ("02_build_bronze_silver_gold", "Bronze, silver and gold reference tables (the Lab 1 reference solution)", {}),
     ("03_validate_bronze_silver_gold", "Reference tables checked against the answer key", {"catalog": "smbc_workshop"}),
     ("05_governance_demo", "Row filter and column mask for the governance demo", facilitators),
-    ("06_deploy_dashboards_and_agents", "Dashboards, Genie Agents and the Labs folder", {**place, **facilitators}),
+    ("06_deploy_dashboards_and_agents", "Dashboards, Genie Agents, the Labs folder and the daily data job",
+     {**place, **facilitators}),
     ("07_check_requirements", "Requirement checks, including a live Genie Agent question",
      {**place, **facilitators, "ask_genie": "yes", "raise_on_failure": "no"}),
 ]

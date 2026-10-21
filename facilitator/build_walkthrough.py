@@ -26,7 +26,7 @@ DIST = os.path.join(HERE, "dist")
 OUT_MD = os.path.join(DIST, "Workshop_Walkthrough.md")
 OUT_DOCX = os.path.join(DIST, "Workshop_Walkthrough.docx")
 TITLE = "SMBC Data & AI Workshop: full walkthrough"
-SUBTITLE = "Thursday 22 October 2026 · Facilitator guide, attendee guide and workspace setup"
+SUBTITLE = "Facilitator guide, attendee guide and workspace setup"
 CONTENTS_PLACEHOLDER = "CONTENTS-PLACEHOLDER"  # replaced by the linked contents list
 NAVY, HEADER_FILL, BORDER = "1B3139", "EEEDE9", "BFBFBF"
 A4_WIDTH, A4_HEIGHT, MARGIN = 11906, 16838, 1134  # twips; 2 cm margins
@@ -157,7 +157,7 @@ def build_markdown():
     workbook = read("handouts/Lab_Workbook.md")
 
     # The dry-run set-up steps are specific to the Databricks test workspace: keep the goal and the checklist only.
-    dry_run = section(run, "6. Dry run: Monday 19 October, in the Databricks test workspace", 2)
+    dry_run = section(run, "6. Dry run in the Databricks test workspace", 2)
     setup_block = re.search(r"\*\*Set up\*\*.*?(?=\*\*Time and test:\*\*)", dry_run, re.S)
     assert setup_block, "dry-run set-up block not found"
     dry_run = dry_run.replace(setup_block.group(0), "The set-up steps for the Databricks test workspace are in the run "

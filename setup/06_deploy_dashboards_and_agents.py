@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 06 · Deploy the dashboards, Genie Agents and lab workbook
+# MAGIC # 06 · Deploy the dashboards, Genie Agents, Labs folder and daily data job
 # MAGIC
 # MAGIC Run as a facilitator after `01`–`03` and `05`, on serverless compute. No laptop or CLI is needed: the Databricks
 # MAGIC SDK authenticates as you. It's safe to re-run; anything that already exists in the folder is updated in place.
@@ -15,6 +15,7 @@
 # MAGIC | Genie Agent **Credit Risk (reference)**: the Lab 2 model answer | CAN RUN |
 # MAGIC | Genie Agent **Credit Risk (secured demo)**: the governance demo from `05` | CAN RUN |
 # MAGIC | Folder **Labs**: the attendee notebooks from `labs/`; attendees clone one to run it | CAN READ |
+# MAGIC | Job **SMBC Workshop: daily data refresh**: regenerates the data and rebuilds the reference tables every day at 06:00 Singapore time | Nothing |
 # MAGIC
 # MAGIC `share_with` is `users` by default: the built-in group of everyone in this workspace, so no group has to be created.
 # MAGIC The facilitators in `facilitator_emails` get CAN MANAGE. The default folder is in your home folder rather than
@@ -36,9 +37,9 @@ import sys
 from databricks.sdk import WorkspaceClient
 
 sys.path.insert(0, os.path.abspath("tools"))
-import workspace_api, dashboards, genie_agents
+import workspace_api, dashboards, genie_agents, data_job
 
-for module in (workspace_api, dashboards, genie_agents):  # pick up edits when re-run in the same session
+for module in (workspace_api, dashboards, genie_agents, data_job):  # pick up edits when re-run in the same session
     importlib.reload(module)
 from workspace_api import api
 
@@ -108,7 +109,7 @@ if workspace_api.get_status(f"{repo}/labs") is None:
 else:
     api("post", "/api/2.0/workspace/mkdirs", {"path": labs_folder})
     for entry in sorted(api("get", "/api/2.0/workspace/list", {"path": f"{repo}/labs"}).get("objects", []), key=lambda o: o["path"]):
-        name = os.path.splitext(entry["path"].rsplit("/", 1)[1])[0]
+        lab = os.path.splitext(entry["path"].rsplit("/", 1)[1])[0]
         if entry["object_type"] == "NOTEBOOK":
             content = api("get", "/api/2.0/workspace/export", {"path": entry["path"], "format": "SOURCE"})["content"]
         elif entry["object_type"] == "FILE" and entry["path"].endswith(".py"):  # a notebook stored as a plain file
@@ -116,14 +117,33 @@ else:
             content = base64.b64encode(open(local, "rb").read()).decode()
         else:
             continue
-        api("post", "/api/2.0/workspace/import", {"path": f"{labs_folder}/{name}", "format": "SOURCE", "language": "PYTHON",
+        api("post", "/api/2.0/workspace/import", {"path": f"{labs_folder}/{lab}", "format": "SOURCE", "language": "PYTHON",
                                                   "content": content, "overwrite": True})
-        lab_names.append(name)
+        lab_names.append(lab)
     labs_id = workspace_api.get_status(labs_folder)["object_id"]
     print(f"Copied {len(lab_names)} notebooks to {labs_folder}: {', '.join(lab_names)}")
 if workspace_api.get_status(f"{folder}/Lab workbook"):
     api("post", "/api/2.0/workspace/delete", {"path": f"{folder}/Lab workbook"})
     print("Removed the old Lab workbook notebook")
+
+# COMMAND ----------
+
+# MAGIC %md ## Daily data job
+# MAGIC
+# MAGIC Creates or updates the job **SMBC Workshop: daily data refresh**. Every day at 06:00 Singapore time it regenerates
+# MAGIC the synthetic data, then rebuilds and validates the reference tables, with the files in this Git folder
+# MAGIC (`tools/data_job.py` has the details). The data is seeded, so every run writes the same files and tables. You get an
+# MAGIC email if a run fails. The workshop doesn't depend on the job, so if it can't be created, the rest carries on and `07`
+# MAGIC flags it.
+
+# COMMAND ----------
+
+try:
+    job_id, created = data_job.create_or_update(repo, notify=[me])
+    print(f"{data_job.NAME}: job {job_id} ({'created' if created else 'updated'}), runs {data_job.WHEN}")
+except workspace_api.ApiError as err:
+    job_id = None
+    print(f"Couldn't create the daily data job: {str(err).splitlines()[0][:300]}")
 
 # COMMAND ----------
 
@@ -147,8 +167,10 @@ objects = [("dashboards", i, "CAN_READ", title) for title, i in dashboard_ids.it
 objects += [("genie", i, "CAN_RUN", title) for title, i in agent_ids.items()]
 if labs_id:
     objects.append(("directories", labs_id, "CAN_READ", "Labs folder"))
+if job_id:
+    objects.append(("jobs", job_id, None, data_job.NAME))  # facilitators only
 for object_type, object_id, level, what in objects:
-    if share_with:
+    if share_with and level:
         share(object_type, object_id, share_with, level, what)
     for facilitator in facilitators:
         share(object_type, object_id, facilitator, "CAN_MANAGE", what)
@@ -164,6 +186,8 @@ links += [("Dashboard", title, f"{host}/dashboardsv3/{i}/published") for title, 
 links += [("Genie Agent", title, f"{host}/genie/rooms/{i}") for title, i in agent_ids.items()]
 if labs_id:
     links.append(("Folder", "Labs (the attendee notebooks)", f"{host}/browse/folders/{labs_id}"))
+if job_id:
+    links.append(("Job", data_job.NAME, f"{host}/jobs/{job_id}"))
 links.append(("Genie One", "What a business user sees", f"{host}/one"))
 display(spark.createDataFrame(links, "type string, name string, link string"))
 

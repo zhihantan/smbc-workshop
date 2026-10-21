@@ -1,4 +1,4 @@
-# Lab workbook · SMBC Data & AI Workshop · Thursday 22 October 2026
+# Lab workbook · SMBC Data & AI Workshop
 
 > **All workshop data is synthetic.** The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.
 

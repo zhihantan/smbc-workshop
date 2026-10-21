@@ -1,6 +1,6 @@
 # Run of show (facilitators and organisers)
 
-**Thursday 22 October 2026 · 3 hours 35 minutes · start time TBC.** Times are relative to the start, as in the guide's agenda. Fill in the names and the start time when they're confirmed. Nothing here is confidential to Databricks, so SMBC's organisers can use it too.
+**3 hours 35 minutes.** Times are relative to the start, as in the guide's agenda. Fill in the names, the date and the start time when they're confirmed. Nothing here is confidential to Databricks, so SMBC's organisers can use it too.
 
 ## 1. Roles
 
@@ -20,16 +20,16 @@
 
 | When | Task | Status |
 |---|---|---|
-| 15 Oct | Dataset generated and validated. Reference tables, dashboards and Genie Agents built and tested in the Databricks test workspace ([test report](test_report_2026-10-15.md)) | ✅ |
-| Fri 16 Oct | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
-| Mon 19 Oct | Internal dry run (section 6) | ☐ |
-| Tue 20 Oct | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
-| Tue 20 Oct | Smoke tests (guide §3.8) on an SMBC laptop, on the SMBC network, with 2–3 SMBC volunteers | ☐ |
-| Tue 20 Oct | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 7) | ☐ |
-| Wed 21 Oct | Freeze the content. Set up the quiz ([quiz.md](quiz.md)), the polls and the survey ([polls_and_survey.md](polls_and_survey.md)) in Slido, and test them on a phone | ☐ |
-| Wed 21 Oct | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 5) | ☐ |
-| Wed 21 Oct | Late registrations: check they can sign in and have access to `smbc_workshop`; their check-in creates their schema. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
-| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day | ☐ |
+| Done | Dataset generated and validated. Reference tables, dashboards and Genie Agents built and tested in the Databricks test workspace ([test report](test_report_2026-10-15.md)) | ✅ |
+| A week before | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
+| 3 days before | Internal dry run (section 6) | ☐ |
+| 2 days before | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
+| 2 days before | Smoke tests (guide §3.8) on an SMBC laptop, on the SMBC network, with 2–3 SMBC volunteers | ☐ |
+| 2 days before | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 7) | ☐ |
+| The day before | Freeze the content. Set up the quiz ([quiz.md](quiz.md)), the polls and the survey ([polls_and_survey.md](polls_and_survey.md)) in Slido, and test them on a phone | ☐ |
+| The day before | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 5) | ☐ |
+| The day before | Late registrations: check they can sign in and have access to `smbc_workshop`; their check-in creates their schema. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
+| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day. In **Jobs & Pipelines**, check that the 06:00 run of **SMBC Workshop: daily data refresh** succeeded | ☐ |
 | Day, −30 min | Doors open; check-in desk opens | ☐ |
 
 ## 3. Presenter laptop: tabs to open before the start
@@ -71,18 +71,19 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 | Designer's Genie Code prompts don't respond | Build the step by hand from the actions in Lab 1, step 4, and check cross-Geo processing (guide §3.2) |
 | Genie Agents error or are slow | Lab 2 carries on with the dashboard, Genie in pairs; check cross-Geo processing and partner-powered AI (`07_check_requirements` tests both) |
 | Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses, or ask its owner to |
+| The daily data job's 06:00 run failed (you get an email) | Open the run to see which task failed. If it's `generate_data`, the tables weren't touched. Otherwise fix the cause and click **Run now**, or run `00_master_setup` again; `07_check_requirements` confirms the tables |
 | Lab 1 overruns | At 1:15 move everyone to the gold reference tables; Lab 2 doesn't depend on Lab 1 |
 | AI output differs from the rehearsal | Say so: it's why you check the SQL. Show the recording if the difference matters |
 | Slido is blocked on the SMBC network | Phones on mobile data; or read the questions from `quiz.md` and take answers by show of hands |
 
-**Recordings to make on Wed 21 Oct**, in SMBC's workspace if possible, otherwise in the test workspace:
+**Recordings to make the day before**, in SMBC's workspace if possible, otherwise in the test workspace:
 1. The Designer demo (Excel → prompt → preview → generated code).
 2. Lab 1's core path end to end (speed it up).
 3. Genie One as a business user, including the Japanese question.
 4. The Genie Code prompts (A.8) and the legacy-SQL conversion (A.9).
 5. A Genie Agents agent-mode answer.
 
-## 6. Dry run: Monday 19 October, in the Databricks test workspace
+## 6. Dry run in the Databricks test workspace
 
 **Goal:** time the labs with first-time users, and test what the 15 Oct tests couldn't reach through the APIs (the test report's "Not tested" list).
 
@@ -109,7 +110,7 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 
 ## 7. Executive briefing: notes for Richard and Peter
 
-Agree these by Tuesday 20 October. Fifteen minutes in three parts.
+Agree these two days before the workshop. Fifteen minutes in three parts.
 
 - **Richard (5 min):** why self-service *with guardrails* matters for the APAC Data Hub. Then he asks the room **the CDAO's question**: *"Which client groups are closest to their limits, and why?"* The room answers it by the end of the day.
 - **Peter (5 min):** Databricks' commitment to SMBC: enablement and follow-up, such as the proposed 30-day Genie Agent challenge. *(Peter to provide content.)*
@@ -161,7 +162,7 @@ Agree these by Tuesday 20 October. Fifteen minutes in three parts.
 
 > **Subject: Thank you for joining the Databricks Data & AI Workshop**
 >
-> Hi all, thank you for spending the afternoon with us on Thursday. As promised:
+> Hi all, thank you for spending the time with us. As promised:
 >
 > - **Slides and lab workbook:** <links>
 > - **Recording:** <link, if recorded>

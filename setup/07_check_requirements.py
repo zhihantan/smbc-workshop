@@ -26,9 +26,9 @@ import sys
 from databricks.sdk import WorkspaceClient
 
 sys.path.insert(0, os.path.abspath("tools"))
-import workspace_api, dashboards, genie_agents
+import workspace_api, dashboards, genie_agents, data_job
 
-for module in (workspace_api, dashboards, genie_agents):
+for module in (workspace_api, dashboards, genie_agents, data_job):
     importlib.reload(module)
 from workspace_api import api
 
@@ -213,6 +213,24 @@ def _():
     if share_with and not levels("directories", labs["object_id"], share_with) & {"CAN_READ", "CAN_RUN", "CAN_EDIT", "CAN_MANAGE"}:
         return "FAIL", f"{share_with} can't open the Labs folder"
     return "PASS", f"{len(found)} notebooks; attendees can open them"
+
+
+@check("—", "Daily data job (the workshop doesn't depend on it)",
+       "Run 06_deploy_dashboards_and_agents: it creates the job and points it at this Git folder.")
+def _():
+    job_id = data_job.find()
+    if job_id is None:
+        return "WARN", f"no job called '{data_job.NAME}', so the data isn't rebuilt every day"
+    job = api("get", "/api/2.1/jobs/get", {"job_id": job_id})["settings"]
+    missing = [p for p in data_job.task_paths(job) if workspace_api.get_status(p) is None]
+    if missing:
+        return "WARN", f"the job runs {missing[0]}, which doesn't exist, so every run will fail"
+    if job.get("schedule", {}).get("pause_status") != "UNPAUSED":
+        return "WARN", "its schedule is paused, so the data isn't rebuilt every day"
+    runs = api("get", "/api/2.1/jobs/runs/list", {"job_id": job_id, "completed_only": "true", "limit": 1}).get("runs", [])
+    if runs and runs[0]["state"].get("result_state") != "SUCCESS":
+        return "WARN", f"its last run ended {runs[0]['state'].get('result_state')}: {runs[0]['run_page_url']}"
+    return "PASS", f"runs {data_job.WHEN}; " + ("its last run succeeded" if runs else "it hasn't run yet")
 
 
 if dbutils.widgets.get("ask_genie") == "yes":

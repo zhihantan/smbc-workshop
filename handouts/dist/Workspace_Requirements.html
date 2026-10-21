@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>SMBC Data &amp; AI Workshop · 22 October 2026 · Workspace requirements</title>
+<html lang="en"><head><meta charset="utf-8"><title>SMBC Data &amp; AI Workshop · Workspace requirements</title>
 <style>
 :root { --navy: #1B3139; --lava: #FF3621; --oat: #F9F7F4; --oat2: #EEEDE9; --slate: #5A6F77; --rule: #D5D2CC; }
 @page { size: A4; margin: 15mm 15mm 17mm 15mm;
-  @bottom-left { content: "SMBC Data & AI Workshop · 22 October 2026 · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
+  @bottom-left { content: "SMBC Data & AI Workshop · All data is synthetic"; font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; }
   @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #5A6F77; } }
 html { font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
        color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -38,11 +38,11 @@ hr { display: none; }
 p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </style></head>
 <body>
-<h1 id="smbc-data--ai-workshop--22-october-2026--workspace-requirements">Workspace requirements<span class="sub">SMBC Data &amp; AI Workshop · 22 October 2026</span></h1>
+<h1 id="smbc-data--ai-workshop--workspace-requirements">Workspace requirements<span class="sub">SMBC Data &amp; AI Workshop</span></h1>
 <p><em>An extract from the SMBC Data &amp; AI Workshop guide (section 3), for the SAG team and workspace administrators.</em></p>
 <h2 id="3-workspace-requirements-what-must-be-enabled">3. Workspace requirements: what must be enabled</h2>
 <blockquote>
-<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by <strong>Tuesday 20 October</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
+<p><strong>For the SAG team and workspace administrators.</strong> Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm <strong>at least two days before the workshop</strong> so the smoke tests in <a href="#38-smoke-tests">3.8</a> can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.</p>
 </blockquote>
 <p><strong>Already confirmed:</strong> the workshop uses a new, dedicated workspace with <strong>serverless compute enabled</strong>, and <strong>Genie has no question-rate limit</strong> to plan around. The <strong>SAG team owns the cross-Geo processing setting</strong> (item 5).</p>
 <p><strong>No groups are needed.</strong> The setup shares everything with the workspace's built-in <code>users</code> group (everyone in the workspace) and recognises facilitators by email. Attendees need access to the <code>smbc_workshop</code> catalog (<a href="#36-unity-catalog-objects">3.6</a>) and to a SQL warehouse (<a href="#34-compute">3.4</a>).</p>

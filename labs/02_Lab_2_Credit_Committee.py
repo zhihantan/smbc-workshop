@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # Lab 2: Credit Committee in 30 seconds
 # MAGIC
-# MAGIC *SMBC Data & AI Workshop · Thursday 22 October 2026*
+# MAGIC *SMBC Data & AI Workshop*
 # MAGIC
 # MAGIC > **All workshop data is synthetic.** The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.
 # MAGIC

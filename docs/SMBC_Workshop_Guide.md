@@ -1,6 +1,6 @@
 # SMBC Data & AI Workshop: Workshop Guide
 
-**Thursday 22 October 2026 · SMBC Asia Pacific · Data Analysts and Data Engineers**
+**SMBC Asia Pacific · Data Analysts and Data Engineers**
 
 *Version 0.1, draft of 15 October 2026. Prepared by the Databricks account team (Siu-Li Choa, Zhi Han Tan) with SMBC (contacts TBC).*
 
@@ -30,7 +30,7 @@
 
 | | |
 |---|---|
-| **When** | Thursday 22 October 2026, 3 hours 35 minutes (start time TBC) |
+| **Length** | 3 hours 35 minutes |
 | **Who** | SMBC APAC data analysts and data engineers (headcount TBC) |
 | **Format** | Short demos, two 40-minute hands-on labs, a Genie Code segment, and a quiz |
 | **Where people work** | A dedicated workshop workspace (Azure Databricks) with serverless compute |
@@ -76,7 +76,7 @@ Times are relative to the start time.
 
 ## 3. Workspace requirements: what must be enabled
 
-> **For the SAG team and workspace administrators.** Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm by **Tuesday 20 October** so the smoke tests in [3.8](#38-smoke-tests) can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.
+> **For the SAG team and workspace administrators.** Each item explains why the workshop needs it, where the setting lives, and its default. Please confirm **at least two days before the workshop** so the smoke tests in [3.8](#38-smoke-tests) can run on an SMBC laptop before the day. Setting names and paths are from the Azure Databricks documentation as of October 2026.
 
 **Already confirmed:** the workshop uses a new, dedicated workspace with **serverless compute enabled**, and **Genie has no question-rate limit** to plan around. The **SAG team owns the cross-Geo processing setting** (item 5).
 
@@ -246,7 +246,7 @@ You can also run the notebooks one at a time, in this order; for example, to rep
 | 3 | `setup/02_build_bronze_silver_gold` (SQL): builds the reference tables in the `bronze`, `silver` and `gold` schemas | Facilitator | 2 min |
 | 4 | `setup/03_validate_bronze_silver_gold`: compares those tables with the answer key; every row must say PASS | Facilitator | 1 min |
 | 5 | `setup/05_governance_demo`: row-filter and column-mask demo table | Facilitator | 2 min |
-| 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse ([3.4](#34-compute)); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the attendee notebooks in `labs/` into a **Labs** folder; and shares all of them with everyone in the workspace | Facilitator | 5 min |
+| 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse ([3.4](#34-compute)); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the attendee notebooks in `labs/` into a **Labs** folder; and shares all of them with everyone in the workspace. It also creates the job **SMBC Workshop: daily data refresh**, which regenerates the data and rebuilds and validates the reference tables every day at 06:00 Singapore time | Facilitator | 5 min |
 | 7 | Give attendees access to `smbc_workshop`: the three grants in [3.6](#36-unity-catalog-objects) | Catalog owner or metastore admin | 1 min |
 | 8 | Set up the Genie One homepage ([3.3](#33-workspace-level-settings-workspace-admin)) | Workspace admin | 5 min |
 | 9 | `setup/07_check_requirements`: automated checks of the requirements in [section 3](#3-workspace-requirements-what-must-be-enabled), including attendee access and a live question to the reference Genie Agent. Every row should say PASS; the attendee-access check warns until step 7 is done, so run it again afterwards. | Facilitator | 2 min |
@@ -254,19 +254,19 @@ You can also run the notebooks one at a time, in this order; for example, to rep
 
 Between a dry run and the workshop, `setup/08_reset_or_teardown` empties the progress board and drops attendee schemas; after the workshop it tears everything down. It only lists what it would change until you set `dry_run` to `no`.
 
-The tools behind step 6 (`setup/tools/dashboards.py` and `genie_agents.py`) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the `starter` agent, which has no fiscal-year instruction.
+The tools behind step 6 (`setup/tools/dashboards.py`, `genie_agents.py` and `data_job.py`) also run from a laptop through the Databricks CLI. That's useful for rehearsing the Lab 2 fiscal-year test with the `starter` agent, which has no fiscal-year instruction.
 
-The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running `00_master_setup` is safe. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.
+The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running `00_master_setup` is safe, and so is the daily data job: each morning it writes the same files and tables, an hour before the 07:00 schedule attendees give their Lab 1 pipeline. If a run fails, whoever ran step 6 gets an email. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.
 
 ---
 
 ## 5. Participant pre-work
 
-Send on **Tuesday 20 October**:
+Send **two days before the workshop**:
 
-> **Subject: Before Thursday's Databricks workshop: 2-minute login check**
+> **Subject: Before the Databricks workshop: 2-minute login check**
 >
-> Hi all, we're looking forward to seeing you on Thursday 22 October. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:
+> Hi all, we're looking forward to seeing you at the workshop. To make sure the time goes on the hands-on labs rather than logins, please take two minutes before then to:
 >
 > 1. Open **`<workspace URL>`** in Microsoft Edge or Google Chrome on the laptop you'll bring, and sign in with your SMBC account.
 > 2. Open **SQL Editor**, choose the **`<warehouse name>`** SQL warehouse, paste the check-in block from the end of this email and click **Run**. It checks you in and creates your schema for the labs. (Change `DA` to `DE` if you're a data engineer.)
