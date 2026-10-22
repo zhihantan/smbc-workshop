@@ -74,7 +74,6 @@ This document walks through the whole workshop, from setting up the workspace to
 
 **One storyline runs through the day.** It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found. Section 1 of Part 3 tells the full story, as participants read it.
 
----
 
 ## 1.2 Agenda
 
@@ -87,20 +86,17 @@ Times are relative to the start time.
 | 0:25 | 20 min | **Data engineering: Lakeflow** | Low-code ETL with Lakeflow Designer and Lakeflow Jobs, and AI-assisted pipeline creation (mostly live demo) |
 | 0:45 | 40 min | **Lab 1** | Build the trusted exposure table |
 | 1:25 | 15 min | Break | |
-| 1:40 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One (formerly Databricks One) |
+| 1:40 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One |
 | 2:00 | 40 min | **Lab 2** | Build a Credit Committee dashboard and a Genie Agent |
 | 2:40 | 15 min | Break | |
 | 2:55 | 15 min | **AI-assisted development** | Genie Code: explore data, generate SQL and Python, explain results, and iterate safely |
 | 3:10 | 15 min | **Quiz** | On phones, with Databricks swag for the winners |
 | 3:25 | 10 min | **Next steps and resources** | Learning materials and upcoming events |
 
-**Product names changed in 2026.** Genie spaces are now **Genie Agents**, and Databricks One is now **Genie One**. This guide uses the current names, which match the product and the documentation participants will see.
-
 **Two logistics suggestions:**
 - Open the doors 30 minutes early with a helper desk for login problems, so the 10-minute check-in slot only confirms everyone is in.
 - Consider swapping the last two slots so the prize-giving closes the session, and make the feedback survey the raffle ticket.
 
----
 
 ## 1.3 What the setup creates
 
@@ -213,7 +209,7 @@ The set-up steps for the Databricks test workspace are in the run of show in the
 | Area | What to check |
 |---|---|
 | Lab 1 | Core path per pair (target 25 min). Every Designer step: Source browse, Unique (2,370 → 2,325), the Genie Code prompt for Prepare, Guardrails (21 failed), Join outputs (Left unmatched), Aggregate, Output, Schedule. Excel drag-and-drop. Version history and Generated code. |
-| Lab 2 | The AI-assisted chart prompt, Genie Agent creation and its suggested descriptions, the fiscal-year test, agent mode, Export to metric view |
+| Lab 2 | The Genie Code chart prompt, Genie Agent creation and its suggested descriptions, the fiscal-year test, Agent mode, Export to metric view |
 | Genie One | Homepage pinning and welcome message; chat; the business-user view (needs a user with Consumer access only) |
 | Genie Code | The A.8 prompts; the approval setting; *"don't run any code"*; revision history |
 | Catalog Explorer | AI-suggested descriptions; lineage on `gold_group_exposure` |
@@ -272,7 +268,6 @@ These parts of the labs are run by a facilitator and aren't in the attendee guid
 - Open **Catalog Explorer → `gold_group_exposure` → Lineage** and trace it back through every step to the raw files. That's lineage evidence nobody had to draw by hand.
 - Then reveal what the duplicate extract would have done to the Credit Committee pack.
 
----
 
 ### Lab 2: the fiscal-year test, what we saw in testing
 
@@ -282,7 +277,6 @@ These parts of the labs are run by a facilitator and aren't in the attendee guid
 
 A demo Genie Agent sits on a copy of the facility table that has a **row filter** (Singapore branch only, unless you're a facilitator) and a **column mask** on borrower names. A facilitator and a volunteer ask the same question and get different, correct answers: the Genie Agent inherits Unity Catalog permissions rather than bypassing them.
 
----
 
 ## 2.10 Answer key
 
@@ -389,7 +383,7 @@ After each question, say the one-line **teaching point**: that's what people rem
 | 6 | By how much would the re-sent Bangkok extract have overstated exposure? | A. Nothing: the spreadsheet was right · B. USD 37m · C. **USD 367m** ✅ · D. USD 3.7bn | One `Unique` step, keeping the latest `extract_ts`, prevented it. |
 | 7 | In Lakeflow Designer, which operator splits rows into *Passed* and *Failed*? | A. Filter · B. Unique · C. **Guardrails** ✅ · D. Combine | Failed rows keep a reason, which is your data-quality evidence. |
 | 8 | What sits underneath every Lakeflow Designer operator? | A. Nothing: it's a black box · B. An Excel macro · C. A screenshot · D. **Code you can view, version in Git and schedule** ✅ | No-code without shadow IT. |
-| 9 | What's the new name for Databricks One? | A. **Genie One** ✅ · B. Lakehouse One · C. Databricks Home · D. AI/BI Hub | And Genie spaces are now Genie Agents. |
+| 9 | Where do business users open dashboards and ask questions, without the rest of the workspace? | A. **Genie One** ✅ · B. Lakehouse One · C. Databricks Home · D. AI/BI Hub | Users with only Consumer access land there, and see only what's been shared with them. |
 | 10 | A user without `SELECT` on a table asks a Genie Agent about it. What happens? | A. **Genie returns an empty response** ✅ · B. Genie uses the author's access · C. Genie shows a sample · D. Genie emails an admin | Data access is always evaluated as the person asking; row filters and masks apply too. |
 | 11 | By default, what decides whether Genie Code can run an action? | A. Nothing: it runs everything · B. A workspace admin, manually · C. It never runs code · D. **An AI classifier that approves actions within your request** ✅ | You can switch to approving every action yourself, or say "don't run any code". |
 | 12 | Which branch's trade-finance arrears crept from about 1% to about 10% since April? | A. SIN · B. BKK · C. **SGN** ✅ · D. HKG | The second finding: ask Genie *"which booking branch has the highest share of trade finance in arrears?"* |
@@ -486,7 +480,6 @@ END
 
 **5. Short on time?** The reference tables in `smbc_workshop.gold` hold the Lab 1 result, so you can carry on with Lab 2 and the Genie Code segment whatever happens in Lab 1.
 
----
 
 ## 1. The scenario and the data
 
@@ -542,7 +535,6 @@ The reference solution to Lab 1, in the medallion layout. Anyone can use the gol
 | `silver.*`, including `silver.quarantine_facilities` | Cleaned inputs, and the rows held back with a reason | For comparing with your own Lab 1 output |
 | `bronze.*` | The extracts as delivered, as tables | Where the cleaning starts |
 
----
 
 ## 2. Lab 1: Build the trusted exposure table
 
@@ -606,11 +598,10 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 ### Stretch (pick any)
 
 - **Version and diff:** open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.
-- **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code in agent mode, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
+- **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
 - **Alerting:** add a task that checks *"any group above 90% utilisation?"* and sends a notification when it's true.
 - **Document it:** in Catalog Explorer, accept or edit the AI-suggested description for `gold_group_exposure`. Better metadata means better Genie answers in Lab 2.
 
----
 
 ## 3. Lab 2: Credit Committee in 30 seconds
 
@@ -624,7 +615,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 
 **1. Build the dashboard (10 min).**
 - Click **+ New → Dashboard**. On the **Data** tab, add both gold tables.
-- On the canvas, ask the AI assistant: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
+- On the canvas, ask Genie Code: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
 - Add these widgets:
   - a **counter** for total exposure at the latest month end;
   - a **counter** for groups above 80% utilisation;
@@ -663,7 +654,6 @@ INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group
 - **Share it:** attach your Genie Agent to your dashboard, or schedule a Monday 08:00 PDF subscription of the dashboard.
 - **Semantic layer:** use the agent's ⋮ menu → **Export to metric view** to turn the definitions you taught it into a governed metric view.
 
----
 
 ## 4. AI-assisted development with Genie Code
 
@@ -678,7 +668,6 @@ INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group
    - Show that Genie Code can only reach data your Unity Catalog permissions allow.
    - Roll back a change with revision history.
 
----
 
 ## 5. Resources
 
@@ -693,7 +682,6 @@ INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group
 | Genie One documentation | https://learn.microsoft.com/azure/databricks/genie-one/ |
 | Genie Code documentation | https://learn.microsoft.com/azure/databricks/genie-code/ |
 
----
 
 ## Appendix A: Copy-paste kit
 
@@ -852,14 +840,13 @@ BEGIN
 END
 ```
 
----
 
 ## Appendix B: Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
-| Genie Code prompts in Designer or agent mode are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
+| Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
 | The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
 | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
@@ -890,8 +877,8 @@ END
 | 1 | Unity Catalog metastore attached to the workspace | Everything: Designer, Genie Agents, lineage | Account console | Account admin | New workspaces are usually enabled automatically | ☐ |
 | 2 | Serverless compute | Designer, notebooks, Jobs, Genie Code | Already enabled | Workspace admin | | ✅ |
 | 3 | A pro or serverless **SQL warehouse** that attendees can use | Dashboards, Genie Agents, SQL editor | Any existing warehouse, for example the Serverless Starter Warehouse (3.4) | Workspace admin | | ☐ |
-| 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts | 3.2 and 3.3 | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
-| 5 | **Cross-Geo processing** allowed | In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features | 3.2 | Account admin (**SAG team**) | Allowed for workspaces outside the US and EU without the compliance security profile | ☐ |
+| 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including its prompts in Designer and on dashboards) | 3.2 and 3.3 | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
+| 5 | **Cross-Geo processing** allowed | In the Asia Pacific Geo: Genie Agents (Chat mode and Agent mode), chat in Genie One, Genie Code's agentic features | 3.2 | Account admin (**SAG team**) | Allowed for workspaces outside the US and EU without the compliance security profile | ☐ |
 | 6 | Excel file support | Dragging the limits spreadsheet onto the Designer canvas | Smoke test 5; if it fails, check the workspace **Previews** page | Workspace admin | | ☐ |
 | 7 | Attendees can sign in, with **Workspace access** and **Databricks SQL access**; no groups needed | Signing in and building | 3.5 | Workspace admin | On for workspace users | ☐ |
 | 8 | One test user with **Consumer access** only | Showing the business-user view in Genie One | 3.5 | Workspace admin | | ☐ |
@@ -901,7 +888,7 @@ END
 
 ### 3.2 Account-level settings (account admin)
 
-**Partner-powered AI features: on.** Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.
+**Partner-powered AI features: on.** Genie Agents, chat in Genie One and Genie Code's agentic capabilities, including dashboard authoring and Designer's prompts, are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.
 1. In the [account console](https://accounts.azuredatabricks.net), click **Settings**.
 2. Open the **Feature enablement** tab.
 3. Set **Enable partner-powered AI features** to **On**. Use **Enforce** only if workspaces must not override it.
@@ -992,13 +979,13 @@ Run these as a **test attendee** (not an admin), **on an SMBC laptop, on the SMB
 |---|---|---|---|
 | 1 | Sign in through SSO; open the SQL editor on the workshop's SQL warehouse; run the check-in block (A.1) | It shows your schema, e.g. `smbc_workshop.jane_tan` | Access, entitlements, warehouse, catalog access |
 | 2 | **+ New → Visual data prep**; add a Source from `smbc_workshop.raw.landing/facilities` | Rows preview | Designer, serverless, volume grant |
-| 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code agentic) |
+| 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code's agentic capabilities) |
 | 4 | Add an **Output** to your own schema and **Run**; click **Schedule** | Table written; a job created | Schema grants, Jobs |
 | 5 | Drag `group_limits.xlsx` (downloaded from the landing volume) onto the canvas | A Source operator for the spreadsheet | Excel file support |
-| 6 | **+ New → Dashboard**; add `smbc_workshop.gold.group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
-| 7 | **Genie Agents → New** on the two gold tables (`group_exposure`, `facility_exposure`); ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
+| 6 | **+ New → Dashboard**; add `smbc_workshop.gold.group_exposure`; ask Genie Code for a bar chart; **Publish** | Chart created; dashboard published | AI/BI dashboards, Genie Code |
+| 7 | **Genie Agents → New** on the two gold tables (`group_exposure`, `facility_exposure`); ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; Agent mode report | Genie Agents (Chat mode and Agent mode) |
 | 8 | Open `<workspace URL>/one` and use chat | Genie One loads; chat answers | Genie One chat |
-| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.gold.group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
+| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.gold.group_exposure"* | It plans, runs code, summarises | Genie Code's agentic capabilities |
 | 10 | In Catalog Explorer, open a table → AI-suggested description; open the **Lineage** tab | Suggestion shown; lineage graph | AI-generated comments, lineage |
 | 11 | Sign in as the **Consumer access** user | Lands in Genie One; sees shared dashboard and Genie Agent | Consumer experience |
 
@@ -1008,8 +995,8 @@ From the [Designated Services](https://learn.microsoft.com/en-us/azure/databrick
 
 | Feature used in the workshop | Model provider | Asia Pacific Geo (e.g. Singapore) | Japan Geo |
 |---|---|---|---|
-| Genie Agents: chat mode | Azure OpenAI service | Needs cross-Geo processing | In-Geo |
-| Genie Agents: agent mode | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
+| Genie Agents: Chat mode | Azure OpenAI service | Needs cross-Geo processing | In-Geo |
+| Genie Agents: Agent mode | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Chat in Genie One | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Genie Code: agentic capabilities (also used by Designer) | Azure OpenAI service and Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Genie Code: chat and cell actions | Azure OpenAI service | In-Geo | In-Geo |
@@ -1024,7 +1011,6 @@ Points the documentation makes that risk and technology reviewers usually ask ab
 - **What Genie Code sends to the model:** the prompt plus relevant context, such as table and column names, descriptions, the code being worked on, data samples and cell outputs, all within the user's Unity Catalog permissions. By default an AI classifier approves actions that carry out the request and blocks actions beyond it; users can instead approve every action themselves.
 - **Cost:** Genie One and Genie Agents usage by users is free until 31 January 2027 (service principals are billed). Genie Code has been pay-as-you-go since 8 July 2026, with a free monthly allowance per user. Account admins can set budgets and cost controls for Genie.
 
----
 
 ## 4. Setting up the workspace
 
@@ -1059,7 +1045,6 @@ The tools behind step 6 (`setup/tools/dashboards.py`, `genie_agents.py` and `dat
 
 The generator is deterministic: the same seed always produces identical files, so every answer in the facilitator's answer key holds. Re-running `00_master_setup` is safe, and so is the daily data job: each morning it writes the same files and tables, an hour before the 07:00 schedule attendees give their Lab 1 pipeline. If a run fails, whoever ran step 6 gets an email. Late registrations need nothing from the setup: once they can sign in and have access to the catalog, their check-in creates their schema.
 
----
 
 ## 5. Participant pre-work
 
@@ -1084,7 +1069,6 @@ Send **two days before the workshop**:
 >       SELECT 'smbc_workshop.' || my_schema AS your_schema;
 >     END
 
----
 
 # Part 5. Presenter script
 
@@ -1281,7 +1265,7 @@ Helpers, watch for:
 
 *For anyone who finishes the core path early*
 
-- Engineer's path: Genie Code in agent mode, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
+- Engineer's path: Genie Code in the Lakeflow Pipelines Editor, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
 - Document it: better metadata means better Genie answers in Lab 2.
 
 ### Slide 22: Lab 1 debrief
@@ -1312,7 +1296,6 @@ Helpers, watch for:
 *1:41 · 2 min*
 
 - Dashboards answer the questions the Credit Committee always asks. A Genie Agent answers the follow-ups nobody built a chart for. Genie One is the simple front door for business users.
-- Product names changed in 2026, and the workshop uses the current names: that's what people see in the product and the documentation.
 
 ### Slide 26: Curation is the job
 
@@ -1374,7 +1357,7 @@ Helpers, watch for:
 
 *2:00 · 10 min*
 
-- The AI assistant drafts the chart; people adjust it. That's the pattern for the whole lab.
+- Genie Code drafts the chart; people adjust it. That's the pattern for the whole lab.
 - Shortlist 2–3 good dashboards for the Best dashboard vote during the second break.
 
 ### Slide 32: Lab 2 · Step 2: create a Genie Agent
@@ -1443,13 +1426,13 @@ Helpers, watch for:
 *2:55 · 15 min*
 
 - Mostly a live demo; participants can follow along in their own notebook.
-- Many people already use Genie Code, so skip the autocomplete basics: lead with agent mode, the legacy-SQL conversion and the approval settings.
+- Many people already use Genie Code, so skip the autocomplete basics: lead with what it does as an agent, the legacy-SQL conversion and the approval settings.
 
 ### Slide 41: Genie Code · 1. Explore
 
 *2:56 · 3 min*
 
-- Agent mode: it plans, writes and runs code, fixes its own errors and summarises.
+- Genie Code works as an agent: it plans, writes and runs code, fixes its own errors and summarises.
 - Fallback: rehearse these exact prompts in the dry run and keep screenshots. If the output varies on the day, say so: that's why the human stays in the loop.
 
 ### Slide 42: Genie Code · 2. Generate

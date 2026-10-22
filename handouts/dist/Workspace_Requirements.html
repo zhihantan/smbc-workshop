@@ -90,7 +90,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tr>
 <td>4</td>
 <td><strong>Partner-powered AI features</strong> on, for the account <em>and</em> the workspace</td>
-<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts</td>
+<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including its prompts in Designer and on dashboards)</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a> and <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
 <td>Account admin, workspace admin</td>
 <td>On (off for workspaces with the compliance security profile)</td>
@@ -99,7 +99,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tr>
 <td>5</td>
 <td><strong>Cross-Geo processing</strong> allowed</td>
-<td>In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features</td>
+<td>In the Asia Pacific Geo: Genie Agents (Chat mode and Agent mode), chat in Genie One, Genie Code's agentic features</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a></td>
 <td>Account admin (<strong>SAG team</strong>)</td>
 <td>Allowed for workspaces outside the US and EU without the compliance security profile</td>
@@ -162,7 +162,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tbody>
 </table>
 <h3 id="32-account-level-settings-account-admin">3.2 Account-level settings (account admin)</h3>
-<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
+<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One and Genie Code's agentic capabilities, including dashboard authoring and Designer's prompts, are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
 <ol>
 <li>In the <a href="https://accounts.azuredatabricks.net">account console</a>, click <strong>Settings</strong>.</li>
 <li>Open the <strong>Feature enablement</strong> tab.</li>
@@ -326,7 +326,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 <td>3</td>
 <td>In Designer, type a Genie Code prompt: <em>"Trim and upper-case the currency column"</em></td>
 <td>A Prepare operator appears on the canvas</td>
-<td>Partner-powered AI, cross-Geo (Genie Code agentic)</td>
+<td>Partner-powered AI, cross-Geo (Genie Code's agentic capabilities)</td>
 </tr>
 <tr>
 <td>4</td>
@@ -342,15 +342,15 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>6</td>
-<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.gold.group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
+<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.gold.group_exposure</code>; ask Genie Code for a bar chart; <strong>Publish</strong></td>
 <td>Chart created; dashboard published</td>
-<td>AI/BI, AI-assisted charts</td>
+<td>AI/BI dashboards, Genie Code</td>
 </tr>
 <tr>
 <td>7</td>
 <td><strong>Genie Agents → New</strong> on the two gold tables (<code>group_exposure</code>, <code>facility_exposure</code>); ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
-<td>Answer with SQL; agent-mode report</td>
-<td>Genie Agents (chat and agent mode)</td>
+<td>Answer with SQL; Agent mode report</td>
+<td>Genie Agents (Chat mode and Agent mode)</td>
 </tr>
 <tr>
 <td>8</td>
@@ -362,7 +362,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 <td>9</td>
 <td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.gold.group_exposure"</em></td>
 <td>It plans, runs code, summarises</td>
-<td>Genie Code agent mode</td>
+<td>Genie Code's agentic capabilities</td>
 </tr>
 <tr>
 <td>10</td>
@@ -391,13 +391,13 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </thead>
 <tbody>
 <tr>
-<td>Genie Agents: chat mode</td>
+<td>Genie Agents: Chat mode</td>
 <td>Azure OpenAI service</td>
 <td>Needs cross-Geo processing</td>
 <td>In-Geo</td>
 </tr>
 <tr>
-<td>Genie Agents: agent mode</td>
+<td>Genie Agents: Agent mode</td>
 <td>Anthropic on Databricks</td>
 <td>Needs cross-Geo processing</td>
 <td>In-Geo</td>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build, test and deploy the two SMBC workshop dashboards (Lakeview API).
+"""Build, test and deploy the two SMBC workshop AI/BI dashboards (through /api/2.0/lakeview).
 
 From a laptop, through the Databricks CLI:
 

@@ -59,14 +59,12 @@ Times are relative to the start time.
 | 0:25 | 20 min | **Data engineering: Lakeflow** | Low-code ETL with Lakeflow Designer and Lakeflow Jobs, and AI-assisted pipeline creation (mostly live demo) |
 | 0:45 | 40 min | **Lab 1** | Build the trusted exposure table |
 | 1:25 | 15 min | Break | |
-| 1:40 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One (formerly Databricks One) |
+| 1:40 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One |
 | 2:00 | 40 min | **Lab 2** | Build a Credit Committee dashboard and a Genie Agent |
 | 2:40 | 15 min | Break | |
 | 2:55 | 15 min | **AI-assisted development** | Genie Code: explore data, generate SQL and Python, explain results, and iterate safely |
 | 3:10 | 15 min | **Quiz** | On phones, with Databricks swag for the winners |
 | 3:25 | 10 min | **Next steps and resources** | Learning materials and upcoming events |
-
-**Product names changed in 2026.** Genie spaces are now **Genie Agents**, and Databricks One is now **Genie One**. This guide uses the current names, which match the product and the documentation participants will see.
 
 **Two logistics suggestions:**
 - Open the doors 30 minutes early with a helper desk for login problems, so the 10-minute check-in slot only confirms everyone is in.
@@ -89,8 +87,8 @@ Times are relative to the start time.
 | 1 | Unity Catalog metastore attached to the workspace | Everything: Designer, Genie Agents, lineage | Account console | Account admin | New workspaces are usually enabled automatically | ☐ |
 | 2 | Serverless compute | Designer, notebooks, Jobs, Genie Code | Already enabled | Workspace admin | | ✅ |
 | 3 | A pro or serverless **SQL warehouse** that attendees can use | Dashboards, Genie Agents, SQL editor | Any existing warehouse, for example the Serverless Starter Warehouse ([3.4](#34-compute)) | Workspace admin | | ☐ |
-| 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts | [3.2](#32-account-level-settings-account-admin) and [3.3](#33-workspace-level-settings-workspace-admin) | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
-| 5 | **Cross-Geo processing** allowed | In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features | [3.2](#32-account-level-settings-account-admin) | Account admin (**SAG team**) | Allowed for workspaces outside the US and EU without the compliance security profile | ☐ |
+| 4 | **Partner-powered AI features** on, for the account *and* the workspace | Genie Agents, chat in Genie One, Genie Code's agentic features (including its prompts in Designer and on dashboards) | [3.2](#32-account-level-settings-account-admin) and [3.3](#33-workspace-level-settings-workspace-admin) | Account admin, workspace admin | On (off for workspaces with the compliance security profile) | ☐ |
+| 5 | **Cross-Geo processing** allowed | In the Asia Pacific Geo: Genie Agents (Chat mode and Agent mode), chat in Genie One, Genie Code's agentic features | [3.2](#32-account-level-settings-account-admin) | Account admin (**SAG team**) | Allowed for workspaces outside the US and EU without the compliance security profile | ☐ |
 | 6 | Excel file support | Dragging the limits spreadsheet onto the Designer canvas | Smoke test 5; if it fails, check the workspace **Previews** page | Workspace admin | | ☐ |
 | 7 | Attendees can sign in, with **Workspace access** and **Databricks SQL access**; no groups needed | Signing in and building | [3.5](#35-identity-and-entitlements) | Workspace admin | On for workspace users | ☐ |
 | 8 | One test user with **Consumer access** only | Showing the business-user view in Genie One | [3.5](#35-identity-and-entitlements) | Workspace admin | | ☐ |
@@ -100,7 +98,7 @@ Times are relative to the start time.
 
 ### 3.2 Account-level settings (account admin)
 
-**Partner-powered AI features: on.** Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.
+**Partner-powered AI features: on.** Genie Agents, chat in Genie One and Genie Code's agentic capabilities, including dashboard authoring and Designer's prompts, are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.
 1. In the [account console](https://accounts.azuredatabricks.net), click **Settings**.
 2. Open the **Feature enablement** tab.
 3. Set **Enable partner-powered AI features** to **On**. Use **Enforce** only if workspaces must not override it.
@@ -191,13 +189,13 @@ Run these as a **test attendee** (not an admin), **on an SMBC laptop, on the SMB
 |---|---|---|---|
 | 1 | Sign in through SSO; open the SQL editor on the workshop's SQL warehouse; run the check-in block (A.1) | It shows your schema, e.g. `smbc_workshop.jane_tan` | Access, entitlements, warehouse, catalog access |
 | 2 | **+ New → Visual data prep**; add a Source from `smbc_workshop.raw.landing/facilities` | Rows preview | Designer, serverless, volume grant |
-| 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code agentic) |
+| 3 | In Designer, type a Genie Code prompt: *"Trim and upper-case the currency column"* | A Prepare operator appears on the canvas | Partner-powered AI, cross-Geo (Genie Code's agentic capabilities) |
 | 4 | Add an **Output** to your own schema and **Run**; click **Schedule** | Table written; a job created | Schema grants, Jobs |
 | 5 | Drag `group_limits.xlsx` (downloaded from the landing volume) onto the canvas | A Source operator for the spreadsheet | Excel file support |
-| 6 | **+ New → Dashboard**; add `smbc_workshop.gold.group_exposure`; ask the AI assistant for a bar chart; **Publish** | Chart created; dashboard published | AI/BI, AI-assisted charts |
-| 7 | **Genie Agents → New** on the two gold tables (`group_exposure`, `facility_exposure`); ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; agent-mode report | Genie Agents (chat and agent mode) |
+| 6 | **+ New → Dashboard**; add `smbc_workshop.gold.group_exposure`; ask Genie Code for a bar chart; **Publish** | Chart created; dashboard published | AI/BI dashboards, Genie Code |
+| 7 | **Genie Agents → New** on the two gold tables (`group_exposure`, `facility_exposure`); ask *"Top 5 groups by exposure at the latest month end"*, then try **Agent mode** | Answer with SQL; Agent mode report | Genie Agents (Chat mode and Agent mode) |
 | 8 | Open `<workspace URL>/one` and use chat | Genie One loads; chat answers | Genie One chat |
-| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.gold.group_exposure"* | It plans, runs code, summarises | Genie Code agent mode |
+| 9 | In a notebook, ask Genie Code to *"profile smbc_workshop.gold.group_exposure"* | It plans, runs code, summarises | Genie Code's agentic capabilities |
 | 10 | In Catalog Explorer, open a table → AI-suggested description; open the **Lineage** tab | Suggestion shown; lineage graph | AI-generated comments, lineage |
 | 11 | Sign in as the **Consumer access** user | Lands in Genie One; sees shared dashboard and Genie Agent | Consumer experience |
 
@@ -207,8 +205,8 @@ From the [Designated Services](https://learn.microsoft.com/en-us/azure/databrick
 
 | Feature used in the workshop | Model provider | Asia Pacific Geo (e.g. Singapore) | Japan Geo |
 |---|---|---|---|
-| Genie Agents: chat mode | Azure OpenAI service | Needs cross-Geo processing | In-Geo |
-| Genie Agents: agent mode | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
+| Genie Agents: Chat mode | Azure OpenAI service | Needs cross-Geo processing | In-Geo |
+| Genie Agents: Agent mode | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Chat in Genie One | Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Genie Code: agentic capabilities (also used by Designer) | Azure OpenAI service and Anthropic on Databricks | Needs cross-Geo processing | In-Geo |
 | Genie Code: chat and cell actions | Azure OpenAI service | In-Geo | In-Geo |
@@ -403,7 +401,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 ### Stretch (pick any)
 
 - **Version and diff:** open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.
-- **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code in agent mode, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
+- **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
 - **Alerting:** add a task that checks *"any group above 90% utilisation?"* and sends a notification when it's true.
 - **Document it:** in Catalog Explorer, accept or edit the AI-suggested description for `gold_group_exposure`. Better metadata means better Genie answers in Lab 2.
 
@@ -426,7 +424,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 
 **1. Build the dashboard (10 min).**
 - Click **+ New → Dashboard**. On the **Data** tab, add both gold tables.
-- On the canvas, ask the AI assistant: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
+- On the canvas, ask Genie Code: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
 - Add these widgets:
   - a **counter** for total exposure at the latest month end;
   - a **counter** for groups above 80% utilisation;
@@ -677,7 +675,7 @@ END
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | [3.2](#32-account-level-settings-account-admin), [3.3](#33-workspace-level-settings-workspace-admin) |
-| Genie Code prompts in Designer or agent mode are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | [3.2](#32-account-level-settings-account-admin) |
+| Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | [3.2](#32-account-level-settings-account-admin) |
 | The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Grant it ([3.6](#36-unity-catalog-objects)) |
 | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
 | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |

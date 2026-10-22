@@ -151,5 +151,5 @@ print(f"Tell attendees to use the SQL warehouse '{warehouse['name']}'.")
 # MAGIC 3. **Business-user demo account:** one user with **Consumer access** only (guide 3.5).
 # MAGIC 4. **Smoke tests** (guide 3.8) as a test attendee, on an SMBC laptop, on the SMBC network. They cover what this
 # MAGIC    notebook can't: sign-in and network, Lakeflow Designer and its Genie Code prompts, Excel drag-and-drop, Genie
-# MAGIC    Code in notebooks, agent mode and Genie One.
+# MAGIC    Code in notebooks, Agent mode in Genie Agents, and Genie One.
 # MAGIC 5. **Before the workshop starts:** run `08_reset_or_teardown` → `reset_progress` so the progress board starts at zero.

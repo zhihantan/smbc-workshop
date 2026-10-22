@@ -7,7 +7,7 @@
 # MAGIC Every row should say **PASS**. **WARN** needs a decision; **FAIL** needs a fix.
 # MAGIC
 # MAGIC The smoke tests in section 3.8 cover what this can't: sign-in and the venue network, Designer and its Genie Code
-# MAGIC prompts, Excel drag-and-drop, Genie Code in notebooks, agent mode, Genie One and the Consumer-access user.
+# MAGIC prompts, Excel drag-and-drop, Genie Code in notebooks, Agent mode in Genie Agents, Genie One and the Consumer-access user.
 
 # COMMAND ----------
 

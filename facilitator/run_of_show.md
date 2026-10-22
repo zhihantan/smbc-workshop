@@ -98,7 +98,7 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 | Area | What to check |
 |---|---|
 | Lab 1 | Core path per pair (target 25 min). Every Designer step: Source browse, Unique (2,370 → 2,325), the Genie Code prompt for Prepare, Guardrails (21 failed), Join outputs (Left unmatched), Aggregate, Output, Schedule. Excel drag-and-drop. Version history and Generated code. |
-| Lab 2 | The AI-assisted chart prompt, Genie Agent creation and its suggested descriptions, the fiscal-year test, agent mode, Export to metric view |
+| Lab 2 | The Genie Code chart prompt, Genie Agent creation and its suggested descriptions, the fiscal-year test, Agent mode, Export to metric view |
 | Genie One | Homepage pinning and welcome message; chat; the business-user view (needs a user with Consumer access only) |
 | Genie Code | The A.8 prompts; the approval setting; *"don't run any code"*; revision history |
 | Catalog Explorer | AI-suggested descriptions; lineage on `gold_group_exposure` |

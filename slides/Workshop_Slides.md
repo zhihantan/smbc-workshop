@@ -182,7 +182,7 @@ Handover notes from the source-system owners:
 |---|---|---|
 | **Lakeflow Connect** | Ingests data from source systems | Not in the lab: the landing volume stands in for it |
 | **Lakeflow Designer** | Visual, AI-assisted data prep | Lab 1 core path |
-| **Lakeflow Pipelines** | Declarative pipelines in SQL or Python, for engineers | Lab 1 stretch |
+| **Lakeflow Pipelines** | Spark Declarative Pipelines in SQL or Python, for engineers | Lab 1 stretch |
 | **Lakeflow Jobs** | Orchestration: schedules and notifications | Lab 1 core path and stretch |
 
 **Unity Catalog** sits under all four: the same permissions and lineage, whichever tool built the table. It fits alongside existing Azure Data Factory and Synapse estates; adopt one piece at a time.
@@ -434,7 +434,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 
 <!--
 [For anyone who finishes the core path early]
-- Engineer's path: Genie Code in agent mode, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
+- Engineer's path: Genie Code in the Lakeflow Pipelines Editor, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
 - Document it: better metadata means better Genie answers in Lab 2.
 -->
 
@@ -481,7 +481,7 @@ Lab 1 not finished? The gold reference tables have the same result.
 
 # Self-service analytics
 
-1:40 · 20 minutes · AI/BI dashboards, Genie Agents and Genie One (formerly Databricks One)
+1:40 · 20 minutes · AI/BI dashboards, Genie Agents and Genie One
 
 <!--
 [1:40 · 20 min]
@@ -498,16 +498,9 @@ Lab 1 not finished? The gold reference tables have the same result.
 
 **Genie One** is where business users find both.
 
-| Before | Now |
-|---|---|
-| Databricks One | **Genie One** |
-| Genie spaces | **Genie Agents** |
-| The AI assistant | **Genie Code** |
-
 <!--
 [1:41 · 2 min]
 - Dashboards answer the questions the Credit Committee always asks. A Genie Agent answers the follow-ups nobody built a chart for. Genie One is the simple front door for business users.
-- Product names changed in 2026, and the workshop uses the current names: that's what people see in the product and the documentation.
 -->
 
 ---
@@ -610,7 +603,7 @@ Helpers, watch for:
 # Lab 2 · Step 1: build the dashboard
 
 - **+ New → Dashboard.** On the **Data** tab, add both gold tables.
-- Ask the AI assistant on the canvas:
+- Ask Genie Code on the canvas:
 
 ```text
 Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct.
@@ -622,7 +615,7 @@ Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_
 
 <!--
 [2:00 · 10 min]
-- The AI assistant drafts the chart; people adjust it. That's the pattern for the whole lab.
+- Genie Code drafts the chart; people adjust it. That's the pattern for the whole lab.
 - Shortlist 2–3 good dashboards for the Best dashboard vote during the second break.
 -->
 
@@ -790,7 +783,7 @@ Follow along: open a notebook on **Serverless** and paste the prompts from the w
 <!--
 [2:55 · 15 min]
 - Mostly a live demo; participants can follow along in their own notebook.
-- Many people already use Genie Code, so skip the autocomplete basics: lead with agent mode, the legacy-SQL conversion and the approval settings.
+- Many people already use Genie Code, so skip the autocomplete basics: lead with what it does as an agent, the legacy-SQL conversion and the approval settings.
 -->
 
 ---
@@ -806,7 +799,7 @@ Watch it plan, run code and summarise what it found.
 
 <!--
 [2:56 · 3 min]
-- Agent mode: it plans, writes and runs code, fixes its own errors and summarises.
+- Genie Code works as an agent: it plans, writes and runs code, fixes its own errors and summarises.
 - Fallback: rehearse these exact prompts in the dry run and keep screenshots. If the output varies on the day, say so: that's why the human stays in the loop.
 -->
 

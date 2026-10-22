@@ -30,6 +30,7 @@ SUBTITLE = "Facilitator guide, attendee guide and workspace setup"
 CONTENTS_PLACEHOLDER = "CONTENTS-PLACEHOLDER"  # replaced by the linked contents list
 NAVY, HEADER_FILL, BORDER = "1B3139", "EEEDE9", "BFBFBF"
 A4_WIDTH, A4_HEIGHT, MARGIN = 11906, 16838, 1134  # twips; 2 cm margins
+AFTER_BLOCK = 200  # twips (10 pt) above a paragraph that follows a table, a list or a code block
 
 # The presenter script groups slides into the agenda's segments, starting at these slides.
 SEGMENTS = {
@@ -83,13 +84,16 @@ def shift(md, by):
 
 def clean(md):
     """Make Markdown safe for a Google Doc. Links to anchors and repo files become text; placeholders such as
-    <workspace URL> outside code are escaped, so Pandoc doesn't read them as HTML; "1. + New" stays one list item."""
+    <workspace URL> outside code are escaped, so Pandoc doesn't read them as HTML; "1. + New" stays one list item.
+    Horizontal rules are dropped: only some sources have them, and the space above each heading separates sections."""
     out, fence = [], False
     for line in md.split("\n"):
         if line.startswith("```"):
             fence = not fence
         if fence or line.startswith("```"):
             out.append(line)
+            continue
+        if line == "---":
             continue
         line = re.sub(r"\[([^\]]+)\]\((?!https?://)[^)]*\)", r"\1", line)
         line = re.sub(r"^(\s*(?:\d+\.|[-*]) )\+ ", r"\1\\+ ", line)
@@ -296,7 +300,8 @@ def add_contents(md):
 
 
 def reference_docx(path):
-    """Pandoc's default Word template, restyled: Arial, navy headings, each Part on a new page."""
+    """Pandoc's default Word template, restyled: Arial, navy headings with room above them, each Part on a new
+    page."""
     data = subprocess.run([pypandoc.get_pandoc_path(), "--print-default-data-file", "reference.docx"],
                           capture_output=True, check=True).stdout
     src = zipfile.ZipFile(io.BytesIO(data))
@@ -307,11 +312,14 @@ def reference_docx(path):
     styles = styles.replace('<w:sz w:val="24" />\n        <w:szCs w:val="24" />',
                             '<w:sz w:val="21" />\n        <w:szCs w:val="21" />', 1)
 
-    def restyle(style_id, extra_ppr="", size=None):
+    def restyle(style_id, extra_ppr="", size=None, spacing=None):
         nonlocal styles
         m = re.search(r'<w:style [^>]*w:styleId="%s".*?</w:style>' % style_id, styles, re.S)
         assert m, style_id
         block = re.sub(r"<w:rFonts [^>]*/>", arial, m.group(0))
+        if spacing:  # (before, after) in twips
+            block, found = re.subn(r"<w:spacing [^>]*/>", '<w:spacing w:before="%d" w:after="%d" />' % spacing, block, 1)
+            assert found, f"{style_id} has no spacing to replace"
         block = re.sub(r"<w:color [^>]*/>", f'<w:color w:val="{NAVY}" />', block)
         if "<w:color " not in block:
             block = block.replace("<w:rPr>", f'<w:rPr><w:color w:val="{NAVY}" />', 1)
@@ -323,9 +331,9 @@ def reference_docx(path):
         styles = styles.replace(m.group(0), block)
 
     restyle("Title", size=44)
-    restyle("Heading1", extra_ppr="<w:pageBreakBefore />", size=36)
-    restyle("Heading2", size=28)
-    restyle("Heading3", size=24)
+    restyle("Heading1", extra_ppr="<w:pageBreakBefore />", size=36, spacing=(0, 240))
+    restyle("Heading2", size=28, spacing=(480, 120))  # 24 pt above each section, 18 pt above each subsection
+    restyle("Heading3", size=24, spacing=(360, 100))
     styles = styles.replace('<w:spacing w:before="180" w:after="180" />', '<w:spacing w:before="60" w:after="120" />', 1)
 
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as dst:
@@ -345,6 +353,39 @@ def element(tag, **attrs):
     for key, value in attrs.items():
         e.set(w(key), str(value))
     return e
+
+
+def block_kind(block):
+    """What a block in the document body is: table, heading, list (an item), code, text or other."""
+    if block.tag == w("tbl"):
+        return "table"
+    if block.tag != w("p"):
+        return "other"
+    p_pr = block.find(w("pPr"))
+    style = p_pr.find(w("pStyle")) if p_pr is not None else None
+    name = style.get(w("val")) if style is not None else ""
+    if name.startswith("Heading") or name in ("Title", "Subtitle"):
+        return "heading"
+    if p_pr is not None and p_pr.find(w("numPr")) is not None:
+        return "list"
+    return "code" if name == "SourceCode" else "text"
+
+
+def space_before(paragraph, twips):
+    """Set the space above a paragraph. w:spacing goes after w:pStyle, the keep and page-break settings and w:numPr."""
+    p_pr = paragraph.find(w("pPr"))
+    if p_pr is None:
+        p_pr = element("pPr")
+        paragraph.insert(0, p_pr)
+    spacing = p_pr.find(w("spacing"))
+    if spacing is None:
+        spacing = element("spacing")
+        anchor = [x for x in p_pr if x.tag in (w("pStyle"), w("keepNext"), w("keepLines"), w("pageBreakBefore"), w("numPr"))]
+        if anchor:
+            anchor[-1].addnext(spacing)
+        else:
+            p_pr.insert(0, spacing)
+    spacing.set(w("before"), str(twips))
 
 
 def column_widths(cells, text_width):
@@ -429,6 +470,13 @@ def finish_docx(path):
                                 anchor[-1].addnext(element("b"))
                             else:
                                 r_pr.insert(0, element("b"))
+
+    # Text that follows a table, a list or a code block would otherwise sit right against it.
+    previous = None
+    for block in root.find(w("body")):
+        if previous is not None and block_kind(block) == "text" and block_kind(previous) in ("table", "list", "code"):
+            space_before(block, AFTER_BLOCK)
+        previous = block
 
     files["word/document.xml"] = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as dst:

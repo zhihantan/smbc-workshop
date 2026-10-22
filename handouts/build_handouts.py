@@ -559,7 +559,7 @@ def cheat_sheet_html(url, snippets):
         "<b>Output</b> <code>gold_group_exposure</code> (Overwrite) → <b>Run</b> → <b>Schedule</b> daily, 07:00 Singapore time.",
     ]
     lab2 = [
-        "<b>Dashboard</b>: + New → Dashboard on both <code>gold</code> tables. Ask the AI assistant for the "
+        "<b>Dashboard</b>: + New → Dashboard on both <code>gold</code> tables. Ask Genie Code for the "
         f"top-10 bar chart; add counters, a monthly trend and exposure by country; filters; <b>Publish</b>. Then open "
         f"<code>{one}</code>.",
         "<b>Genie Agent</b>: Genie Agents → New on the same two tables. Title <i>Credit Risk – &lt;your name&gt;</i>, "

@@ -26,7 +26,7 @@
 # MAGIC
 # MAGIC **1. Build the dashboard (10 min).**
 # MAGIC - Click **+ New → Dashboard**. On the **Data** tab, add both gold tables.
-# MAGIC - On the canvas, ask the AI assistant: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
+# MAGIC - On the canvas, ask Genie Code: *"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."*
 # MAGIC - Add these widgets:
 # MAGIC   - a **counter** for total exposure at the latest month end;
 # MAGIC   - a **counter** for groups above 80% utilisation;

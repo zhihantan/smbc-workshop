@@ -49,7 +49,7 @@ Setup no longer needs a laptop or CLI. The dashboard and Genie Agent tools now r
 | `01_setup_workspace` with account-level groups | ✅ All grants succeeded. Earlier they failed because the test groups were workspace-local |
 | `06_deploy_dashboards_and_agents` | ✅ Created the serverless warehouse **SMBC Workshop** (Small, 1–4 clusters). All 11 dashboard queries passed. Both dashboards and both Genie Agents were updated in place (same IDs and links as above), and all 10 permissions applied. The dashboards and agents now run on the SMBC Workshop warehouse |
 | `07_check_requirements` | ✅ 13/13 PASS, including "groups are account-level" and a live question to the reference agent (Orchid Group found in 19 s). A first run flagged a bug in the check itself: the Excel row count included the header row. Fixed, with `headerRows => 1` |
-| `08_reset_or_teardown`, dry run | ✅ `reset_progress`, `drop_attendee_schemas` and `teardown` each list exactly the workshop's objects. The other Genie spaces in the workspace aren't touched |
+| `08_reset_or_teardown`, dry run | ✅ `reset_progress`, `drop_attendee_schemas` and `teardown` each list exactly the workshop's objects. The other Genie Agents in the workspace aren't touched |
 | Lab workbook notebook, run as a serverless job | ✅ All 28 cells ran. The check-in and Lab 2 inserts worked, and the comparison cell worked out the schema from the login (`zhihan_tan`, a temporary copy of the reference) and returned USD 27,239.8m for both totals |
 | `06` again, with the workbook in the repo | ✅ It copied **Lab workbook** into the folder and shared it (12 permissions in total) |
 | **`00_master_setup`**, run as one serverless job with the stand-in groups and data generation on | ✅ The pre-flight checks passed. Then `01` (42 s), `02` (82 s), `03` (31 s), `05` (32 s), `06` (42 s) and `07` (52 s) ran in order: about 5 minutes in total, ending with "13 requirement checks, none failed". `05` is now a Python notebook that takes the two groups as settings, so the master can pass them on; it replaced the test-only variant used earlier |
@@ -59,8 +59,8 @@ Setup no longer needs a laptop or CLI. The dashboard and Genie Agent tools now r
 ## Not tested (needs a person in the UI, at the dry run)
 
 - **Lakeflow Designer:** the canvas steps, Genie Code prompts, Guardrails, the Unique operator, Excel drag-and-drop from a laptop, and the Schedule button. These are UI-only; the underlying data and grants are verified.
-- **Genie Code** in notebooks (agent mode, approvals, the legacy-SQL conversion), **AI-generated comments**, and **Lineage**.
-- **Genie Agents agent mode**, companion Genie on dashboards, and **Genie One** chat and homepage pinning. There was no consumer-access-only test user.
+- **Genie Code** in notebooks (agentic tasks, approvals, the legacy-SQL conversion), **AI-generated comments**, and **Lineage**.
+- **Agent mode** in Genie Agents, companion Genie Agents on dashboards, and **Genie One** chat and homepage pinning. There was no consumer-access-only test user.
 - Timing of the Lab 1 core path for a first-time user.
 
 ## Before the dry run

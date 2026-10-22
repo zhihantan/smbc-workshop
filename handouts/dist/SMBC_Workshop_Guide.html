@@ -154,7 +154,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <td>1:40</td>
 <td>20 min</td>
 <td><strong>Self-service analytics</strong></td>
-<td>AI/BI dashboards, Genie Agents, and Genie One (formerly Databricks One)</td>
+<td>AI/BI dashboards, Genie Agents, and Genie One</td>
 </tr>
 <tr>
 <td>2:00</td>
@@ -188,7 +188,6 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 </tbody>
 </table>
-<p><strong>Product names changed in 2026.</strong> Genie spaces are now <strong>Genie Agents</strong>, and Databricks One is now <strong>Genie One</strong>. This guide uses the current names, which match the product and the documentation participants will see.</p>
 <p><strong>Two logistics suggestions:</strong></p>
 <ul>
 <li>Open the doors 30 minutes early with a helper desk for login problems, so the 10-minute check-in slot only confirms everyone is in.</li>
@@ -245,7 +244,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tr>
 <td>4</td>
 <td><strong>Partner-powered AI features</strong> on, for the account <em>and</em> the workspace</td>
-<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including Designer's natural-language prompts), AI-assisted dashboard charts</td>
+<td>Genie Agents, chat in Genie One, Genie Code's agentic features (including its prompts in Designer and on dashboards)</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a> and <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
 <td>Account admin, workspace admin</td>
 <td>On (off for workspaces with the compliance security profile)</td>
@@ -254,7 +253,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tr>
 <td>5</td>
 <td><strong>Cross-Geo processing</strong> allowed</td>
-<td>In the Asia Pacific Geo: Genie Agents (chat and agent mode), chat in Genie One, Genie Code's agentic features</td>
+<td>In the Asia Pacific Geo: Genie Agents (Chat mode and Agent mode), chat in Genie One, Genie Code's agentic features</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a></td>
 <td>Account admin (<strong>SAG team</strong>)</td>
 <td>Allowed for workspaces outside the US and EU without the compliance security profile</td>
@@ -317,7 +316,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tbody>
 </table>
 <h3 id="32-account-level-settings-account-admin">3.2 Account-level settings (account admin)</h3>
-<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One, Genie Code's agentic capabilities and AI-assisted dashboard charts are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
+<p><strong>Partner-powered AI features: on.</strong> Genie Agents, chat in Genie One and Genie Code's agentic capabilities, including dashboard authoring and Designer's prompts, are only available with this setting on. When it is off, Genie Code still works without its agentic capabilities, using a Databricks-hosted model.</p>
 <ol>
 <li>In the <a href="https://accounts.azuredatabricks.net">account console</a>, click <strong>Settings</strong>.</li>
 <li>Open the <strong>Feature enablement</strong> tab.</li>
@@ -481,7 +480,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 <td>3</td>
 <td>In Designer, type a Genie Code prompt: <em>"Trim and upper-case the currency column"</em></td>
 <td>A Prepare operator appears on the canvas</td>
-<td>Partner-powered AI, cross-Geo (Genie Code agentic)</td>
+<td>Partner-powered AI, cross-Geo (Genie Code's agentic capabilities)</td>
 </tr>
 <tr>
 <td>4</td>
@@ -497,15 +496,15 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>6</td>
-<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.gold.group_exposure</code>; ask the AI assistant for a bar chart; <strong>Publish</strong></td>
+<td><strong>+ New → Dashboard</strong>; add <code>smbc_workshop.gold.group_exposure</code>; ask Genie Code for a bar chart; <strong>Publish</strong></td>
 <td>Chart created; dashboard published</td>
-<td>AI/BI, AI-assisted charts</td>
+<td>AI/BI dashboards, Genie Code</td>
 </tr>
 <tr>
 <td>7</td>
 <td><strong>Genie Agents → New</strong> on the two gold tables (<code>group_exposure</code>, <code>facility_exposure</code>); ask <em>"Top 5 groups by exposure at the latest month end"</em>, then try <strong>Agent mode</strong></td>
-<td>Answer with SQL; agent-mode report</td>
-<td>Genie Agents (chat and agent mode)</td>
+<td>Answer with SQL; Agent mode report</td>
+<td>Genie Agents (Chat mode and Agent mode)</td>
 </tr>
 <tr>
 <td>8</td>
@@ -517,7 +516,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 <td>9</td>
 <td>In a notebook, ask Genie Code to <em>"profile smbc_workshop.gold.group_exposure"</em></td>
 <td>It plans, runs code, summarises</td>
-<td>Genie Code agent mode</td>
+<td>Genie Code's agentic capabilities</td>
 </tr>
 <tr>
 <td>10</td>
@@ -546,13 +545,13 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </thead>
 <tbody>
 <tr>
-<td>Genie Agents: chat mode</td>
+<td>Genie Agents: Chat mode</td>
 <td>Azure OpenAI service</td>
 <td>Needs cross-Geo processing</td>
 <td>In-Geo</td>
 </tr>
 <tr>
-<td>Genie Agents: agent mode</td>
+<td>Genie Agents: Agent mode</td>
 <td>Anthropic on Databricks</td>
 <td>Needs cross-Geo processing</td>
 <td>In-Geo</td>
@@ -893,7 +892,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 <h3 id="stretch-pick-any">Stretch (pick any)</h3>
 <ul>
 <li><strong>Version and diff:</strong> open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.</li>
-<li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code in agent mode, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
+<li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
 <li><strong>Alerting:</strong> add a task that checks <em>"any group above 90% utilisation?"</em> and sends a notification when it's true.</li>
 <li><strong>Document it:</strong> in Catalog Explorer, accept or edit the AI-suggested description for <code>gold_group_exposure</code>. Better metadata means better Genie answers in Lab 2.</li>
 </ul>
@@ -914,7 +913,7 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 <p><strong>1. Build the dashboard (10 min).</strong></p>
 <ul>
 <li>Click <strong>+ New → Dashboard</strong>. On the <strong>Data</strong> tab, add both gold tables.</li>
-<li>On the canvas, ask the AI assistant: <em>"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."</em></li>
+<li>On the canvas, ask Genie Code: <em>"Bar chart of the top 10 counterparty groups by exposure_usd at the latest as_of_date, coloured by utilisation_pct."</em></li>
 <li>Add these widgets:<ul>
 <li>a <strong>counter</strong> for total exposure at the latest month end;</li>
 <li>a <strong>counter</strong> for groups above 80% utilisation;</li>
@@ -1180,7 +1179,7 @@ END
 <td><a href="#32-account-level-settings-account-admin">3.2</a>, <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
 </tr>
 <tr>
-<td>Genie Code prompts in Designer or agent mode are unavailable</td>
+<td>Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable</td>
 <td>Partner-powered AI features off, or cross-Geo processing enforced</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a></td>
 </tr>
