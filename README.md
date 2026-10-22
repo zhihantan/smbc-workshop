@@ -2,6 +2,34 @@
 
 Materials for a 3.5-hour hands-on workshop for SMBC APAC data analysts and data engineers: Lakeflow Designer and Jobs, AI/BI dashboards and Genie Agents, and Genie Code. All data is synthetic: a made-up SMBC APAC corporate lending book with fictional borrowers.
 
+## The story
+
+It's 8:00 on Monday at SMBC's APAC hub. The Credit Committee meets at 10:00 and wants the top counterparty-group exposures across all 12 booking branches, in USD and JPY. Behind it is the question the CDAO asks the room at the start of the workshop: *"Which client groups are closest to their limits, and why?"*
+
+**The problem.** A group's exposure is spread across subsidiaries in several countries, booked in different branches and currencies, so no single system adds it up. Answering means four system extracts, the risk team's spreadsheet of limits and days of reconciliation. The extracts arrive with real-world problems: duplicate customers, hand-typed currency codes, two date formats, a re-sent branch extract, FX rates taken on the last business day, and facilities booked before their customer record existed. A group can creep towards its limit without any one report showing it. And the committee asks in the bank's own terms, such as *"the end of FY2026 H1"*, which a tool that assumes a calendar year gets wrong.
+
+**The solution,** which attendees build themselves, one session at a time:
+1. **Lab 1, automate it:** a Lakeflow Designer pipeline turns the raw extracts into one trusted exposure figure per group and month, with bad rows held back and every step traceable in Unity Catalog, and runs daily as a Lakeflow job.
+2. **Lab 2, make it self-service:** an AI/BI dashboard answers the questions the committee always asks. A Genie Agent, taught the April-to-March fiscal year, answers new ones in English or Japanese and shows its SQL. Genie One puts both in front of business users.
+3. **Genie Code, find out why:** explore what changed since April, split a group's rise into currency movements and new lending, and modernise a legacy SQL procedure.
+
+Unity Catalog's permissions follow the data throughout, into the dashboard and the Genie Agent's answers. By the end, the room can answer the CDAO's question with numbers it can trace back to the source files. The findings are in the [answer key](facilitator/answer_key.md), for facilitators.
+
+**The assets `setup/00_master_setup` creates for the story:**
+
+| Asset | What it is | Its part in the story |
+|---|---|---|
+| Volume `smbc_workshop.raw.landing` | The four system extracts and the limits spreadsheet as the source systems deliver them, plus an optional ESG file | Monday morning's inbox |
+| Schemas `bronze`, `silver` and `gold` | The extracts as tables; the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The trusted tables: Lab 1's reference answer, and the source for everything below |
+| Dashboard **Credit Committee: APAC exposure (reference)** | Total exposure, the groups above 80% and 90% of their limits, the top 10 groups, the monthly trend, exposure by country, the five largest groups' utilisation, a watchlist and trade-finance arrears | The Monday report, on one page |
+| Genie Agent **Credit Risk (reference)** | Plain-language questions over the gold tables, with the bank's definitions and fiscal-year rules, example SQL and benchmark questions | The questions nobody has asked yet |
+| Genie Agent **Credit Risk (secured demo)** | The same data behind a Unity Catalog row filter and column mask | Proof that permissions follow the data into AI answers |
+| Job **SMBC Workshop: daily data refresh** | Regenerates the extracts, then rebuilds and validates the tables, every day at 06:00 Singapore time | The report is ready every morning |
+| Folder **Labs** | The five attendee notebooks; *00 Start here* opens with this story | Where attendees follow it |
+| Dashboard **SMBC Workshop: progress board** | Check-ins and lab progress, live | For the facilitators, on the projector |
+
+## What's in this repository
+
 | Path | What it is | Share with SMBC? |
 |---|---|---|
 | [`docs/SMBC_Workshop_Guide.md`](docs/SMBC_Workshop_Guide.md) | The workshop document: agenda, **what must be enabled** (§3, for the SAG team), setup runbook, lab instructions, copy-paste kit | Yes |

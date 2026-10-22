@@ -44,7 +44,7 @@
 - use **Genie Code** to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;
 - explain how **Unity Catalog** governs all of it: lineage, data-quality checks, and row-level security.
 
-**One storyline runs through the day.** It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found.
+**One storyline runs through the day.** It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found. Section 6 tells the full story, as participants read it.
 
 ---
 
@@ -288,6 +288,23 @@ Send **two days before the workshop**:
 ## 6. The scenario and the data
 
 The labs use a synthetic **SMBC APAC** corporate lending book with about USD 27bn of drawn exposure across 12 booking branches in Asia Pacific. Every borrower, group and figure is made up. Borrowers belong to counterparty groups, such as a conglomerate and its subsidiaries in several countries, and each group has an approved credit limit set by the risk team. As at SMBC, the fiscal year runs from April to March.
+
+### The story: the Monday exposure report
+
+It's 8:00 on Monday at the APAC hub. The Credit Committee meets at 10:00 and wants the top counterparty-group exposures across all 12 booking branches, in USD and JPY. Behind it is the question the CDAO asks the room at the start of the day: *"Which client groups are closest to their limits, and why?"*
+
+**Why that's hard today.** A group's exposure is spread across subsidiaries in several countries, booked in different branches and currencies, so no single system adds it up. Answering means four system extracts, the risk team's spreadsheet of limits and days of reconciliation, and the extracts have the problems in the notes below. A group can creep towards its limit without any one report showing it. And the committee asks in the bank's own terms, such as *"the end of FY2026 H1"*, which a tool that assumes a calendar year gets wrong.
+
+**How you solve it, one session at a time:**
+
+| Session | What you build or use | What it solves |
+|---|---|---|
+| Lab 1: automate it | A **Lakeflow Designer** pipeline from the raw extracts to your own `gold_group_exposure` table, scheduled daily with **Lakeflow Jobs** | One trusted figure per group and month: duplicates removed; currencies, dates and FX rates fixed; bad rows held back with a reason; every step visible as code and as lineage |
+| Lab 2: make it self-service | An **AI/BI dashboard** for the Credit Committee and a **Genie Agent**, shared through **Genie One** | The questions the committee always asks, on one page: total exposure, the largest groups and how close each is to its limit, the trend, and a watchlist. New questions answered in plain English or Japanese, using the April-to-March fiscal year you teach the agent, with the SQL behind every answer |
+| Genie Code: find out why | **Genie Code** in a notebook | What changed since April; how much of a group's rise is currency movement rather than new lending; and a legacy SQL procedure rewritten for Databricks, with you in control of what runs |
+| All day: governance | **Unity Catalog**, under everything you build | Lineage, data-quality checks and permissions that follow the data: a Genie Agent shows each person only the branches and borrower names they're allowed to see |
+
+By the end of the day you can answer the CDAO's question yourself, with numbers you can trace back to the source files. The quiz checks what you found.
 
 ### Source files (`/Volumes/smbc_workshop/raw/landing/`)
 

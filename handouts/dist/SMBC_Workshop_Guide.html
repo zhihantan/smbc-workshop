@@ -106,7 +106,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <li>use <strong>Genie Code</strong> to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;</li>
 <li>explain how <strong>Unity Catalog</strong> governs all of it: lineage, data-quality checks, and row-level security.</li>
 </ul>
-<p><strong>One storyline runs through the day.</strong> It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found.</p>
+<p><strong>One storyline runs through the day.</strong> It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found. Section 6 tells the full story, as participants read it.</p>
 <hr />
 <h2 class="newpage" id="2-agenda">2. Agenda</h2>
 <p>Times are relative to the start time.</p>
@@ -708,6 +708,42 @@ END
 <hr />
 <h2 class="newpage" id="6-the-scenario-and-the-data">6. The scenario and the data</h2>
 <p>The labs use a synthetic <strong>SMBC APAC</strong> corporate lending book with about USD 27bn of drawn exposure across 12 booking branches in Asia Pacific. Every borrower, group and figure is made up. Borrowers belong to counterparty groups, such as a conglomerate and its subsidiaries in several countries, and each group has an approved credit limit set by the risk team. As at SMBC, the fiscal year runs from April to March.</p>
+<h3 id="the-story-the-monday-exposure-report">The story: the Monday exposure report</h3>
+<p>It's 8:00 on Monday at the APAC hub. The Credit Committee meets at 10:00 and wants the top counterparty-group exposures across all 12 booking branches, in USD and JPY. Behind it is the question the CDAO asks the room at the start of the day: <em>"Which client groups are closest to their limits, and why?"</em></p>
+<p><strong>Why that's hard today.</strong> A group's exposure is spread across subsidiaries in several countries, booked in different branches and currencies, so no single system adds it up. Answering means four system extracts, the risk team's spreadsheet of limits and days of reconciliation, and the extracts have the problems in the notes below. A group can creep towards its limit without any one report showing it. And the committee asks in the bank's own terms, such as <em>"the end of FY2026 H1"</em>, which a tool that assumes a calendar year gets wrong.</p>
+<p><strong>How you solve it, one session at a time:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Session</th>
+<th>What you build or use</th>
+<th>What it solves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lab 1: automate it</td>
+<td>A <strong>Lakeflow Designer</strong> pipeline from the raw extracts to your own <code>gold_group_exposure</code> table, scheduled daily with <strong>Lakeflow Jobs</strong></td>
+<td>One trusted figure per group and month: duplicates removed; currencies, dates and FX rates fixed; bad rows held back with a reason; every step visible as code and as lineage</td>
+</tr>
+<tr>
+<td>Lab 2: make it self-service</td>
+<td>An <strong>AI/BI dashboard</strong> for the Credit Committee and a <strong>Genie Agent</strong>, shared through <strong>Genie One</strong></td>
+<td>The questions the committee always asks, on one page: total exposure, the largest groups and how close each is to its limit, the trend, and a watchlist. New questions answered in plain English or Japanese, using the April-to-March fiscal year you teach the agent, with the SQL behind every answer</td>
+</tr>
+<tr>
+<td>Genie Code: find out why</td>
+<td><strong>Genie Code</strong> in a notebook</td>
+<td>What changed since April; how much of a group's rise is currency movement rather than new lending; and a legacy SQL procedure rewritten for Databricks, with you in control of what runs</td>
+</tr>
+<tr>
+<td>All day: governance</td>
+<td><strong>Unity Catalog</strong>, under everything you build</td>
+<td>Lineage, data-quality checks and permissions that follow the data: a Genie Agent shows each person only the branches and borrower names they're allowed to see</td>
+</tr>
+</tbody>
+</table>
+<p>By the end of the day you can answer the CDAO's question yourself, with numbers you can trace back to the source files. The quiz checks what you found.</p>
 <h3 id="source-files-volumessmbc_workshoprawlanding">Source files (<code>/Volumes/smbc_workshop/raw/landing/</code>)</h3>
 <table>
 <thead>

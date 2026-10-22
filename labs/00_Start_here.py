@@ -54,6 +54,26 @@
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### The story: the Monday exposure report
+# MAGIC
+# MAGIC It's 8:00 on Monday at the APAC hub. The Credit Committee meets at 10:00 and wants the top counterparty-group exposures across all 12 booking branches, in USD and JPY. Behind it is the question the CDAO asks the room at the start of the day: *"Which client groups are closest to their limits, and why?"*
+# MAGIC
+# MAGIC **Why that's hard today.** A group's exposure is spread across subsidiaries in several countries, booked in different branches and currencies, so no single system adds it up. Answering means four system extracts, the risk team's spreadsheet of limits and days of reconciliation, and the extracts have the problems in the notes below. A group can creep towards its limit without any one report showing it. And the committee asks in the bank's own terms, such as *"the end of FY2026 H1"*, which a tool that assumes a calendar year gets wrong.
+# MAGIC
+# MAGIC **How you solve it, one session at a time:**
+# MAGIC
+# MAGIC | Session | What you build or use | What it solves |
+# MAGIC |---|---|---|
+# MAGIC | Lab 1: automate it | A **Lakeflow Designer** pipeline from the raw extracts to your own `gold_group_exposure` table, scheduled daily with **Lakeflow Jobs** | One trusted figure per group and month: duplicates removed; currencies, dates and FX rates fixed; bad rows held back with a reason; every step visible as code and as lineage |
+# MAGIC | Lab 2: make it self-service | An **AI/BI dashboard** for the Credit Committee and a **Genie Agent**, shared through **Genie One** | The questions the committee always asks, on one page: total exposure, the largest groups and how close each is to its limit, the trend, and a watchlist. New questions answered in plain English or Japanese, using the April-to-March fiscal year you teach the agent, with the SQL behind every answer |
+# MAGIC | Genie Code: find out why | **Genie Code** in a notebook | What changed since April; how much of a group's rise is currency movement rather than new lending; and a legacy SQL procedure rewritten for Databricks, with you in control of what runs |
+# MAGIC | All day: governance | **Unity Catalog**, under everything you build | Lineage, data-quality checks and permissions that follow the data: a Genie Agent shows each person only the branches and borrower names they're allowed to see |
+# MAGIC
+# MAGIC By the end of the day you can answer the CDAO's question yourself, with numbers you can trace back to the source files. The quiz checks what you found.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ### Source files (`/Volumes/smbc_workshop/raw/landing/`)
 # MAGIC
 # MAGIC | Folder | Format | Rows | What it is |
