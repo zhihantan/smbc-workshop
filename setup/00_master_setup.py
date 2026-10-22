@@ -72,7 +72,7 @@ try:
 except workspace_api.ApiError as err:
     problems.append(str(err))
 
-for path in ("../data/generate_data.py", "tools/dashboards.py", "tools/genie_agents.py"):
+for path in ("../data/generate_data.py", "tools/dashboards.py", "tools/genie_agents.py", "tools/data_job.py"):
     if not os.path.exists(path):
         problems.append(f"Can't find {path}. Import the whole repository as a Git folder and run this notebook from its "
                         "setup folder.")

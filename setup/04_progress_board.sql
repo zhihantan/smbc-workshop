@@ -4,8 +4,9 @@
 -- MAGIC
 -- MAGIC Queries behind the live board on the projector. `06_deploy_dashboards_and_agents` builds and publishes the
 -- MAGIC board (**SMBC Workshop: progress board**) with the same queries (kept in `tools/dashboards.py`), so there's nothing
--- MAGIC to run here; use this notebook to try a query on its own. The board needs nothing from participants beyond the two one-line inserts at the bottom:
--- MAGIC the rest is read live from Unity Catalog's information schema. Present it full screen while the labs run.
+-- MAGIC to run here; use this notebook to try a query on its own. The board needs nothing from participants beyond their
+-- MAGIC check-in and their Lab 2 answer (see the bottom): the rest is read live from Unity Catalog's information schema.
+-- MAGIC Present it full screen while the labs run.
 -- MAGIC
 -- MAGIC Uses catalog `smbc_workshop`; find-and-replace it if yours is named differently.
 
@@ -50,15 +51,13 @@ tables AS (
 SELECT
   p.schema_name AS participant,
   count(t.table_name) AS tables_written,
-  max(CASE WHEN t.table_name LIKE '%quarantine%' THEN 1 ELSE 0 END) AS quarantine_table,
-  max(CASE WHEN t.table_name LIKE '%facility_exposure%' THEN 1 ELSE 0 END) AS facility_gold,
-  max(CASE WHEN t.table_name LIKE '%group_exposure%' THEN 1 ELSE 0 END) AS group_gold,
-  min(t.created) AS first_table_at,
-  max(t.created) AS latest_table_at
+  max(CASE WHEN t.table_name LIKE '%quarantine%' THEN 'yes' ELSE '' END) AS quarantine_table,
+  max(CASE WHEN t.table_name LIKE '%group_exposure%' THEN 'yes' ELSE '' END) AS lab1_done,
+  min(t.created) AS first_table_at
 FROM participant_schemas p
 LEFT JOIN tables t ON t.table_schema = p.schema_name
 GROUP BY p.schema_name
-ORDER BY group_gold DESC, quarantine_table DESC, tables_written DESC, first_table_at;
+ORDER BY lab1_done DESC, tables_written DESC, first_table_at;
 
 -- COMMAND ----------
 
@@ -80,7 +79,8 @@ LIMIT 10;
 
 -- COMMAND ----------
 
-SELECT user_email, answer, submitted_at, lower(answer) LIKE '%orchid%' AS correct
+SELECT user_email, answer, submitted_at,
+  CASE WHEN lower(answer) LIKE '%orchid%' THEN 'correct' ELSE 'not yet' END AS result
 FROM smbc_workshop.ops.lab_answers
 WHERE lab = 'lab2'
 ORDER BY submitted_at;
@@ -88,12 +88,11 @@ ORDER BY submitted_at;
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ### The two lines participants run (copy into the lab guide / cheat sheet)
+-- MAGIC ### What participants run
 -- MAGIC
--- MAGIC **Check-in** (arrival): replace `DA` with `DE` if you're a data engineer.
--- MAGIC ```sql
--- MAGIC INSERT INTO smbc_workshop.ops.checkin SELECT current_user(), 'DA', current_timestamp();
--- MAGIC ```
+-- MAGIC **Check-in** (arrival): the check-in block in guide A.1, also in the Labs folder's `00_Start_here` notebook. It
+-- MAGIC adds a row to `ops.checkin` and creates the participant's own schema.
+-- MAGIC
 -- MAGIC **Lab 2 checkpoint**: put the name of the group you found in the quotes.
 -- MAGIC ```sql
 -- MAGIC INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group name>', current_timestamp();

@@ -11,9 +11,8 @@ Materials for a 3.5-hour hands-on workshop for SMBC APAC data analysts and data 
 | [`data/generate_data.py`](data/generate_data.py) | Builds the synthetic dataset and its answer key (standard library only; runs locally or in a Databricks notebook) | |
 | [`data/validate_data.py`](data/validate_data.py) | Re-derives every planted answer from the files and checks the answer key (needs pandas) | |
 | [`setup/`](setup) | Databricks notebooks. **`00_master_setup` creates everything in one run.** It runs the others in order: `01` workspace setup (schemas `raw`, `bronze`, `silver`, `gold`, `ops`), `02` the bronze, silver and gold reference tables (Lab 1 reference solution), `03` their validation, `05` governance demo, `06` dashboards, Genie Agents, the Labs folder and a job that rebuilds the data daily at 06:00 Singapore time, `07` requirement checks. Also: `04` progress-board queries, `08` reset or teardown | |
-| [`setup/tools/`](setup/tools) | `dashboards.py` and `genie_agents.py`, used by `06`; they also run from a laptop through the Databricks CLI | |
+| [`setup/tools/`](setup/tools) | `dashboards.py`, `genie_agents.py` and `data_job.py`, used by `06`; they also run from a laptop through the Databricks CLI | |
 | [`facilitator/`](facilitator) | Answer key, quiz, [run of show](facilitator/run_of_show.md) with the helper briefing, polls and survey, the [15 Oct test report](facilitator/test_report_2026-10-15.md), and the **full walkthrough** (facilitator guide, attendee guide, setup and presenter script in one Word document and [Google Doc](https://docs.google.com/document/d/1MLrO4tmZqqT-gfEZGgpPYdAxb23aSw9SOWwzn88GN90), built by `build_walkthrough.py` and `publish_walkthrough.py`) | **No** |
-| [`workshop-brainstorm.md`](workshop-brainstorm.md) | Planning notes, including account context | **No** (internal) |
 
 ## Set up a workspace
 
