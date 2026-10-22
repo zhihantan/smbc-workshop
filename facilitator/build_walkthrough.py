@@ -6,9 +6,9 @@ guide, workspace setup and the presenter script.
   .venv/bin/python facilitator/build_walkthrough.py     # writes facilitator/dist/Workshop_Walkthrough.md and .docx
   .venv/bin/python facilitator/publish_walkthrough.py   # then: create or update the Google Doc
 
-Everything is taken from the existing sources at build time (the guide, the run of show, the answer key, the quiz,
-the polls and survey, the lab workbook and the slide notes), so the walkthrough never drifts from them. It contains
-the answer key, so it lives with the facilitator material. Needs pypandoc_binary and lxml.
+Everything is taken from the existing sources at build time (the guide, the README's asset table, the run of show,
+the answer key, the quiz, the polls and survey, the lab workbook and the slide notes), so the walkthrough never drifts
+from them. It contains the answer key, so it lives with the facilitator material. Needs pypandoc_binary and lxml.
 """
 import io
 import json
@@ -30,14 +30,6 @@ SUBTITLE = "Facilitator guide, attendee guide and workspace setup"
 CONTENTS_PLACEHOLDER = "CONTENTS-PLACEHOLDER"  # replaced by the linked contents list
 NAVY, HEADER_FILL, BORDER = "1B3139", "EEEDE9", "BFBFBF"
 A4_WIDTH, A4_HEIGHT, MARGIN = 11906, 16838, 1134  # twips; 2 cm margins
-
-# Links to other repo files don't work in a Google Doc: point them at the matching part of this document instead.
-FILE_LINKS = {
-    "quiz.md": "Quiz (Part 2)",
-    "polls_and_survey.md": "Polls and survey (Part 2)",
-    "answer_key.md": "Answer key (Part 2)",
-    "run_of_show.md": "Part 2",
-}
 
 # The presenter script groups slides into the agenda's segments, starting at these slides.
 SEGMENTS = {
@@ -99,7 +91,6 @@ def clean(md):
         if fence or line.startswith("```"):
             out.append(line)
             continue
-        line = re.sub(r"\[([^\]]+)\]\(([^)#]+\.md)\)", lambda m: FILE_LINKS.get(m.group(2), m.group(1)), line)
         line = re.sub(r"\[([^\]]+)\]\((?!https?://)[^)]*\)", r"\1", line)
         line = re.sub(r"^(\s*(?:\d+\.|[-*]) )\+ ", r"\1\\+ ", line)
         parts = re.split(r"(`[^`]*`)", line)  # leave code spans alone
@@ -189,6 +180,19 @@ def build_markdown():
         f"## 2.{k + 5} {after[0].split('. ', 1)[1]}\n\n" + shift(after[1], 1),
     ]
     facilitator = "\n\n".join(facilitator)
+    # Links to other repo files don't work in a Google Doc, and this part renumbers the run of show: point its
+    # "(section N)" and its links to the facilitator files at their sections here.
+    numbers = {t.split(". ", 1)[0]: f"2.{n}" for n, (t, _) in enumerate(run_sections, 1)}
+    numbers[after[0].split(". ", 1)[0]] = f"2.{k + 5}"
+    facilitator = re.sub(r"\(section (\d+)\)", lambda m: f"(section {numbers[m.group(1)]})", facilitator)
+    for name, n in (("answer_key.md", k + 2), ("quiz.md", k + 3), ("polls_and_survey.md", k + 4)):
+        facilitator = re.sub(r"\[[^\]]*\]\(%s\)" % re.escape(name), f"section 2.{n}", facilitator)
+
+    # Section 6 of the guide is section 1 of the attendee guide, in Part 3 here.
+    glance, found = re.subn(r"\bSection 6\b", "Section 1 of Part 3", section(guide, "1. At a glance", 2))
+    assert found == 1, "the guide's pointer to the story (section 6) has changed"
+    assets = re.search(r"^\| Asset \|.*?(?=\n\n|\Z)", section(read("README.md"), "The story", 2), re.S | re.M)
+    assert assets, "the asset table is missing from the README's story"
 
     attendee = section(workbook, workbook.split("\n", 1)[0][2:], 1)  # everything under the workbook's title
     attendee = re.sub(r"^## Contents\n.*?(?=^## )", "", attendee, flags=re.S | re.M)
@@ -198,11 +202,11 @@ def build_markdown():
 
     doc = f"""**All workshop data is synthetic.** The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.
 
-This document walks through the whole workshop, from setting up the workspace to the follow-up email. It's assembled from the workshop's source materials (the workshop guide, the run of show, the attendee workbook and the presenter notes), so it matches them.
+This document walks through the whole workshop, from setting up the workspace to the follow-up email. It's assembled from the workshop's source materials (the workshop guide, the README, the run of show, the attendee workbook and the presenter notes), so it matches them.
 
 | Part | What it covers | For | Share with |
 |---|---|---|---|
-| 1 | The workshop at a glance: goals, agenda, storyline | Everyone | Anyone |
+| 1 | The workshop at a glance: goals, agenda, storyline, what the setup creates | Everyone | Anyone |
 | 2 | Facilitator guide: roles, countdown, timeline, fallbacks, helper briefing, answer key, quiz, follow-up | Facilitators and helpers | **Facilitators only: it contains the answers** |
 | 3 | Attendee guide: setup, Lab 1, Lab 2, Genie Code, copy-paste kit, troubleshooting | Attendees | Attendees (no answers) |
 | 4 | Workspace setup and requirements: what must be enabled, the setup notebooks, the pre-work email | SMBC's SAG team and workspace admins | SMBC's admins |
@@ -216,11 +220,17 @@ This document walks through the whole workshop, from setting up the workspace to
 
 ## 1.1 At a glance
 
-{section(guide, "1. At a glance", 2)}
+{glance}
 
 ## 1.2 Agenda
 
 {section(guide, "2. Agenda", 2)}
+
+## 1.3 What the setup creates
+
+`setup/00_master_setup` creates these in the workshop workspace; section 4 of Part 4 has the steps.
+
+{assets.group(0)}
 
 # Part 2. Facilitator guide
 

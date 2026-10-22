@@ -159,7 +159,7 @@ The setup notebook creates these objects. Creating a catalog needs the `CREATE C
 
 | Object | Contents | What attendees need |
 |---|---|---|
-| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` and `workshop_date` (any tag a governed tag policy rejects is skipped) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
+| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` (the tag is skipped if a governed tag policy rejects it) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
 | Volume `smbc_workshop.raw.landing` | Raw source extracts and the limits spreadsheet | `READ VOLUME` |
 | Volume `smbc_workshop.raw.facilitator` | Answer key | Nothing |
 | Schemas `smbc_workshop.bronze`, `silver` and `gold` | The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses | `USE SCHEMA`, `SELECT` |

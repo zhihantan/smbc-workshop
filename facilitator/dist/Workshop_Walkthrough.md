@@ -1,10 +1,10 @@
 **All workshop data is synthetic.** The labs use a made-up SMBC APAC corporate lending book: every borrower, group, limit and balance is fictional. No SMBC data, systems or customer information is used at any point.
 
-This document walks through the whole workshop, from setting up the workspace to the follow-up email. It's assembled from the workshop's source materials (the workshop guide, the run of show, the attendee workbook and the presenter notes), so it matches them.
+This document walks through the whole workshop, from setting up the workspace to the follow-up email. It's assembled from the workshop's source materials (the workshop guide, the README, the run of show, the attendee workbook and the presenter notes), so it matches them.
 
 | Part | What it covers | For | Share with |
 |---|---|---|---|
-| 1 | The workshop at a glance: goals, agenda, storyline | Everyone | Anyone |
+| 1 | The workshop at a glance: goals, agenda, storyline, what the setup creates | Everyone | Anyone |
 | 2 | Facilitator guide: roles, countdown, timeline, fallbacks, helper briefing, answer key, quiz, follow-up | Facilitators and helpers | **Facilitators only: it contains the answers** |
 | 3 | Attendee guide: setup, Lab 1, Lab 2, Genie Code, copy-paste kit, troubleshooting | Attendees | Attendees (no answers) |
 | 4 | Workspace setup and requirements: what must be enabled, the setup notebooks, the pre-work email | SMBC's SAG team and workspace admins | SMBC's admins |
@@ -15,6 +15,7 @@ This document walks through the whole workshop, from setting up the workspace to
 - **[Part 1. The workshop at a glance](#part-1-the-workshop-at-a-glance)**
   - [1.1 At a glance](#11-at-a-glance)
   - [1.2 Agenda](#12-agenda)
+  - [1.3 What the setup creates](#13-what-the-setup-creates)
 - **[Part 2. Facilitator guide](#part-2-facilitator-guide)**
   - [2.1 Roles](#21-roles)
   - [2.2 Countdown](#22-countdown)
@@ -71,7 +72,7 @@ This document walks through the whole workshop, from setting up the workspace to
 - use **Genie Code** to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;
 - explain how **Unity Catalog** governs all of it: lineage, data-quality checks, and row-level security.
 
-**One storyline runs through the day.** It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found. Section 6 tells the full story, as participants read it.
+**One storyline runs through the day.** It's 8am on Monday at the APAC hub. The Credit Committee wants the top counterparty-group exposures across all booking branches, in USD and JPY, by 10am. Today that means four system extracts, a spreadsheet of limits, and days of reconciliation. In Lab 1 participants automate it, in Lab 2 they make it self-service, and in the Genie Code segment they investigate what they found. Section 1 of Part 3 tells the full story, as participants read it.
 
 ---
 
@@ -101,6 +102,21 @@ Times are relative to the start time.
 
 ---
 
+## 1.3 What the setup creates
+
+`setup/00_master_setup` creates these in the workshop workspace; section 4 of Part 4 has the steps.
+
+| Asset | What it is | Its part in the story |
+|---|---|---|
+| Volume `smbc_workshop.raw.landing` | The four system extracts and the limits spreadsheet as the source systems deliver them, plus an optional ESG file | Monday morning's inbox |
+| Schemas `bronze`, `silver` and `gold` | The extracts as tables; the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The trusted tables: Lab 1's reference answer, and the source for everything below |
+| Dashboard **Credit Committee: APAC exposure (reference)** | Total exposure, the groups above 80% and 90% of their limits, the top 10 groups, the monthly trend, exposure by country, the five largest groups' utilisation, a watchlist and trade-finance arrears | The Monday report, on one page |
+| Genie Agent **Credit Risk (reference)** | Plain-language questions over the gold tables, with the bank's definitions and fiscal-year rules, example SQL and benchmark questions | The questions nobody has asked yet |
+| Genie Agent **Credit Risk (secured demo)** | The same data behind a Unity Catalog row filter and column mask | Proof that permissions follow the data into AI answers |
+| Job **SMBC Workshop: daily data refresh** | Regenerates the extracts, then rebuilds and validates the tables, every day at 06:00 Singapore time | The report is ready every morning |
+| Folder **Labs** | The five attendee notebooks; *00 Start here* opens with this story | Where attendees follow it |
+| Dashboard **SMBC Workshop: progress board** | Check-ins and lab progress, live | For the facilitators, on the projector |
+
 # Part 2. Facilitator guide
 
 > **Facilitators and helpers only.** This part contains the answer key and the planted findings. Don't share it with attendees.
@@ -114,7 +130,7 @@ Times are relative to the start time.
 | Analytics presenter | TBC | Self-service analytics intro and demo; leads Lab 2 and the governance moment |
 | Genie Code presenter | TBC | AI-assisted development segment |
 | Quiz host | TBC | The Slido quiz and prizes |
-| Helpers | About 1 per 8–10 attendees | Watch for red cards; know the helper briefing (section 8) |
+| Helpers | About 1 per 8–10 attendees | Watch for red cards; know the helper briefing (section 2.8) |
 | Check-in desk | 1–2 helpers, from 30 minutes before the start | Sign-in problems |
 | Executive speakers | Richard Lowe (SMBC) and Peter Butsch (Databricks) | Executive briefing; Richard awards the prizes |
 | SMBC IT contact | TBC | On call for SSO, proxy and network problems |
@@ -125,14 +141,14 @@ Times are relative to the start time.
 |---|---|---|
 | Done | Dataset generated and validated. Reference tables, dashboards and Genie Agents built and tested in the Databricks test workspace (test report) | ✅ |
 | A week before | Send guide §3 to the SAG team and workspace admins. Confirm the start time, headcount and DA/DE split, venue Wi-Fi, whether Slido is allowed, and whether recording is allowed | ☐ |
-| 3 days before | Internal dry run (section 6) | ☐ |
+| 3 days before | Internal dry run (section 2.6) | ☐ |
 | 2 days before | In SMBC's workspace, run `setup/00_master_setup` (guide §4). It should finish with "none failed" and name the SQL warehouse to give attendees. Then grant attendees access to `smbc_workshop` (guide §3.6), run `07_check_requirements` again, and set up the Genie One homepage (guide §3.3) | ☐ |
 | 2 days before | Smoke tests (guide §3.8) on an SMBC laptop, on the SMBC network, with 2–3 SMBC volunteers | ☐ |
-| 2 days before | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 7) | ☐ |
-| The day before | Freeze the content. Set up the quiz (Quiz (Part 2)), the polls and the survey (Polls and survey (Part 2)) in Slido, and test them on a phone | ☐ |
-| The day before | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 5) | ☐ |
+| 2 days before | Send the pre-work email (guide §5), with the workspace URL and warehouse name filled in. Agree the executive briefing with Richard and Peter (section 2.7) | ☐ |
+| The day before | Freeze the content. Set up the quiz (section 2.11), the polls and the survey (section 2.12) in Slido, and test them on a phone | ☐ |
+| The day before | Print a cheat sheet per person plus spares (`handouts/dist/Cheat_Sheet.pdf`, rebuilt with the real workspace URL), and red/green cards. Record the fallback videos (section 2.5) | ☐ |
 | The day before | Late registrations: check they can sign in and have access to `smbc_workshop`; their check-in creates their schema. Then run `08_reset_or_teardown` → `reset_progress` so the board starts at zero | ☐ |
-| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day. In **Jobs & Pipelines**, check that the 06:00 run of **SMBC Workshop: daily data refresh** succeeded | ☐ |
+| Day, −90 min | Arrive. Test the projector, clicker and Wi-Fi. Open the presenter tabs (section 2.3). Start the workshop's SQL warehouse (the one `00_master_setup` named) and, if you manage it, lengthen its auto-stop for the day. In **Jobs & Pipelines**, check that the 06:00 run of **SMBC Workshop: daily data refresh** succeeded | ☐ |
 | Day, −30 min | Doors open; check-in desk opens | ☐ |
 
 ## 2.3 Presenter laptop: tabs to open before the start
@@ -152,7 +168,7 @@ Times are relative to the start time.
 |---|---|---|---|---|
 | −0:30 | Doors open | Welcome slide | Check-in desk solves sign-in problems | |
 | 0:00 | **Welcome and check-in** (10) | Welcome slide, then the progress board | Host welcomes; everyone runs the check-in line; the poll runs (*"What do you use most today?"*). Anyone not checked in by 0:05 gets a helper. | 0:10, or 90% checked in |
-| 0:10 | **Executive briefing** (15) | Briefing slides | Richard 5 min, Peter 5 min, fireside 5 min (section 7). Richard asks *the CDAO's question*. | 0:25, hard stop |
+| 0:10 | **Executive briefing** (15) | Briefing slides | Richard 5 min, Peter 5 min, fireside 5 min (section 2.7). Richard asks *the CDAO's question*. | 0:25, hard stop |
 | 0:25 | **Lakeflow** (20) | At most 8 min of slides, then live Designer | The demo: drag `group_limits.xlsx` onto the canvas → one Genie Code prompt → preview → open the generated code | 0:45 |
 | 0:45 | **Lab 1** (40) | *Lab 1 at a glance*, then the progress board | Pairs, engineer driving. **0:55:** most pairs have their sources in (step 2). **1:10:** the core path should be done; call "stretch or catch up". **1:15:** anyone not past step 5 switches to the gold reference tables. **1:22:** facilitator close (lineage, and the USD 366.9m reveal). | 1:25 |
 | 1:25 | Break (15) | Progress board, "back at" slide | Helpers sort out anyone stuck | 1:40 |
@@ -160,7 +176,7 @@ Times are relative to the start time.
 | 2:00 | **Lab 2** (40) | *Lab 2 at a glance*, then the progress board | **2:10:** dashboards published. **2:15:** Genie Agents created. **2:24:** the fiscal-year test done. **2:25:** answers submitted (the board shows them). **2:25–2:35:** stretch; Stump the Genie entries go to a facilitator. **2:35:** governance moment, facilitator and a volunteer (3 min). **2:38:** the fiscal-year debrief slide. | 2:40 |
 | 2:40 | Break (15) | Progress board | Shortlist 2–3 dashboards for the *Best dashboard* vote; pick *Best Stump the Genie* | 2:55 |
 | 2:55 | **Genie Code** (15) | Live notebook | Explore → generate (the FX split) → explain and convert the legacy procedure → the safety beat | 3:10 |
-| 3:10 | **Quiz** (15) | Slido quiz | 12 questions; after each one, say its teaching point (Quiz (Part 2)). Richard awards: quiz top three, *Best Stump the Genie*, *First to finish Lab 1* (the progress board's "First to finish" table), *Best dashboard* (Slido vote). | 3:25 |
+| 3:10 | **Quiz** (15) | Slido quiz | 12 questions; after each one, say its teaching point (section 2.11). Richard awards: quiz top three, *Best Stump the Genie*, *First to finish Lab 1* (the progress board's "First to finish" table), *Best dashboard* (Slido vote). | 3:25 |
 | 3:25 | **Next steps** (10) | Closing slides | What you found today; resources; the 30-day Genie Agent challenge; the feedback survey, which is the raffle ticket | 3:35 |
 
 If the organisers swap the last two slots (guide §2), the prizes close the session and the raffle draw comes straight after the survey.
@@ -389,7 +405,7 @@ After each question, say the one-line **teaching point**: that's what people rem
 
 ## 2.12 Polls and survey
 
-Set these up **the day before the workshop**: polls and Q&A in Slido, and the survey in Slido or Microsoft Forms, whichever SMBC allows. The quiz runs in Slido too: enter the 12 questions from Quiz (Part 2) as a Slido quiz.
+Set these up **the day before the workshop**: polls and Q&A in Slido, and the survey in Slido or Microsoft Forms, whichever SMBC allows. The quiz runs in Slido too: enter the 12 questions from section 2.11 as a Slido quiz.
 
 ### During the day
 
@@ -944,7 +960,7 @@ The setup notebook creates these objects. Creating a catalog needs the `CREATE C
 
 | Object | Contents | What attendees need |
 |---|---|---|
-| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` and `workshop_date` (any tag a governed tag policy rejects is skipped) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
+| Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` (the tag is skipped if a governed tag policy rejects it) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
 | Volume `smbc_workshop.raw.landing` | Raw source extracts and the limits spreadsheet | `READ VOLUME` |
 | Volume `smbc_workshop.raw.facilitator` | Answer key | Nothing |
 | Schemas `smbc_workshop.bronze`, `silver` and `gold` | The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses | `USE SCHEMA`, `SELECT` |
