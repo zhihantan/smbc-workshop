@@ -75,7 +75,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 <tbody>
 <tr>
 <td><strong>Length</strong></td>
-<td>3 hours 35 minutes</td>
+<td>3 hours 15 minutes</td>
 </tr>
 <tr>
 <td><strong>Who</strong></td>
@@ -83,7 +83,7 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td><strong>Format</strong></td>
-<td>Short demos, two 40-minute hands-on labs, a Genie Code segment, and a quiz</td>
+<td>Short demos, two hands-on labs (20 and 40 minutes), a Genie Code segment, and a quiz</td>
 </tr>
 <tr>
 <td><strong>Where people work</strong></td>
@@ -95,13 +95,13 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td><strong>What people take away</strong></td>
-<td>A pipeline, a dashboard and a Genie Agent they built themselves, plus a learning path</td>
+<td>A pipeline they fixed and scheduled, a dashboard and a Genie Agent they built themselves, and a learning path</td>
 </tr>
 </tbody>
 </table>
 <p><strong>By the end of the session, each participant can:</strong></p>
 <ul>
-<li>build a data-preparation pipeline visually in <strong>Lakeflow Designer</strong>, use <strong>Genie Code</strong> to generate steps from plain English, and schedule it with <strong>Lakeflow Jobs</strong>;</li>
+<li>finish a data-preparation pipeline in <strong>Lakeflow Designer</strong>: find and fix the data-quality problems in its sources, and schedule it with <strong>Lakeflow Jobs</strong>;</li>
 <li>build an <strong>AI/BI dashboard</strong> and a <strong>Genie Agent</strong>, teach it business rules such as the April-to-March fiscal year, and test whether it answers correctly;</li>
 <li>use <strong>Genie Code</strong> to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;</li>
 <li>explain how <strong>Unity Catalog</strong> governs all of it: lineage, data-quality checks, and row-level security.</li>
@@ -140,48 +140,48 @@ p:has(+ pre), p:has(+ table), p:has(+ ul), p:has(+ ol) { break-after: avoid; }
 </tr>
 <tr>
 <td>0:45</td>
-<td>40 min</td>
+<td>20 min</td>
 <td><strong>Lab 1</strong></td>
 <td>Build the trusted exposure table</td>
 </tr>
 <tr>
-<td>1:25</td>
+<td>1:05</td>
 <td>15 min</td>
 <td>Break</td>
 <td></td>
 </tr>
 <tr>
-<td>1:40</td>
+<td>1:20</td>
 <td>20 min</td>
 <td><strong>Self-service analytics</strong></td>
 <td>AI/BI dashboards, Genie Agents, and Genie One</td>
 </tr>
 <tr>
-<td>2:00</td>
+<td>1:40</td>
 <td>40 min</td>
 <td><strong>Lab 2</strong></td>
 <td>Build a Credit Committee dashboard and a Genie Agent</td>
 </tr>
 <tr>
-<td>2:40</td>
+<td>2:20</td>
 <td>15 min</td>
 <td>Break</td>
 <td></td>
 </tr>
 <tr>
-<td>2:55</td>
+<td>2:35</td>
 <td>15 min</td>
 <td><strong>AI-assisted development</strong></td>
 <td>Genie Code: explore data, generate SQL and Python, explain results, and iterate safely</td>
 </tr>
 <tr>
-<td>3:10</td>
+<td>2:50</td>
 <td>15 min</td>
 <td><strong>Quiz</strong></td>
 <td>On phones, with Databricks swag for the winners</td>
 </tr>
 <tr>
-<td>3:25</td>
+<td>3:05</td>
 <td>10 min</td>
 <td><strong>Next steps and resources</strong></td>
 <td>Learning materials and upcoming events</td>
@@ -424,7 +424,7 @@ Start with the **Credit Committee: APAC exposure** dashboard, or ask the **Credi
 </tr>
 <tr>
 <td>Schemas <code>smbc_workshop.bronze</code>, <code>silver</code> and <code>gold</code></td>
-<td>The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses</td>
+<td>The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses; and <code>bronze.exposure_staging</code>, where Lab 1 starts</td>
 <td><code>USE SCHEMA</code>, <code>SELECT</code></td>
 </tr>
 <tr>
@@ -632,7 +632,7 @@ GRANT MODIFY ON SCHEMA smbc_workshop.ops TO `account users`;
 </tr>
 <tr>
 <td>3</td>
-<td><code>setup/02_build_bronze_silver_gold</code> (SQL): builds the reference tables in the <code>bronze</code>, <code>silver</code> and <code>gold</code> schemas</td>
+<td><code>setup/02_build_bronze_silver_gold</code> (SQL): builds the reference tables in the <code>bronze</code>, <code>silver</code> and <code>gold</code> schemas, and <code>bronze.exposure_staging</code>, where Lab 1 starts</td>
 <td>Facilitator</td>
 <td>2 min</td>
 </tr>
@@ -829,6 +829,11 @@ END
 <td>For comparing with your own Lab 1 output</td>
 </tr>
 <tr>
+<td><code>bronze.exposure_staging</code></td>
+<td>Balance × facility × customer, duplicates included</td>
+<td>The extracts joined and converted to USD and JPY, before any data-quality checks: where Lab 1 starts</td>
+</tr>
+<tr>
 <td><code>bronze.*</code></td>
 <td>The extracts as delivered, as tables</td>
 <td>Where the cleaning starts</td>
@@ -837,51 +842,50 @@ END
 </table>
 <hr />
 <h2 class="newpage" id="7-lab-1-build-the-trusted-exposure-table">7. Lab 1: Build the trusted exposure table</h2>
-<p><strong>Goal:</strong> turn the raw extracts into <code>gold_group_exposure</code>, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.<br />
-<strong>Time:</strong> 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.<br />
-<strong>Tools:</strong> Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.</p>
+<p><strong>Goal:</strong> turn the raw extracts into <code>gold_group_exposure</code>, a table the Credit Committee can trust. You remove the duplicates, quarantine the bad rows, roll up to each counterparty group, and publish the result as a daily job, with every step visible as code and as lineage.<br />
+<strong>Time:</strong> 20 minutes: a 15-minute core path, then a 3-minute facilitator close.<br />
+<strong>Tools:</strong> Lakeflow Designer, Lakeflow Jobs, Unity Catalog.</p>
 <blockquote>
 <p><strong>Short on time?</strong> Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.</p>
 </blockquote>
 <h3 id="core-path">Core path</h3>
-<p><strong>0. Find your schema (1 min).</strong> Your check-in created it and showed its name: the part of your email address before the @, for example <code>jane_tan</code>. Find it in <strong>Catalog Explorer</strong> → <code>smbc_workshop</code>. Not there? Run the check-in block (A.1) again.</p>
-<p><strong>1. Start a visual data prep (1 min).</strong> Click <strong>+ New → Visual data prep</strong>. Rename the tab to <code>Monday exposure report</code>. In the compute picker at the top right, choose <strong>Serverless</strong>.</p>
-<p><strong>2. Bring in the sources (4 min).</strong> Add a <strong>Source</strong> operator → <strong>Browse existing</strong> → <code>smbc_workshop</code> → <code>raw</code> → <code>landing</code> → select the <strong><code>counterparties</code></strong> folder. Designer reads every file in a folder into one table. Do the same for <code>facilities</code>, <code>monthly_balances</code> and <code>fx_rates</code>. For the limits, drag <code>group_limits.xlsx</code> onto the canvas (download it from the landing volume first), or browse to the <code>group_limits</code> folder. Click each Source and look at the preview: can you see two date formats in <code>monthly_balances</code>?</p>
-<p><strong>3. De-duplicate the customer master (1 min).</strong> After <code>counterparties</code>, add <strong>Unique</strong> with <strong>Unique by: All columns</strong>. Row count: 2,370 → 2,325.</p>
-<p><strong>4. Clean the facilities with Genie Code (4 min).</strong> Select the <code>facilities</code> Source and type this into the Genie Code prompt on the canvas:</p>
-<blockquote>
-<p><em>Add a Prepare step that trims and upper-cases <code>currency</code>, maps <code>US$</code> to <code>USD</code>, <code>S$</code> to <code>SGD</code> and <code>RMB</code> to <code>CNY</code>, and parses <code>start_date</code> and <code>maturity_date</code> whether they're written YYYY-MM-DD or DD/MM/YYYY.</em></p>
-</blockquote>
-<p>Open the operator it adds and read its actions. Then open <strong>Table of contents</strong> in the left panel, select the operator, and expand <strong>Generated code</strong>. Every visual step is real code you can review and version.</p>
-<p><strong>5. Quarantine bad rows with Guardrails (4 min).</strong> Add <strong>Guardrails</strong> after the Prepare step, with these checks:</p>
+<p>You start from <code>smbc_workshop.bronze.exposure_staging</code>, which the workshop's daily job builds from the extracts every morning. It joins the balances to their facilities, customers and FX rates. It cleans the currency codes and both date formats, and converts to USD and JPY. Nobody has checked it, though. The problems in the source-system owners' notes are still in it, so its total is too high. Making it trustworthy is your job.</p>
+<p><strong>1. Start and bring in the data (3 min).</strong></p>
 <ul>
-<li><strong>Value range:</strong> <code>committed_amount</code> greater than 0</li>
-<li><strong>Expression:</strong> <code>maturity_date &gt;= start_date</code></li>
-<li><strong>Not null:</strong> <code>start_date</code>, <code>maturity_date</code></li>
+<li>Click <strong>+ New → Visual data prep</strong>. Rename the tab to <code>Monday exposure report</code>. In the compute picker at the top right, choose <strong>Serverless</strong>.</li>
+<li>In the canvas toolbar, open <strong>Preview</strong> and select <strong>All rows</strong>. By default, previews process only the first 1,000 rows, and the row counts in this lab are for all rows.</li>
+<li>Add a <strong>Source</strong> operator → <strong>Browse existing</strong> → <code>smbc_workshop</code> → <code>bronze</code> → <strong><code>exposure_staging</code></strong>. The preview shows 76,166 rows: one for each balance, with its facility, customer, group, and exposure in USD and JPY.</li>
 </ul>
-<p>Set <strong>When a check fails</strong> to <strong>Warn and continue with passed rows</strong>. Connect <strong>Failed</strong> to an <strong>Output</strong> that writes the table <code>quarantine_facilities</code> to your schema. You should see 21 failed rows. Each one has a reason, and that's your data-quality evidence.</p>
-<p><strong>6. Fix the balances and FX dates (3 min).</strong></p>
+<p><strong>2. Fix the data quality (7 min).</strong> Add these two operators, the first after the Source and the second after the first:</p>
+<table>
+<thead>
+<tr>
+<th>Add</th>
+<th>Settings</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unique</strong></td>
+<td><strong>Unique by: Selected columns</strong> <code>facility_id</code> and <code>as_of_date</code>, and <strong>Order by</strong> <code>extract_ts</code> descending, so that the latest copy of each row is kept</td>
+<td>76,166 → 74,757 rows: one for each facility and month end. This removes Bangkok's re-sent extract and the extra rows from duplicate customer records</td>
+</tr>
+<tr>
+<td><strong>Guardrails</strong></td>
+<td><strong>Expression</strong> checks <code>committed_amount &gt; 0</code> and <code>maturity_date &gt;= start_date</code> (not <strong>Value range</strong>, which includes 0), and a <strong>Not null</strong> check on <code>parent_group_id</code>. <strong>When a check fails:</strong> <strong>Warn and continue with passed rows</strong>. Connect <strong>Failed</strong> to an <strong>Output</strong> that writes the table <code>quarantine_facilities</code> to your schema</td>
+<td>474 failed rows, from 36 facilities: 12 with a negative commitment, 9 that mature before they start, and 15 whose customer isn't in the master yet. The <strong>Errors</strong> output lists the checks that failed. That's your data-quality evidence</td>
+</tr>
+</tbody>
+</table>
+<p><strong>3. Roll up and publish (5 min).</strong></p>
 <ul>
-<li>On <code>monthly_balances</code>, add a <strong>Prepare</strong> step with two <strong>Formula</strong> actions. Describe them in plain English: <em>"<code>as_of_date</code> as a date, whether written YYYY-MM-DD or DD/MM/YYYY"</em> and <em>"<code>month</code> = first day of the month of <code>as_of_date</code>"</em>.</li>
-<li>Then add <strong>Unique</strong> → <strong>Selected columns</strong> <code>facility_id</code>, <code>as_of_date</code> → <strong>Order by</strong> <code>extract_ts</code> descending. Rows: 74,799 → 74,757.</li>
-<li>On <code>fx_rates</code>, add a Formula: <em>"<code>rate_month</code> = first day of the month of <code>rate_date</code>"</em>.</li>
+<li>After Guardrails' <strong>Passed</strong> output, add <strong>Aggregate</strong>. <strong>Group by</strong> <code>as_of_date</code>, <code>parent_group_id</code> and <code>group_name</code>. Under <strong>Aggregate by</strong>, add the <strong>SUM</strong> of <code>exposure_usd</code>, named <code>exposure_usd</code>, and the <strong>SUM</strong> of <code>exposure_jpy</code>, named <code>exposure_jpy</code>. That gives 7,174 rows, one per group and month.</li>
+<li>After the Aggregate, add an <strong>Output</strong>: <strong>Table</strong> <code>gold_group_exposure</code> in your schema (the one your check-in created), <strong>Write mode: Overwrite</strong>.</li>
+<li>Click <strong>Run all</strong> in the canvas toolbar. It runs every operator on all rows and writes both of your Outputs.</li>
+<li>Click <strong>Schedule</strong> in the header and set the visual data prep to run every day at 07:00, Singapore time, on Serverless compute.</li>
+<li>Open <strong>Table of contents</strong> in the left panel, select an operator, and expand <strong>Generated code</strong>. Every visual step is real code you can review and version.</li>
 </ul>
-<p><strong>7. Join and convert with Genie Code (4 min).</strong> Prompt:</p>
-<blockquote>
-<p><em>Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties. Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.</em></p>
-</blockquote>
-<p>Check the Join outputs:</p>
-<ul>
-<li><strong>Left unmatched</strong> on the facilities-to-counterparties join shows the facilities whose customer isn't in the master yet (send them to a second quarantine Output if you like).</li>
-<li><strong>Left unmatched</strong> on the FX join should be empty. If it shows <code>US$</code>, <code>S$</code> or <code>RMB</code>, step 4 missed a mapping.</li>
-</ul>
-<p><strong>8. Roll up to the group and compare with limits (3 min).</strong></p>
-<ul>
-<li>Add <strong>Aggregate</strong>: group by <code>as_of_date</code>, <code>parent_group_id</code>; <strong>SUM</strong> of <code>exposure_usd</code> and <code>exposure_jpy</code>.</li>
-<li>Add <strong>Join</strong> with the limits on <code>parent_group_id</code> = <code>group_id</code>.</li>
-<li>Add a <strong>Prepare</strong> Formula: <em>"<code>utilisation_pct</code> = 100 × exposure_usd ÷ group_limit_usd"</em>.</li>
-</ul>
-<p><strong>9. Write and schedule (2 min).</strong> Add an <strong>Output</strong>: <strong>Table</strong> <code>gold_group_exposure</code> in your schema, <strong>Write mode: Overwrite</strong>, then <strong>Run</strong>. Click <strong>Schedule</strong> to run it daily at 07:00 Singapore time.</p>
 <p>✅ <strong>Checkpoint:</strong> your row on the progress board turns green. To check your result against the reference, run both queries (notebook <em>01</em> in the Labs folder works out your schema for you); the two totals should be identical:</p>
 <pre><code class="language-sql">SELECT round(sum(exposure_usd) / 1e6, 1) AS mine_usd_m
 FROM smbc_workshop.&lt;your_schema&gt;.gold_group_exposure WHERE as_of_date = '2026-09-30';
@@ -891,6 +895,8 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 </code></pre>
 <h3 id="stretch-pick-any">Stretch (pick any)</h3>
 <ul>
+<li><strong>Compare with limits:</strong> add a <strong>Join</strong> with <code>smbc_workshop.silver.group_limits</code> on <code>parent_group_id</code> = <code>group_id</code>. Then add a <strong>Prepare</strong> step with a <strong>Formula</strong> action that creates <code>utilisation_pct</code>: <code>ROUND(100 * exposure_usd / group_limit_usd, 2)</code>.</li>
+<li><strong>Start from the raw files:</strong> build the staging step yourself, from the extracts in <code>smbc_workshop.raw.landing</code>. A.2 has the formulas and join conditions.</li>
 <li><strong>Version and diff:</strong> open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.</li>
 <li><strong>Engineer's path:</strong> rebuild the facility cleaning in the <strong>Lakeflow Pipelines Editor</strong> with Genie Code, using expectations (<code>CONSTRAINT valid_commitment EXPECT (committed_amount &gt; 0) ON VIOLATION DROP ROW</code>). Compare the data-quality metrics with your Guardrails output.</li>
 <li><strong>Alerting:</strong> add a task that checks <em>"any group above 90% utilisation?"</em> and sends a notification when it's true.</li>
@@ -1039,12 +1045,61 @@ END
 -- Lab 2 checkpoint
 INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '&lt;group name&gt;', current_timestamp();
 </code></pre>
-<h3 id="a2-genie-code-prompts-for-lab-1-designer">A.2 Genie Code prompts for Lab 1 (Designer)</h3>
-<pre><code class="language-text">Add a Prepare step that trims and upper-cases currency, maps US$ to USD, S$ to SGD and RMB to CNY, and parses start_date and maturity_date whether they're written YYYY-MM-DD or DD/MM/YYYY.
+<h3 id="a2-lab-1-settings-designer">A.2 Lab 1 settings (Designer)</h3>
+<p><strong>The Unique (step 2):</strong> <strong>Selected columns</strong> <code>facility_id</code> and <code>as_of_date</code>, with <strong>Order by</strong> <code>extract_ts</code> descending.</p>
+<p><strong>The Guardrails checks (step 2).</strong> Paste each of these into an <strong>Expression</strong> check, then add a <strong>Not null</strong> check on <code>parent_group_id</code>:</p>
+<pre><code class="language-sql">committed_amount &gt; 0
 </code></pre>
-<pre><code class="language-text">Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties.
-Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.
+<pre><code class="language-sql">maturity_date &gt;= start_date
 </code></pre>
+<p><strong>The Aggregate (step 3):</strong> <strong>Group by</strong> <code>as_of_date</code>, <code>parent_group_id</code> and <code>group_name</code>, with the <strong>SUM</strong> of <code>exposure_usd</code> named <code>exposure_usd</code> and the <strong>SUM</strong> of <code>exposure_jpy</code> named <code>exposure_jpy</code>.</p>
+<p><strong>For the stretch exercises:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Stretch</th>
+<th>Operator</th>
+<th>Expression or condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compare with limits</td>
+<td>Join with <code>smbc_workshop.silver.group_limits</code></td>
+<td><code>parent_group_id</code> = <code>group_id</code></td>
+</tr>
+<tr>
+<td>Compare with limits</td>
+<td>Prepare, Formula for a new column <code>utilisation_pct</code></td>
+<td><code>ROUND(100 * exposure_usd / group_limit_usd, 2)</code></td>
+</tr>
+<tr>
+<td>Start from the raw files</td>
+<td>Prepare after <code>facilities</code>, Formula for <code>currency</code></td>
+<td><code>CASE upper(trim(currency)) WHEN 'US$' THEN 'USD' WHEN 'S$' THEN 'SGD' WHEN 'RMB' THEN 'CNY' ELSE upper(trim(currency)) END</code></td>
+</tr>
+<tr>
+<td>Start from the raw files</td>
+<td>Prepare after <code>facilities</code> for <code>start_date</code> and <code>maturity_date</code>, and after <code>monthly_balances</code> for <code>as_of_date</code></td>
+<td><code>coalesce(to_date(try_to_timestamp(start_date, 'yyyy-MM-dd')), to_date(try_to_timestamp(start_date, 'dd/MM/yyyy')))</code>, with each date column in place of <code>start_date</code></td>
+</tr>
+<tr>
+<td>Start from the raw files</td>
+<td>Prepare after <code>monthly_balances</code>, Formula for a new column <code>month</code>; and after <code>fx_rates</code>, one for <code>rate_month</code></td>
+<td><code>trunc(as_of_date, 'MM')</code> and <code>trunc(CAST(rate_date AS DATE), 'MM')</code>. FX rates are dated on the last business day of the month</td>
+</tr>
+<tr>
+<td>Start from the raw files</td>
+<td>Joins</td>
+<td>Facilities to <code>counterparties</code> on <code>counterparty_id</code>; balances to facilities on <code>facility_id</code>; <code>fx_rates</code> on <code>currency</code> = <code>currency_code</code> and <code>month</code> = <code>rate_month</code></td>
+</tr>
+<tr>
+<td>Start from the raw files</td>
+<td>Prepare after the FX join</td>
+<td><code>exposure_usd</code> = <code>drawn_amount * usd_rate</code> and <code>exposure_jpy</code> = <code>drawn_amount * jpy_rate</code></td>
+</tr>
+</tbody>
+</table>
 <h3 id="a3-genie-agent-starter-instructions">A.3 Genie Agent starter instructions</h3>
 <pre><code class="language-text">This agent answers questions about SMBC APAC's corporate lending exposure. All data is synthetic.
 
@@ -1179,7 +1234,7 @@ END
 <td><a href="#32-account-level-settings-account-admin">3.2</a>, <a href="#33-workspace-level-settings-workspace-admin">3.3</a></td>
 </tr>
 <tr>
-<td>Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable</td>
+<td>Genie Code prompts, or a Genie Agent's Agent mode, are unavailable</td>
 <td>Partner-powered AI features off, or cross-Geo processing enforced</td>
 <td><a href="#32-account-level-settings-account-admin">3.2</a></td>
 </tr>
@@ -1194,24 +1249,24 @@ END
 <td>Set <strong>Output location</strong> to <code>smbc_workshop.&lt;your_schema&gt;</code></td>
 </tr>
 <tr>
-<td>Some months disappear after the FX join</td>
-<td>Joining on the exact date: FX is dated on the last business day</td>
-<td>Join on currency and month (Lab 1, step 6)</td>
+<td>Row counts don't match the lab, for example the Source shows 1,000 rows instead of 76,166</td>
+<td>The preview processes only the first 1,000 rows</td>
+<td>In the canvas toolbar, set <strong>Preview</strong> to <strong>All rows</strong> (Lab 1, step 1)</td>
+</tr>
+<tr>
+<td>Unique leaves more than 74,757 rows</td>
+<td>It's set to <strong>All columns</strong>, or to other columns: rows from the re-sent extract differ in <code>extract_ts</code></td>
+<td><strong>Selected columns</strong> <code>facility_id</code> and <code>as_of_date</code>, ordered by <code>extract_ts</code> descending (Lab 1, step 2)</td>
 </tr>
 <tr>
 <td>Your total is higher than the checkpoint</td>
-<td>Duplicates not removed (customer master or the re-sent Bangkok extract)</td>
-<td>Lab 1, steps 3 and 6</td>
+<td>The Aggregate doesn't read Guardrails' <strong>Passed</strong> output, or the Unique isn't set up as in step 2</td>
+<td>Connect the Aggregate to <strong>Passed</strong>, and check the Unique (Lab 1, steps 2 and 3)</td>
 </tr>
 <tr>
 <td>Your total is much lower than the checkpoint</td>
-<td>Only one date format parsed, or currency codes not mapped</td>
-<td>Lab 1, steps 4 and 6; check the join's <strong>Left unmatched</strong> output</td>
-</tr>
-<tr>
-<td>Dragging the <code>.xlsx</code> onto the canvas fails</td>
-<td>Excel file support not enabled, or downloads blocked</td>
-<td>Use <strong>Source → Browse existing →</strong> <code>group_limits</code> folder instead</td>
+<td>The Aggregate reads Guardrails' <strong>Failed</strong> output</td>
+<td>Connect it to <strong>Passed</strong> (Lab 1, step 3)</td>
 </tr>
 <tr>
 <td>Genie picks the wrong dates for "Q1 FY2026", "FY2025" or "FY2026 H1"</td>

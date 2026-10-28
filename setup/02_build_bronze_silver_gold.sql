@@ -8,7 +8,7 @@
 -- MAGIC
 -- MAGIC | Schema | Tables |
 -- MAGIC |---|---|
--- MAGIC | `bronze` | `counterparties`, `facilities`, `balances`: the extracts exactly as delivered |
+-- MAGIC | `bronze` | `counterparties`, `facilities`, `balances`: the extracts exactly as delivered; and `exposure_staging`, Lab 1's starting point: the extracts joined and converted, before any data-quality checks |
 -- MAGIC | `silver` | `counterparties`, `facilities`, `balances`, `fx_rates`, `group_limits`: cleaned, typed and de-duplicated; plus `facilities_all` and `silver.quarantine_facilities`, the rows held back with a reason |
 -- MAGIC | `gold` | `facility_exposure` and `group_exposure`: what Lab 2 and Genie use |
 -- MAGIC
@@ -183,6 +183,60 @@ FROM (
   FROM bronze.balances
 )
 QUALIFY row_number() OVER (PARTITION BY facility_id, as_of_date ORDER BY extract_ts DESC) = 1;
+
+-- COMMAND ----------
+
+-- MAGIC %md ## Lab 1's starting point: the extracts joined, before any data-quality checks
+-- MAGIC
+-- MAGIC `bronze.exposure_staging` joins the balances to their facilities, customers and FX rates, and converts them
+-- MAGIC to USD and JPY. Currency codes and dates are cleaned, but nothing is de-duplicated or checked. The re-sent
+-- MAGIC Bangkok extract is still in, the duplicate customer rows fan out into extra rows, and the facilities that the
+-- MAGIC checks would hold back are still there. Lab 1 adds the Unique and Guardrails steps that `silver` and `gold`
+-- MAGIC already apply, so its result matches `gold.group_exposure` (`03` checks this).
+
+-- COMMAND ----------
+
+CREATE OR REPLACE TABLE bronze.exposure_staging
+COMMENT 'Lab 1 starting point: month-end balances joined to their facilities, customers and FX rates, in USD and JPY, before any data-quality checks. Duplicates and bad rows are still in. SYNTHETIC DATA.' AS
+WITH b AS (
+  SELECT
+    coalesce(to_date(try_to_timestamp(as_of_date, 'yyyy-MM-dd')),
+             to_date(try_to_timestamp(as_of_date, 'dd/MM/yyyy'))) AS as_of_date,
+    facility_id,
+    CAST(drawn_amount AS DECIMAL(20, 2)) AS drawn_amount,
+    CAST(days_past_due AS INT) AS days_past_due,
+    source_system,
+    CAST(extract_ts AS TIMESTAMP) AS extract_ts
+  FROM bronze.balances
+)
+SELECT
+  b.as_of_date,
+  b.facility_id,
+  b.extract_ts,
+  b.source_system,
+  f.product_type,
+  f.booking_branch,
+  f.currency,
+  f.committed_amount,
+  f.start_date,
+  f.maturity_date,
+  f.counterparty_id,
+  c.counterparty_name,
+  c.country_code,
+  c.sector,
+  c.parent_group_id,
+  g.group_name,
+  b.drawn_amount,
+  b.days_past_due,
+  x.usd_rate,
+  x.jpy_rate,
+  b.drawn_amount * x.usd_rate AS exposure_usd,
+  b.drawn_amount * x.jpy_rate AS exposure_jpy
+FROM b
+JOIN silver.facilities_all f ON b.facility_id = f.facility_id
+LEFT JOIN bronze.counterparties c ON f.counterparty_id = c.counterparty_id
+LEFT JOIN silver.group_limits g ON c.parent_group_id = g.group_id
+JOIN silver.fx_rates x ON x.currency_code = f.currency AND x.rate_month = trunc(b.as_of_date, 'MM');
 
 -- COMMAND ----------
 

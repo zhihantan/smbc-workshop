@@ -47,10 +47,10 @@ This document walks through the whole workshop, from setting up the workspace to
   - [Welcome and check-in · 0:00](#welcome-and-check-in--000)
   - [Data engineering with Lakeflow · 0:25](#data-engineering-with-lakeflow--025)
   - [Lab 1 · 0:45](#lab-1--045)
-  - [Self-service analytics · 1:40](#self-service-analytics--140)
-  - [Lab 2 · 2:00](#lab-2--200)
-  - [Genie Code · 2:55](#genie-code--255)
-  - [Quiz and close · 3:10](#quiz-and-close--310)
+  - [Self-service analytics · 1:20](#self-service-analytics--120)
+  - [Lab 2 · 1:40](#lab-2--140)
+  - [Genie Code · 2:35](#genie-code--235)
+  - [Quiz and close · 2:50](#quiz-and-close--250)
 
 # Part 1. The workshop at a glance
 
@@ -58,16 +58,16 @@ This document walks through the whole workshop, from setting up the workspace to
 
 | | |
 |---|---|
-| **Length** | 3 hours 35 minutes |
+| **Length** | 3 hours 15 minutes |
 | **Who** | SMBC APAC data analysts and data engineers (headcount TBC) |
-| **Format** | Short demos, two 40-minute hands-on labs, a Genie Code segment, and a quiz |
+| **Format** | Short demos, two hands-on labs (20 and 40 minutes), a Genie Code segment, and a quiz |
 | **Where people work** | A dedicated workshop workspace (Azure Databricks) with serverless compute |
 | **Data** | A synthetic SMBC APAC corporate lending book, with fictional borrowers |
-| **What people take away** | A pipeline, a dashboard and a Genie Agent they built themselves, plus a learning path |
+| **What people take away** | A pipeline they fixed and scheduled, a dashboard and a Genie Agent they built themselves, and a learning path |
 
 **By the end of the session, each participant can:**
 
-- build a data-preparation pipeline visually in **Lakeflow Designer**, use **Genie Code** to generate steps from plain English, and schedule it with **Lakeflow Jobs**;
+- finish a data-preparation pipeline in **Lakeflow Designer**: find and fix the data-quality problems in its sources, and schedule it with **Lakeflow Jobs**;
 - build an **AI/BI dashboard** and a **Genie Agent**, teach it business rules such as the April-to-March fiscal year, and test whether it answers correctly;
 - use **Genie Code** to explore data, generate SQL and Python, explain legacy code, and stay in control of what it runs;
 - explain how **Unity Catalog** governs all of it: lineage, data-quality checks, and row-level security.
@@ -84,14 +84,14 @@ Times are relative to the start time.
 | 0:00 | 10 min | **Welcome and environment check** | Run the one-line check-in query; a one-question poll |
 | 0:10 | 15 min | **Executive briefing** | Opening by Richard Lowe (APAC CDAO) and Peter Butsch (Head of Emerging Enterprises & Digital Natives, Databricks) |
 | 0:25 | 20 min | **Data engineering: Lakeflow** | Low-code ETL with Lakeflow Designer and Lakeflow Jobs, and AI-assisted pipeline creation (mostly live demo) |
-| 0:45 | 40 min | **Lab 1** | Build the trusted exposure table |
-| 1:25 | 15 min | Break | |
-| 1:40 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One |
-| 2:00 | 40 min | **Lab 2** | Build a Credit Committee dashboard and a Genie Agent |
-| 2:40 | 15 min | Break | |
-| 2:55 | 15 min | **AI-assisted development** | Genie Code: explore data, generate SQL and Python, explain results, and iterate safely |
-| 3:10 | 15 min | **Quiz** | On phones, with Databricks swag for the winners |
-| 3:25 | 10 min | **Next steps and resources** | Learning materials and upcoming events |
+| 0:45 | 20 min | **Lab 1** | Build the trusted exposure table |
+| 1:05 | 15 min | Break | |
+| 1:20 | 20 min | **Self-service analytics** | AI/BI dashboards, Genie Agents, and Genie One |
+| 1:40 | 40 min | **Lab 2** | Build a Credit Committee dashboard and a Genie Agent |
+| 2:20 | 15 min | Break | |
+| 2:35 | 15 min | **AI-assisted development** | Genie Code: explore data, generate SQL and Python, explain results, and iterate safely |
+| 2:50 | 15 min | **Quiz** | On phones, with Databricks swag for the winners |
+| 3:05 | 10 min | **Next steps and resources** | Learning materials and upcoming events |
 
 **Two logistics suggestions:**
 - Open the doors 30 minutes early with a helper desk for login problems, so the 10-minute check-in slot only confirms everyone is in.
@@ -105,7 +105,7 @@ Times are relative to the start time.
 | Asset | What it is | Its part in the story |
 |---|---|---|
 | Volume `smbc_workshop.raw.landing` | The four system extracts and the limits spreadsheet as the source systems deliver them, plus an optional ESG file | Monday morning's inbox |
-| Schemas `bronze`, `silver` and `gold` | The extracts as tables; the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The trusted tables: Lab 1's reference answer, and the source for everything below |
+| Schemas `bronze`, `silver` and `gold` | The extracts as tables, and `bronze.exposure_staging`: the extracts joined and converted, but not yet checked. Then the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The staging table is where Lab 1 starts. The trusted tables are Lab 1's reference answer, and the source for everything below |
 | Dashboard **Credit Committee: APAC exposure (reference)** | Total exposure, the groups above 80% and 90% of their limits, the top 10 groups, the monthly trend, exposure by country, the five largest groups' utilisation, a watchlist and trade-finance arrears | The Monday report, on one page |
 | Genie Agent **Credit Risk (reference)** | Plain-language questions over the gold tables, with the bank's definitions and fiscal-year rules, example SQL and benchmark questions | The questions nobody has asked yet |
 | Genie Agent **Credit Risk (secured demo)** | The same data behind a Unity Catalog row filter and column mask | Proof that permissions follow the data into AI answers |
@@ -166,14 +166,14 @@ Times are relative to the start time.
 | 0:00 | **Welcome and check-in** (10) | Welcome slide, then the progress board | Host welcomes; everyone runs the check-in line; the poll runs (*"What do you use most today?"*). Anyone not checked in by 0:05 gets a helper. | 0:10, or 90% checked in |
 | 0:10 | **Executive briefing** (15) | Briefing slides | Richard 5 min, Peter 5 min, fireside 5 min (section 2.7). Richard asks *the CDAO's question*. | 0:25, hard stop |
 | 0:25 | **Lakeflow** (20) | At most 8 min of slides, then live Designer | The demo: drag `group_limits.xlsx` onto the canvas → one Genie Code prompt → preview → open the generated code | 0:45 |
-| 0:45 | **Lab 1** (40) | *Lab 1 at a glance*, then the progress board | Pairs, engineer driving. **0:55:** most pairs have their sources in (step 2). **1:10:** the core path should be done; call "stretch or catch up". **1:15:** anyone not past step 5 switches to the gold reference tables. **1:22:** facilitator close (lineage, and the USD 366.9m reveal). | 1:25 |
-| 1:25 | Break (15) | Progress board, "back at" slide | Helpers sort out anyone stuck | 1:40 |
-| 1:40 | **Self-service analytics** (20) | Slides, then live | The demo: reference dashboard → Genie One as the Consumer-access user → a question in English, then in Japanese → open the SQL | 2:00 |
-| 2:00 | **Lab 2** (40) | *Lab 2 at a glance*, then the progress board | **2:10:** dashboards published. **2:15:** Genie Agents created. **2:24:** the fiscal-year test done. **2:25:** answers submitted (the board shows them). **2:25–2:35:** stretch; Stump the Genie entries go to a facilitator. **2:35:** governance moment, facilitator and a volunteer (3 min). **2:38:** the fiscal-year debrief slide. | 2:40 |
-| 2:40 | Break (15) | Progress board | Shortlist 2–3 dashboards for the *Best dashboard* vote; pick *Best Stump the Genie* | 2:55 |
-| 2:55 | **Genie Code** (15) | Live notebook | Explore → generate (the FX split) → explain and convert the legacy procedure → the safety beat | 3:10 |
-| 3:10 | **Quiz** (15) | Slido quiz | 12 questions; after each one, say its teaching point (section 2.11). Richard awards: quiz top three, *Best Stump the Genie*, *First to finish Lab 1* (the progress board's "First to finish" table), *Best dashboard* (Slido vote). | 3:25 |
-| 3:25 | **Next steps** (10) | Closing slides | What you found today; resources; the 30-day Genie Agent challenge; the feedback survey, which is the raffle ticket | 3:35 |
+| 0:45 | **Lab 1** (20) | *Lab 1 at a glance*, then the progress board | Pairs, engineer driving. **0:49:** every pair has `bronze.exposure_staging` on the canvas (step 1). **0:56:** Unique and Guardrails are in (step 2). **1:01:** rolled up, published and scheduled; anyone who hasn't finished moves on, and Lab 2 uses the gold reference tables. **1:02:** facilitator close (lineage, and the USD 366.9m reveal). | 1:05 |
+| 1:05 | Break (15) | Progress board, "back at" slide | Helpers sort out anyone stuck | 1:20 |
+| 1:20 | **Self-service analytics** (20) | Slides, then live | The demo: reference dashboard → Genie One as the Consumer-access user → a question in English, then in Japanese → open the SQL | 1:40 |
+| 1:40 | **Lab 2** (40) | *Lab 2 at a glance*, then the progress board | **1:50:** dashboards published. **1:55:** Genie Agents created. **2:04:** the fiscal-year test done. **2:05:** answers submitted (the board shows them). **2:05–2:15:** stretch; Stump the Genie entries go to a facilitator. **2:15:** governance moment, facilitator and a volunteer (3 min). **2:18:** the fiscal-year debrief slide. | 2:20 |
+| 2:20 | Break (15) | Progress board | Shortlist 2–3 dashboards for the *Best dashboard* vote; pick *Best Stump the Genie* | 2:35 |
+| 2:35 | **Genie Code** (15) | Live notebook | Explore → generate (the FX split) → explain and convert the legacy procedure → the safety beat | 2:50 |
+| 2:50 | **Quiz** (15) | Slido quiz | 12 questions; after each one, say its teaching point (section 2.11). Richard awards: quiz top three, *Best Stump the Genie*, *First to finish Lab 1* (the progress board's "First to finish" table), *Best dashboard* (Slido vote). | 3:05 |
+| 3:05 | **Next steps** (10) | Closing slides | What you found today; resources; the 30-day Genie Agent challenge; the feedback survey, which is the raffle ticket | 3:15 |
 
 If the organisers swap the last two slots (guide §2), the prizes close the session and the raffle draw comes straight after the survey.
 
@@ -183,11 +183,11 @@ If the organisers swap the last two slots (guide §2), the prizes close the sess
 |---|---|
 | SSO or the proxy blocks a few laptops | Pair them with a neighbour; the check-in desk escalates to SMBC IT |
 | Nobody can reach the workspace | Present from the Databricks test workspace; people follow on the projector in pairs; play the recordings |
-| Designer's Genie Code prompts don't respond | Build the step by hand from the actions in Lab 1, step 4, and check cross-Geo processing (guide §3.2) |
+| Designer's Genie Code prompts don't respond | In the Lakeflow demo, build the Prepare step by hand from the formulas in guide A.2, and check cross-Geo processing (guide §3.2) |
 | Genie Agents error or are slow | Lab 2 carries on with the dashboard, Genie in pairs; check cross-Geo processing and partner-powered AI (`07_check_requirements` tests both) |
 | Queries queue on the warehouse | Raise its maximum clusters in SQL Warehouses, or ask its owner to |
 | The daily data job's 06:00 run failed (you get an email) | Open the run to see which task failed. If it's `generate_data`, the tables weren't touched. Otherwise fix the cause and click **Run now**, or run `00_master_setup` again; `07_check_requirements` confirms the tables |
-| Lab 1 overruns | At 1:15 move everyone to the gold reference tables; Lab 2 doesn't depend on Lab 1 |
+| Lab 1 overruns | At 1:01 move everyone on; Lab 2 uses the gold reference tables, so it doesn't depend on Lab 1 |
 | AI output differs from the rehearsal | Say so: it's why you check the SQL. Show the recording if the difference matters |
 | Slido is blocked on the SMBC network | Phones on mobile data; or read the questions from `quiz.md` and take answers by show of hands |
 
@@ -208,7 +208,8 @@ The set-up steps for the Databricks test workspace are in the run of show in the
 
 | Area | What to check |
 |---|---|
-| Lab 1 | Core path per pair (target 25 min). Every Designer step: Source browse, Unique (2,370 → 2,325), the Genie Code prompt for Prepare, Guardrails (21 failed), Join outputs (Left unmatched), Aggregate, Output, Schedule. Excel drag-and-drop. Version history and Generated code. |
+| Lakeflow demo | Excel drag-and-drop onto the canvas, and the demo's Genie Code prompt. The canvas prompt failed in Lab 1 testing on 27 Oct, so have a fallback ready |
+| Lab 1 | Core path per pair (target 15 min). Each operator's row counts against section 8: the Source on `bronze.exposure_staging`, Unique, Guardrails with its Not null check, the quarantine Output, and the Aggregate with its output names. Then Run all, Schedule, Generated code and version history |
 | Lab 2 | The Genie Code chart prompt, Genie Agent creation and its suggested descriptions, the fiscal-year test, Agent mode, Export to metric view |
 | Genie One | Homepage pinning and welcome message; chat; the business-user view (needs a user with Consumer access only) |
 | Genie Code | The A.8 prompts; the approval setting; *"don't run any code"*; revision history |
@@ -228,7 +229,7 @@ Agree these two days before the workshop. Fifteen minutes in three parts.
 - **Fireside (5 min), two prepared questions:**
   - *"What does good look like by FY-end, March 2027?"*
   - *"Where should AI help, and where must a human stay in the loop?"* This sets up the governance thread for the day.
-- Ask Richard to come back at **3:10** to award the prizes.
+- Ask Richard to come back at **2:50** to award the prizes.
 - Expect questions about where the AI features process data. Answer from guide §3.9; don't improvise.
 
 ## 2.8 Helper briefing (print one per helper)
@@ -237,18 +238,20 @@ Agree these two days before the workshop. Fifteen minutes in three parts.
 
 | Check | Expected |
 |---|---|
-| Customer master after Unique (Lab 1, step 3) | 2,325 rows, from 2,370 |
-| Guardrails failed rows (step 5) | 21 |
-| Facilities with no customer record (Left unmatched, step 7) | 15 |
-| Balances after Unique (step 6) | 74,757 rows, from 74,799 |
-| FX join Left unmatched (step 7) | Empty |
+| The Source, `bronze.exposure_staging` (Lab 1, step 1) | 76,166 rows; USD 28,287.1m at 30 Sep 2026 |
+| After Unique (step 2) | 74,757 rows. It removes 1,409: 42 from the re-sent Bangkok extract, and 1,367 copies from 45 duplicate customer records. USD 27,459.0m |
+| Guardrails (step 2) | 474 failed rows from 36 facilities: 12 with a negative commitment, 9 that mature before they start, and 15 with no customer record. 74,283 passed |
+| Aggregate (step 3) | 7,174 rows, one per group and month |
 | Total exposure at 30 Sep 2026 (checkpoint query) | USD 27,239.8m |
 | Lab 2 checkpoint answer | Orchid Group, 94.0% at 30 Sep 2026 |
 
+These counts assume **Preview → All rows**. With the default 1,000-row preview, attendees see only 1,000 rows from the Source.
+
 **The usual problems** (guide Appendix B has the full list):
-- **Total too high:** duplicates weren't removed (step 3, or the Bangkok re-send in step 6).
-- **Total too low:** only one date format was parsed, or `US$`, `S$` or `RMB` wasn't mapped. Look at the join's Left unmatched output.
-- **Months missing after the FX join:** joined on the exact date; join on currency and month.
+- **Counts don't match the workbook:** Preview isn't set to **All rows** (step 1).
+- **Unique leaves 74,799 rows:** it's set to **All columns**. The re-sent rows differ in `extract_ts`, so Unique needs `facility_id` and `as_of_date`, ordered by `extract_ts` descending.
+- **Total too high:** the Aggregate isn't reading Guardrails' **Passed** output, or the Unique is set up wrongly.
+- **Total far too low:** the Aggregate reads Guardrails' **Failed** output.
 - **Permission error on Output:** the output location isn't the person's own schema.
 - **Permission error at check-in:** the person doesn't have access to `smbc_workshop` yet (guide §3.6); tell the lab lead.
 - **Genie reads FY2026 as a calendar year:** that's the point of step 4; add the fiscal-year instruction (A.4).
@@ -407,10 +410,10 @@ Set these up **the day before the workshop**: polls and Q&A in Slido, and the su
 |---|---|---|---|
 | 0:00, while people sign in | Poll, results shown live | What do you use most today? | Excel · SQL · Python · Power BI · ADF or Synapse · Something else |
 | All day | Q&A ("parking lot") | Questions that are off the current topic | Answer them in the recap email |
-| 2:55, before Genie Code | Open text | What's one question you wish you could ask your data? | Free text. The answers seed the 30-day Genie Agent challenge |
-| 3:10, during the quiz | Vote | Best dashboard | The 2–3 dashboards shortlisted during the second break (use screenshots) |
+| 2:35, before Genie Code | Open text | What's one question you wish you could ask your data? | Free text. The answers seed the 30-day Genie Agent challenge |
+| 2:50, during the quiz | Vote | Best dashboard | The 2–3 dashboards shortlisted during the second break (use screenshots) |
 
-### Feedback survey (3:25; it's also the raffle ticket)
+### Feedback survey (3:05; it's also the raffle ticket)
 
 1. Overall, how useful was today? *(1–5)*
 2. Which part was most useful? *(Lakeflow Designer and Jobs · AI/BI dashboards · Genie Agents and Genie One · Genie Code · Unity Catalog and governance)*
@@ -533,57 +536,40 @@ The reference solution to Lab 1, in the medallion layout. Anyone can use the gol
 | `gold.group_exposure` | Counterparty group × month | Exposure, limit and `utilisation_pct` per group |
 | `gold.facility_exposure` | Facility × month | Exposure with borrower, country, sector, branch, product, currency and days past due |
 | `silver.*`, including `silver.quarantine_facilities` | Cleaned inputs, and the rows held back with a reason | For comparing with your own Lab 1 output |
+| `bronze.exposure_staging` | Balance × facility × customer, duplicates included | The extracts joined and converted to USD and JPY, before any data-quality checks: where Lab 1 starts |
 | `bronze.*` | The extracts as delivered, as tables | Where the cleaning starts |
 
 
 ## 2. Lab 1: Build the trusted exposure table
 
-**Goal:** turn the raw extracts into `gold_group_exposure`, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.
-**Time:** 40 minutes, made up of a 25-minute core path and 15 minutes of stretch exercises.
-**Tools:** Lakeflow Designer, Genie Code, Lakeflow Jobs, Unity Catalog.
+**Goal:** turn the raw extracts into `gold_group_exposure`, a table the Credit Committee can trust. You remove the duplicates, quarantine the bad rows, roll up to each counterparty group, and publish the result as a daily job, with every step visible as code and as lineage.
+**Time:** 20 minutes: a 15-minute core path, then a 3-minute facilitator close.
+**Tools:** Lakeflow Designer, Lakeflow Jobs, Unity Catalog.
 
 > **Short on time?** Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result. Work in pairs, ideally one analyst and one engineer, with the engineer driving.
 
 ### Core path
 
-**0. Find your schema (1 min).** Your check-in created it and showed its name: the part of your email address before the @, for example `jane_tan`. Find it in **Catalog Explorer** → `smbc_workshop`. Not there? Run the check-in block (A.1) again.
+You start from `smbc_workshop.bronze.exposure_staging`, which the workshop's daily job builds from the extracts every morning. It joins the balances to their facilities, customers and FX rates. It cleans the currency codes and both date formats, and converts to USD and JPY. Nobody has checked it, though. The problems in the source-system owners' notes are still in it, so its total is too high. Making it trustworthy is your job.
 
-**1. Start a visual data prep (1 min).** Click **+ New → Visual data prep**. Rename the tab to `Monday exposure report`. In the compute picker at the top right, choose **Serverless**.
+**1. Start and bring in the data (3 min).**
+- Click **+ New → Visual data prep**. Rename the tab to `Monday exposure report`. In the compute picker at the top right, choose **Serverless**.
+- In the canvas toolbar, open **Preview** and select **All rows**. By default, previews process only the first 1,000 rows, and the row counts in this lab are for all rows.
+- Add a **Source** operator → **Browse existing** → `smbc_workshop` → `bronze` → **`exposure_staging`**. The preview shows 76,166 rows: one for each balance, with its facility, customer, group, and exposure in USD and JPY.
 
-**2. Bring in the sources (4 min).** Add a **Source** operator → **Browse existing** → `smbc_workshop` → `raw` → `landing` → select the **`counterparties`** folder. Designer reads every file in a folder into one table. Do the same for `facilities`, `monthly_balances` and `fx_rates`. For the limits, drag `group_limits.xlsx` onto the canvas (download it from the landing volume first), or browse to the `group_limits` folder. Click each Source and look at the preview: can you see two date formats in `monthly_balances`?
+**2. Fix the data quality (7 min).** Add these two operators, the first after the Source and the second after the first:
 
-**3. De-duplicate the customer master (1 min).** After `counterparties`, add **Unique** with **Unique by: All columns**. Row count: 2,370 → 2,325.
+| Add | Settings | Check |
+|---|---|---|
+| **Unique** | **Unique by: Selected columns** `facility_id` and `as_of_date`, and **Order by** `extract_ts` descending, so that the latest copy of each row is kept | 76,166 → 74,757 rows: one for each facility and month end. This removes Bangkok's re-sent extract and the extra rows from duplicate customer records |
+| **Guardrails** | **Expression** checks `committed_amount > 0` and `maturity_date >= start_date` (not **Value range**, which includes 0), and a **Not null** check on `parent_group_id`. **When a check fails:** **Warn and continue with passed rows**. Connect **Failed** to an **Output** that writes the table `quarantine_facilities` to your schema | 474 failed rows, from 36 facilities: 12 with a negative commitment, 9 that mature before they start, and 15 whose customer isn't in the master yet. The **Errors** output lists the checks that failed. That's your data-quality evidence |
 
-**4. Clean the facilities with Genie Code (4 min).** Select the `facilities` Source and type this into the Genie Code prompt on the canvas:
-> *Add a Prepare step that trims and upper-cases `currency`, maps `US$` to `USD`, `S$` to `SGD` and `RMB` to `CNY`, and parses `start_date` and `maturity_date` whether they're written YYYY-MM-DD or DD/MM/YYYY.*
-
-Open the operator it adds and read its actions. Then open **Table of contents** in the left panel, select the operator, and expand **Generated code**. Every visual step is real code you can review and version.
-
-**5. Quarantine bad rows with Guardrails (4 min).** Add **Guardrails** after the Prepare step, with these checks:
-- **Value range:** `committed_amount` greater than 0
-- **Expression:** `maturity_date >= start_date`
-- **Not null:** `start_date`, `maturity_date`
-
-Set **When a check fails** to **Warn and continue with passed rows**. Connect **Failed** to an **Output** that writes the table `quarantine_facilities` to your schema. You should see 21 failed rows. Each one has a reason, and that's your data-quality evidence.
-
-**6. Fix the balances and FX dates (3 min).**
-- On `monthly_balances`, add a **Prepare** step with two **Formula** actions. Describe them in plain English: *"`as_of_date` as a date, whether written YYYY-MM-DD or DD/MM/YYYY"* and *"`month` = first day of the month of `as_of_date`"*.
-- Then add **Unique** → **Selected columns** `facility_id`, `as_of_date` → **Order by** `extract_ts` descending. Rows: 74,799 → 74,757.
-- On `fx_rates`, add a Formula: *"`rate_month` = first day of the month of `rate_date`"*.
-
-**7. Join and convert with Genie Code (4 min).** Prompt:
-> *Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties. Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate and exposure_jpy = drawn_amount × jpy_rate.*
-
-Check the Join outputs:
-- **Left unmatched** on the facilities-to-counterparties join shows the facilities whose customer isn't in the master yet (send them to a second quarantine Output if you like).
-- **Left unmatched** on the FX join should be empty. If it shows `US$`, `S$` or `RMB`, step 4 missed a mapping.
-
-**8. Roll up to the group and compare with limits (3 min).**
-- Add **Aggregate**: group by `as_of_date`, `parent_group_id`; **SUM** of `exposure_usd` and `exposure_jpy`.
-- Add **Join** with the limits on `parent_group_id` = `group_id`.
-- Add a **Prepare** Formula: *"`utilisation_pct` = 100 × exposure_usd ÷ group_limit_usd"*.
-
-**9. Write and schedule (2 min).** Add an **Output**: **Table** `gold_group_exposure` in your schema, **Write mode: Overwrite**, then **Run**. Click **Schedule** to run it daily at 07:00 Singapore time.
+**3. Roll up and publish (5 min).**
+- After Guardrails' **Passed** output, add **Aggregate**. **Group by** `as_of_date`, `parent_group_id` and `group_name`. Under **Aggregate by**, add the **SUM** of `exposure_usd`, named `exposure_usd`, and the **SUM** of `exposure_jpy`, named `exposure_jpy`. That gives 7,174 rows, one per group and month.
+- After the Aggregate, add an **Output**: **Table** `gold_group_exposure` in your schema (the one your check-in created), **Write mode: Overwrite**.
+- Click **Run all** in the canvas toolbar. It runs every operator on all rows and writes both of your Outputs.
+- Click **Schedule** in the header and set the visual data prep to run every day at 07:00, Singapore time, on Serverless compute.
+- Open **Table of contents** in the left panel, select an operator, and expand **Generated code**. Every visual step is real code you can review and version.
 
 ✅ **Checkpoint:** your row on the progress board turns green. To check your result against the reference, run both queries (notebook *01* in the Labs folder works out your schema for you); the two totals should be identical:
 
@@ -597,6 +583,8 @@ FROM smbc_workshop.gold.group_exposure WHERE as_of_date = '2026-09-30';
 
 ### Stretch (pick any)
 
+- **Compare with limits:** add a **Join** with `smbc_workshop.silver.group_limits` on `parent_group_id` = `group_id`. Then add a **Prepare** step with a **Formula** action that creates `utilisation_pct`: `ROUND(100 * exposure_usd / group_limit_usd, 2)`.
+- **Start from the raw files:** build the staging step yourself, from the extracts in `smbc_workshop.raw.landing`. A.2 has the formulas and join conditions.
 - **Version and diff:** open the version history (right pane) to see a visual diff of your changes. Then commit the visual data prep to a Git folder.
 - **Engineer's path:** rebuild the facility cleaning in the **Lakeflow Pipelines Editor** with Genie Code, using expectations (`CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW`). Compare the data-quality metrics with your Guardrails output.
 - **Alerting:** add a task that checks *"any group above 90% utilisation?"* and sends a notification when it's true.
@@ -700,18 +688,33 @@ END
 INSERT INTO smbc_workshop.ops.lab_answers SELECT current_user(), 'lab2', '<group name>', current_timestamp();
 ```
 
-### A.2 Genie Code prompts for Lab 1 (Designer)
+### A.2 Lab 1 settings (Designer)
 
-```text
-Add a Prepare step that trims and upper-cases currency, maps US$ to USD, S$ to SGD and RMB to CNY, and parses
-start_date and maturity_date whether they're written YYYY-MM-DD or DD/MM/YYYY.
+**The Unique (step 2):** **Selected columns** `facility_id` and `as_of_date`, with **Order by** `extract_ts` descending.
+
+**The Guardrails checks (step 2).** Paste each of these into an **Expression** check, then add a **Not null** check on `parent_group_id`:
+
+```sql
+committed_amount > 0
 ```
 
-```text
-Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties.
-Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate
-and exposure_jpy = drawn_amount × jpy_rate.
+```sql
+maturity_date >= start_date
 ```
+
+**The Aggregate (step 3):** **Group by** `as_of_date`, `parent_group_id` and `group_name`, with the **SUM** of `exposure_usd` named `exposure_usd` and the **SUM** of `exposure_jpy` named `exposure_jpy`.
+
+**For the stretch exercises:**
+
+| Stretch | Operator | Expression or condition |
+|---|---|---|
+| Compare with limits | Join with `smbc_workshop.silver.group_limits` | `parent_group_id` = `group_id` |
+| Compare with limits | Prepare, Formula for a new column `utilisation_pct` | `ROUND(100 * exposure_usd / group_limit_usd, 2)` |
+| Start from the raw files | Prepare after `facilities`, Formula for `currency` | `CASE upper(trim(currency)) WHEN 'US$' THEN 'USD' WHEN 'S$' THEN 'SGD' WHEN 'RMB' THEN 'CNY' ELSE upper(trim(currency)) END` |
+| Start from the raw files | Prepare after `facilities` for `start_date` and `maturity_date`, and after `monthly_balances` for `as_of_date` | `coalesce(to_date(try_to_timestamp(start_date, 'yyyy-MM-dd')), to_date(try_to_timestamp(start_date, 'dd/MM/yyyy')))`, with each date column in place of `start_date` |
+| Start from the raw files | Prepare after `monthly_balances`, Formula for a new column `month`; and after `fx_rates`, one for `rate_month` | `trunc(as_of_date, 'MM')` and `trunc(CAST(rate_date AS DATE), 'MM')`. FX rates are dated on the last business day of the month |
+| Start from the raw files | Joins | Facilities to `counterparties` on `counterparty_id`; balances to facilities on `facility_id`; `fx_rates` on `currency` = `currency_code` and `month` = `rate_month` |
+| Start from the raw files | Prepare after the FX join | `exposure_usd` = `drawn_amount * usd_rate` and `exposure_jpy` = `drawn_amount * jpy_rate` |
 
 ### A.3 Genie Agent starter instructions
 
@@ -846,13 +849,13 @@ END
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
-| Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
+| Genie Code prompts, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
 | The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
-| Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
-| Your total is higher than the checkpoint | Duplicates not removed (customer master or the re-sent Bangkok extract) | Lab 1, steps 3 and 6 |
-| Your total is much lower than the checkpoint | Only one date format parsed, or currency codes not mapped | Lab 1, steps 4 and 6; check the join's **Left unmatched** output |
-| Dragging the `.xlsx` onto the canvas fails | Excel file support not enabled, or downloads blocked | Use **Source → Browse existing →** `group_limits` folder instead |
+| Row counts don't match the lab, for example the Source shows 1,000 rows instead of 76,166 | The preview processes only the first 1,000 rows | In the canvas toolbar, set **Preview** to **All rows** (Lab 1, step 1) |
+| Unique leaves more than 74,757 rows | It's set to **All columns**, or to other columns: rows from the re-sent extract differ in `extract_ts` | **Selected columns** `facility_id` and `as_of_date`, ordered by `extract_ts` descending (Lab 1, step 2) |
+| Your total is higher than the checkpoint | The Aggregate doesn't read Guardrails' **Passed** output, or the Unique isn't set up as in step 2 | Connect the Aggregate to **Passed**, and check the Unique (Lab 1, steps 2 and 3) |
+| Your total is much lower than the checkpoint | The Aggregate reads Guardrails' **Failed** output | Connect it to **Passed** (Lab 1, step 3) |
 | Genie picks the wrong dates for "Q1 FY2026", "FY2025" or "FY2026 H1" | It assumed a calendar year (it does this inconsistently) | Add the fiscal-year instruction (A.4) |
 | Genie's arrears "share" is much higher than the dashboard's | It counted facilities instead of weighting by exposure | Add an instruction that shares are by exposure (see Stump the Genie) |
 | A question in Japanese gets an English answer | Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese. | Add Japanese metadata or instructions if needed |
@@ -950,7 +953,7 @@ The setup notebook creates these objects. Creating a catalog needs the `CREATE C
 | Catalog `smbc_workshop` | Everything below, tagged `synthetic_data = true` (the tag is skipped if a governed tag policy rejects it) | `USE CATALOG`, and `CREATE SCHEMA` for their own schema |
 | Volume `smbc_workshop.raw.landing` | Raw source extracts and the limits spreadsheet | `READ VOLUME` |
 | Volume `smbc_workshop.raw.facilitator` | Answer key | Nothing |
-| Schemas `smbc_workshop.bronze`, `silver` and `gold` | The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses | `USE SCHEMA`, `SELECT` |
+| Schemas `smbc_workshop.bronze`, `silver` and `gold` | The reference tables (the Lab 1 solution): the extracts as tables, cleaned tables, and the gold tables Lab 2 uses; and `bronze.exposure_staging`, where Lab 1 starts | `USE SCHEMA`, `SELECT` |
 | Schema `smbc_workshop.ops` | Check-in and lab-answer tables | `USE SCHEMA`, `MODIFY` |
 | One schema per attendee, e.g. `smbc_workshop.jane_tan` | Each person's Lab 1 output; their check-in block creates it | They own it |
 
@@ -1030,7 +1033,7 @@ You can also run the notebooks one at a time, in this order; for example, to rep
 |---|---|---|---|
 | 1 | *(Optional, local)* `python data/generate_data.py --out data/output`, then `python data/validate_data.py --data data/output` (needs pandas) | Facilitator | 1 min |
 | 2 | `setup/01_setup_workspace`: creates the catalog, schemas, volumes and ops tables, generates the data into the landing volume, and gives the facilitators `ALL PRIVILEGES` and `MANAGE` on the catalog | Facilitator who can create the catalog | 3 min |
-| 3 | `setup/02_build_bronze_silver_gold` (SQL): builds the reference tables in the `bronze`, `silver` and `gold` schemas | Facilitator | 2 min |
+| 3 | `setup/02_build_bronze_silver_gold` (SQL): builds the reference tables in the `bronze`, `silver` and `gold` schemas, and `bronze.exposure_staging`, where Lab 1 starts | Facilitator | 2 min |
 | 4 | `setup/03_validate_bronze_silver_gold`: compares those tables with the answer key; every row must say PASS | Facilitator | 1 min |
 | 5 | `setup/05_governance_demo`: row-filter and column-mask demo table | Facilitator | 2 min |
 | 6 | `setup/06_deploy_dashboards_and_agents`: picks the SQL warehouse (3.4); tests and publishes the **reference dashboard** and the **progress board**; creates the **reference** and **secured demo** Genie Agents; copies the attendee notebooks in `labs/` into a **Labs** folder; and shares all of them with everyone in the workspace. It also creates the job **SMBC Workshop: daily data refresh**, which regenerates the data and rebuilds and validates the reference tables every day at 06:00 Singapore time | Facilitator | 5 min |
@@ -1099,8 +1102,8 @@ Send **two days before the workshop**:
 
 *0:02 · 1 min*
 
-- Two short intros, each followed by a 40-minute hands-on lab, then a Genie Code segment you can follow along with, and a quiz on phones.
-- Each lab has a 25-minute core path and 15 minutes of stretch exercises, so nobody waits and nobody gets left behind.
+- Two short intros, each followed by a hands-on lab (20 and 40 minutes), then a Genie Code segment you can follow along with, and a quiz on phones.
+- Lab 1 starts from a staging table and takes 15 minutes. Lab 2 has a 25-minute core path and 15 minutes of stretch exercises, so nobody waits and nobody gets left behind.
 - The reference tables in bronze, silver and gold mean nobody gets stuck: if Lab 1 runs long, Lab 2 still works.
 - Times are relative to the start time.
 
@@ -1170,141 +1173,120 @@ Click path:
 1. \+ New → Visual data prep. Rename it "Monday exposure report" and pick Serverless in the compute picker.
 2. Drag group_limits.xlsx (downloaded from the landing volume beforehand) onto the canvas: Designer turns it into a Source operator. Show the preview.
 3. Add Source → Browse existing → smbc_workshop → raw → landing → facilities.
-4. Select it and type the prompt on the slide (also in the workbook, A.2). Open the Prepare operator it adds and read its actions aloud.
+4. Select it and type the prompt on the slide. Open the Prepare operator it adds and read its actions aloud.
 5. Table of contents → select the operator → expand Generated code.
 
 Fallbacks:
 
 - Excel drag fails: Source → Browse existing → the group_limits folder.
-- Genie Code prompts unavailable: partner-powered AI features or cross-Geo processing are off (guide Appendix B). Add a Prepare operator by hand and show the dry-run screenshots.
+- The prompt fails, or Genie Code prompts are unavailable (partner-powered AI features or cross-Geo processing are off, guide Appendix B). In the 27 Oct test, this prompt failed. Add a Prepare operator by hand with the formulas in workbook A.2, and show the dry-run screenshots.
 - The AI output differs from the rehearsal: use it. That's why a person reviews every step.
 
 ## Lab 1 · 0:45
 
 ### Slide 12: Lab 1: Build the trusted exposure table
 
-*0:45 · 40 min*
+*0:45 · 1 min*
 
-- Goal: turn the raw extracts into gold_group_exposure, a table the Credit Committee can trust, with bad rows quarantined, duplicates removed, and every step visible as code and as lineage.
+- Goal: turn the raw extracts into gold_group_exposure, a table the Credit Committee can trust. Attendees remove the duplicates, quarantine the bad rows, roll up to each counterparty group, and publish the result as a daily job.
+- They start from bronze.exposure_staging. The workshop's daily job has already joined the extracts and converted them to USD and JPY, but nobody has checked the result.
 - Nothing in Lab 2 depends on finishing Lab 1: the gold reference tables have the same result.
-- The full steps are in the lab workbook PDF and in the Labs folder in the workspace: notebook 01 is Lab 1.
-- Helpers: watch for red cards, and for anyone who hasn't added a Source after five minutes.
+- The full steps are in the lab workbook PDF and in notebook 01 in the Labs folder.
+- Helpers: watch for red cards, and for anyone without a Source on the canvas after three minutes.
 
 ### Slide 13: Lab 1 at a glance
 
 *Leave on screen during the lab*
 
-Core path, about 25 minutes: 0 find your schema (1 min) · 1 start a visual data prep (1) · 2 bring in the sources (4) · 3 de-duplicate the customer master (1) · 4 clean the facilities with Genie Code (4) · 5 quarantine bad rows with Guardrails (4) · 6 fix the balances and FX dates (3) · 7 join and convert (4) · 8 roll up to the group and compare with limits (3) · 9 write and schedule (2).
+Core path, 15 minutes: 1 bring in the data (3 min) · 2 fix the data quality (7) · 3 roll up and publish (5).
+
+Total exposure at 30 Sep 2026, in USD m: 28,287.1 in the staging table → 27,459.0 after Unique → 27,239.8 after Guardrails, which is the checkpoint figure.
 
 Helpers, watch for:
 
-- Can't see the landing volume: a missing READ VOLUME grant. Tell a facilitator.
-- Output fails with a permission error: writing outside your own schema. Set the output location to smbc_workshop.\<your_schema\>.
-- Months disappear after the FX join: joined on the exact date, but FX is dated on the last business day. Join on currency and month.
-- The .xlsx won't drag in: use Source → Browse existing → the group_limits folder.
-- Genie Code prompts unavailable: partner-powered AI features or cross-Geo processing. Tell a facilitator.
+- Counts don't match the workbook: Preview isn't set to All rows.
+- Unique leaves 74,799 rows: it's set to All columns. The re-sent rows differ in extract_ts, so it needs facility_id and as_of_date.
+- Total too high: the Aggregate isn't reading Guardrails' Passed output.
+- Total far too low: the Aggregate is reading the Failed output.
+- Output fails with a permission error: writing outside their own schema. Set the output location to smbc_workshop.\<your_schema\>.
+- Can't see the bronze schema: a missing grant. Tell a facilitator.
 
-### Slide 14: Lab 1 · Steps 0–2: start and bring in the sources
+### Slide 14: Lab 1 · Step 1: bring in the data
 
-*0:46 · 6 min*
+*0:46 · 3 min*
 
-- Designer reads every file in a folder into one table.
-- The Excel file has to be downloaded from the landing volume before it can be dragged in. Browsing to the group_limits folder is the fallback.
-- The two date formats are the 03/04/2026 problem from the intro.
+- The workshop's daily job builds exposure_staging every morning: balances joined to their facilities, customers and FX rates, with the currency codes and both date formats cleaned.
+- Previews process the first 1,000 rows by default. All rows makes the counts match the workbook.
+- The problems in the source-system owners' notes are still in it. Ask the room which ones they expect to find.
 
-### Slide 15: Lab 1 · Steps 3–4: de-duplicate, then clean with Genie Code
+### Slide 15: Lab 1 · Step 2: fix the data quality
 
-*0:52 · 5 min*
+*0:49 · 7 min*
 
-- 45 exact duplicate rows in the customer master. If they stay, every join fans out and exposure is overstated.
-- The prompt is in the workbook (A.2), ready to copy.
-- Point out that the generated actions are readable and editable: it isn't a black box.
-- If the prompt doesn't respond: partner-powered AI features or cross-Geo processing are off. Add the Prepare actions by hand.
+- Unique removes 1,409 rows: the 42 rows of Bangkok's re-sent trade-finance extract for 30 September 2026, and 1,367 copies created by 45 duplicate customer records. What's left is one row per facility and month end.
+- Guardrails: 12 facilities have a commitment of zero or less, 9 mature before they start, and 15 have no customer record. Use Expression checks, because a Value range check includes 0.
+- The Errors output lists the checks that failed. That's the evidence an auditor asks for.
 
-### Slide 16: Lab 1 · Step 5: quarantine bad rows with Guardrails
+### Slide 16: Lab 1 · Step 3: roll up and publish
 
-*0:57 · 4 min*
-
-- 12 facilities have a commitment of zero or less, and 9 mature before they start.
-- The Failed output keeps a reason per row. That's the evidence an auditor asks for.
-- Helpers: if someone sees far more than 21, the dates weren't parsed in step 4 (unparsed dates fail the not-null check).
-
-### Slide 17: Lab 1 · Step 6: fix the balances and FX dates
-
-*1:01 · 3 min*
-
-- The 42 rows removed by Unique are Bangkok's re-sent trade-finance extract for 30 September 2026. Keep the latest extract_ts.
-- rate_month matters because FX is dated on the last business day of the month. A join on the exact date silently loses six months.
-
-### Slide 18: Lab 1 · Step 7: join and convert with Genie Code
-
-*1:04 · 4 min*
-
-- The second prompt, also in the workbook (A.2).
-- Joins in Designer ignore case and surrounding spaces by default, so only US$, S$ and RMB show up as unmatched if the mapping was missed.
-- The 15 facilities with no customer record can go to a second quarantine Output.
-
-### Slide 19: Lab 1 · Steps 8–9: roll up, compare with limits, schedule
-
-*1:08 · 5 min*
+*0:56 · 5 min*
 
 - A counterparty group's exposure includes all of its subsidiaries in every country. That's why we aggregate by parent_group_id.
-- Schedule turns the visual data prep into a Lakeflow Job.
+- Run all runs every operator on all rows and writes both Outputs.
+- Schedule turns the visual data prep into a Lakeflow Job. 07:00 is an hour after the workshop's daily data refresh.
 - When the Output exists, the participant's row turns green on the progress board.
 
-### Slide 20: Lab 1 checkpoint
+### Slide 17: Lab 1 checkpoint
 
-*From about 1:10*
+*From about 1:01*
 
 - Run both queries in the SQL editor. Notebook 01 in the Labs folder has a version that works out your schema from your login.
-- Total higher than the checkpoint: duplicates not removed, either in the customer master or from the re-sent Bangkok extract.
-- Total much lower: only one date format parsed, or currency codes not mapped. Check the join's Left unmatched output.
-- 1:15: anyone not past step 5 switches to the gold reference tables.
+- 1:01: anyone who hasn't finished moves on. Lab 2 uses the gold reference tables.
 
-### Slide 21: Lab 1 stretch: pick any
+### Slide 18: Lab 1 stretch: pick any
 
 *For anyone who finishes the core path early*
 
 - Engineer's path: Genie Code in the Lakeflow Pipelines Editor, with expectations, for example CONSTRAINT valid_commitment EXPECT (committed_amount > 0) ON VIOLATION DROP ROW. Compare the data-quality metrics with the Guardrails output.
 - Document it: better metadata means better Genie answers in Lab 2.
 
-### Slide 22: Lab 1 debrief
+### Slide 19: Lab 1 debrief
 
-*1:22 · 3 min*
+*1:02 · 3 min*
 
-- Open Catalog Explorer → gold_group_exposure → Lineage and trace it back through every step to the raw files. That's lineage evidence nobody had to draw by hand.
-- Then the reveal: Bangkok's re-sent extract for 30 September 2026 duplicated 42 balance rows. Without one Unique step, the Credit Committee pack would have overstated exposure by USD 366.9m.
-- Every held-back row has a reason attached. That's your data-quality evidence.
+- Open Catalog Explorer → gold_group_exposure → Lineage, and trace it back through exposure_staging to the raw files. That's lineage evidence nobody had to draw by hand.
+- Then the reveal: Bangkok's re-sent extract for 30 September 2026 duplicated 42 balance rows. Without the Unique step, the Credit Committee pack would have overstated exposure by USD 366.9m.
+- Every held-back row is in the quarantine table, and the Errors output records which checks failed. That's your data-quality evidence.
 
-### Slide 23: 15-minute break
+### Slide 20: 15-minute break
 
-*1:25 · 15 min*
+*1:05 · 15 min*
 
-- Fill in the clock time before the day: back at 1:40, relative to the start.
+- Fill in the clock time before the day: back at 1:20, relative to the start.
 - Put the progress board on screen during the break.
 
-## Self-service analytics · 1:40
+## Self-service analytics · 1:20
 
-### Slide 24: Self-service analytics
+### Slide 21: Self-service analytics
 
-*1:40 · 20 min*
+*1:20 · 20 min*
 
 - At most 8 minutes of slides, the rest live.
 
-### Slide 25: Three tools, one message
+### Slide 22: Three tools, one message
 
 *1:41 · 2 min*
 
 - Dashboards answer the questions the Credit Committee always asks. A Genie Agent answers the follow-ups nobody built a chart for. Genie One is the simple front door for business users.
 
-### Slide 26: Curation is the job
+### Slide 23: Curation is the job
 
 *1:43 · 2 min*
 
 - A Genie Agent is only as good as what it has been taught. Curation is the job, not an afterthought.
 - Lab 2 shows what happens without a fiscal-year instruction.
 
-### Slide 27: Trust, but verify
+### Slide 24: Trust, but verify
 
 *1:45 · 2 min*
 
@@ -1312,7 +1294,7 @@ Helpers, watch for:
 - We show the permissions live in the governance moment at the end of Lab 2.
 - Keep the BI point general: coexistence, not replacement.
 
-### Slide 28: Live demo: what you'll see
+### Slide 25: Live demo: what you'll see
 
 *1:47 · about 12 min live*
 
@@ -1331,20 +1313,20 @@ Notes:
 
 Fallback: if the Consumer-access user or Genie One chat fails, use the agent from Genie Agents in your own session.
 
-## Lab 2 · 2:00
+## Lab 2 · 1:40
 
-### Slide 29: Lab 2: Credit Committee in 30 seconds
+### Slide 26: Lab 2: Credit Committee in 30 seconds
 
-*2:00 · 40 min*
+*1:40 · 40 min*
 
 - Goal: a dashboard for the questions the Credit Committee always asks, and a Genie Agent for the ones they haven't asked yet. Teach the agent the bank's rules, and test that it's right.
 - The tables: smbc_workshop.gold.group_exposure and smbc_workshop.gold.facility_exposure.
 
-### Slide 30: Lab 2 at a glance
+### Slide 27: Lab 2 at a glance
 
 *Leave on screen during the lab*
 
-Timings: 2:10 dashboards published; 2:15 agents created; 2:24 fiscal-year test done; 2:25 answers submitted.
+Timings: 1:50 dashboards published; 1:55 agents created; 2:04 fiscal-year test done; 2:05 answers submitted.
 
 Helpers, watch for:
 
@@ -1353,42 +1335,42 @@ Helpers, watch for:
 - A dashboard subscription email doesn't arrive: mail filtering. Use a PDF download instead.
 - The load on Genie is staggered naturally: everyone starts with the dashboard.
 
-### Slide 31: Lab 2 · Step 1: build the dashboard
+### Slide 28: Lab 2 · Step 1: build the dashboard
 
-*2:00 · 10 min*
+*1:40 · 10 min*
 
 - Genie Code drafts the chart; people adjust it. That's the pattern for the whole lab.
 - Shortlist 2–3 good dashboards for the Best dashboard vote during the second break.
 
-### Slide 32: Lab 2 · Step 2: create a Genie Agent
+### Slide 29: Lab 2 · Step 2: create a Genie Agent
 
-*2:10 · 5 min*
+*1:50 · 5 min*
 
 - The starter instructions define exposure, utilisation, month-end balances, groups, branch codes and arrears.
 - Holding back A.4 is deliberate: step 4 shows what happens without it.
 
-### Slide 33: Lab 2 · Step 3: ask, and check the SQL
+### Slide 30: Lab 2 · Step 3: ask, and check the SQL
 
-*2:15 · 5 min*
+*1:55 · 5 min*
 
 - Check which table it used, which as_of_date it filtered on, and whether yen came from exposure_jpy.
 - In testing, the first question put the most utilised group at the top, at 94%.
 
-### Slide 34: Lab 2 · Step 4: the fiscal-year test
+### Slide 31: Lab 2 · Step 4: the fiscal-year test
 
 *2:20 · 4 min*
 
 - Don't give the answer away here; we compare results in the debrief.
 - The instruction (A.4): the fiscal year runs from 1 April to 31 March and is named after the calendar year it starts in. FY2026 = 1 April 2026 to 31 March 2027.
 
-### Slide 35: Lab 2 checkpoint
+### Slide 32: Lab 2 checkpoint
 
-*From about 2:25*
+*From about 2:05*
 
 - Replace \<group name\> with the group the agent found, then run the line in the SQL editor.
 - If an answer looks wrong, check the as_of_date in the SQL: FY2026 H1 ends on 30 September 2026.
 
-### Slide 36: Lab 2 stretch: pick any
+### Slide 33: Lab 2 stretch: pick any
 
 *For anyone who finishes the core path early*
 
@@ -1396,53 +1378,53 @@ Helpers, watch for:
 - Agent mode: watch it plan, run several queries and write a report.
 - In Japanese: answers may sometimes come back in English.
 
-### Slide 37: Lab 2 debrief: what we saw in testing
+### Slide 34: Lab 2 debrief: what we saw in testing
 
-*2:38 · 2 min*
+*2:18 · 2 min*
 
 - From testing on 15 October. Yet Genie guessed "end of FY2026 H1" correctly as 30 September, which is why the checkpoint question worked even before the instruction.
 - That's why curation and benchmarks matter before anyone shares an agent with a credit committee.
 - The finding: at the end of calendar H1 (30 June) no group was above 90%; at the end of FY2026 H1, Orchid Group was at 94%. It's invisible one subsidiary at a time.
 
-### Slide 38: Governance moment: same question, two answers
+### Slide 35: Governance moment: same question, two answers
 
-*2:35 · 3 min*
+*2:15 · 3 min*
 
 - The demo agent "Credit Risk (secured demo)" sits on a copy of the facility table with a row filter (Singapore branch only, unless you're on the facilitator list) and a mask on borrower names.
 - A facilitator and a volunteer ask the same question on screen.
 - In testing, the facilitator saw all 12 branches; the attendee saw SIN only, with names masked.
 
-### Slide 39: 15-minute break
+### Slide 36: 15-minute break
 
-*2:40 · 15 min*
+*2:20 · 15 min*
 
-- Fill in the clock time before the day: back at 2:55, relative to the start.
+- Fill in the clock time before the day: back at 2:35, relative to the start.
 - Progress board on screen: read out how many people found the group.
 
-## Genie Code · 2:55
+## Genie Code · 2:35
 
-### Slide 40: AI-assisted development with Genie Code
+### Slide 37: AI-assisted development with Genie Code
 
-*2:55 · 15 min*
+*2:35 · 15 min*
 
 - Mostly a live demo; participants can follow along in their own notebook.
 - Many people already use Genie Code, so skip the autocomplete basics: lead with what it does as an agent, the legacy-SQL conversion and the approval settings.
 
-### Slide 41: Genie Code · 1. Explore
+### Slide 38: Genie Code · 1. Explore
 
 *2:56 · 3 min*
 
 - Genie Code works as an agent: it plans, writes and runs code, fixes its own errors and summarises.
 - Fallback: rehearse these exact prompts in the dry run and keep screenshots. If the output varies on the day, say so: that's why the human stays in the loop.
 
-### Slide 42: Genie Code · 2. Generate
+### Slide 39: Genie Code · 2. Generate
 
 *2:59 · 4 min*
 
 - The formulas are in the prompt so the answer is reproducible.
 - Let it run; talk through the plan it shows while it works.
 
-### Slide 43: Genie Code · 3. Explain and convert
+### Slide 40: Genie Code · 3. Explain and convert
 
 *3:03 · 3 min*
 
@@ -1450,7 +1432,7 @@ Helpers, watch for:
 - "Don't run any code" gets an explanation only: a safety control people can use any time.
 - For hundreds of stored procedures, Lakebridge (Databricks' migration toolkit) is the at-scale route.
 
-### Slide 44: You stay in control
+### Slide 41: You stay in control
 
 *3:06 · 3 min*
 
@@ -1458,44 +1440,44 @@ Helpers, watch for:
 - Try a table you don't have access to: Genie Code can't reach it.
 - Roll back a change with the notebook's revision history.
 
-### Slide 45: Why did Orchid's utilisation rise?
+### Slide 42: Why did Orchid's utilisation rise?
 
 *3:09 · 1 min*
 
 - The "why" half of the CDAO's question.
 - Measured on April balances instead, FX is 19%, so say which method you used.
 
-## Quiz and close · 3:10
+## Quiz and close · 2:50
 
-### Slide 46: Quiz: join on your phone
+### Slide 43: Quiz: join on your phone
 
-*3:10 · 15 min*
+*2:50 · 15 min*
 
 - The questions and answers are in facilitator/quiz.md. After each question, say its one-line teaching point: that's what people remember.
 - First to finish Lab 1 comes from the progress board's "First to finish" table.
 - If Slido is blocked on the SMBC network: phones on mobile data, or read the questions out and take answers by show of hands.
 
-### Slide 47: What you found today
+### Slide 44: What you found today
 
-*3:25 · 2 min*
+*3:05 · 2 min*
 
 - Back to the CDAO's question. Which group? Orchid Group, visible only once its subsidiaries are rolled up to the group. Why? Three-quarters new drawdowns, mostly by four subsidiaries, and a quarter FX.
 - A second signal to follow up: trade-finance arrears in Ho Chi Minh City crept from 1.1% to 9.6% of exposure, against 0.4% across the whole book.
 
-### Slide 48: Keep learning
+### Slide 45: Keep learning
 
 *3:27 · 3 min*
 
 - The free virtual workshops run in Americas time slots, so point people to the recordings.
 - Add a QR code to databricks.com/learn/training when you generate the deck.
 
-### Slide 49: Proposed next step: a 30-day Genie Agent challenge
+### Slide 46: Proposed next step: a 30-day Genie Agent challenge
 
 *3:30 · 2 min*
 
 - A proposal: agree the wording with SMBC before the day.
 
-### Slide 50: Thank you
+### Slide 47: Thank you
 
 *3:33*
 

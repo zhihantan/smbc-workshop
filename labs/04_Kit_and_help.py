@@ -34,18 +34,33 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### A.2 Genie Code prompts for Lab 1 (Designer)
+# MAGIC ### A.2 Lab 1 settings (Designer)
 # MAGIC
-# MAGIC ```text
-# MAGIC Add a Prepare step that trims and upper-cases currency, maps US$ to USD, S$ to SGD and RMB to CNY, and parses
-# MAGIC start_date and maturity_date whether they're written YYYY-MM-DD or DD/MM/YYYY.
+# MAGIC **The Unique (step 2):** **Selected columns** `facility_id` and `as_of_date`, with **Order by** `extract_ts` descending.
+# MAGIC
+# MAGIC **The Guardrails checks (step 2).** Paste each of these into an **Expression** check, then add a **Not null** check on `parent_group_id`:
+# MAGIC
+# MAGIC ```sql
+# MAGIC committed_amount > 0
 # MAGIC ```
 # MAGIC
-# MAGIC ```text
-# MAGIC Join the de-duplicated balances to the facilities that passed Guardrails and to the de-duplicated counterparties.
-# MAGIC Then join fx_rates on currency = currency_code and month = rate_month, and add exposure_usd = drawn_amount × usd_rate
-# MAGIC and exposure_jpy = drawn_amount × jpy_rate.
+# MAGIC ```sql
+# MAGIC maturity_date >= start_date
 # MAGIC ```
+# MAGIC
+# MAGIC **The Aggregate (step 3):** **Group by** `as_of_date`, `parent_group_id` and `group_name`, with the **SUM** of `exposure_usd` named `exposure_usd` and the **SUM** of `exposure_jpy` named `exposure_jpy`.
+# MAGIC
+# MAGIC **For the stretch exercises:**
+# MAGIC
+# MAGIC | Stretch | Operator | Expression or condition |
+# MAGIC |---|---|---|
+# MAGIC | Compare with limits | Join with `smbc_workshop.silver.group_limits` | `parent_group_id` = `group_id` |
+# MAGIC | Compare with limits | Prepare, Formula for a new column `utilisation_pct` | `ROUND(100 * exposure_usd / group_limit_usd, 2)` |
+# MAGIC | Start from the raw files | Prepare after `facilities`, Formula for `currency` | `CASE upper(trim(currency)) WHEN 'US$' THEN 'USD' WHEN 'S$' THEN 'SGD' WHEN 'RMB' THEN 'CNY' ELSE upper(trim(currency)) END` |
+# MAGIC | Start from the raw files | Prepare after `facilities` for `start_date` and `maturity_date`, and after `monthly_balances` for `as_of_date` | `coalesce(to_date(try_to_timestamp(start_date, 'yyyy-MM-dd')), to_date(try_to_timestamp(start_date, 'dd/MM/yyyy')))`, with each date column in place of `start_date` |
+# MAGIC | Start from the raw files | Prepare after `monthly_balances`, Formula for a new column `month`; and after `fx_rates`, one for `rate_month` | `trunc(as_of_date, 'MM')` and `trunc(CAST(rate_date AS DATE), 'MM')`. FX rates are dated on the last business day of the month |
+# MAGIC | Start from the raw files | Joins | Facilities to `counterparties` on `counterparty_id`; balances to facilities on `facility_id`; `fx_rates` on `currency` = `currency_code` and `month` = `rate_month` |
+# MAGIC | Start from the raw files | Prepare after the FX join | `exposure_usd` = `drawn_amount * usd_rate` and `exposure_jpy` = `drawn_amount * jpy_rate` |
 
 # COMMAND ----------
 
@@ -203,13 +218,13 @@
 # MAGIC | Symptom | Likely cause | Fix |
 # MAGIC |---|---|---|
 # MAGIC | **Genie Agents** is in the sidebar but agents won't open | Partner-powered AI features are off | Ask a facilitator |
-# MAGIC | Genie Code prompts in Designer, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
+# MAGIC | Genie Code prompts, or a Genie Agent's Agent mode, are unavailable | Partner-powered AI features off, or cross-Geo processing enforced | Ask a facilitator |
 # MAGIC | The check-in fails with a permission error, or you can't see the `landing` volume | No access to `smbc_workshop` yet | Ask a facilitator |
 # MAGIC | Output fails with a permission error | Writing outside your own schema | Set **Output location** to `smbc_workshop.<your_schema>` |
-# MAGIC | Some months disappear after the FX join | Joining on the exact date: FX is dated on the last business day | Join on currency and month (Lab 1, step 6) |
-# MAGIC | Your total is higher than the checkpoint | Duplicates not removed (customer master or the re-sent Bangkok extract) | Lab 1, steps 3 and 6 |
-# MAGIC | Your total is much lower than the checkpoint | Only one date format parsed, or currency codes not mapped | Lab 1, steps 4 and 6; check the join's **Left unmatched** output |
-# MAGIC | Dragging the `.xlsx` onto the canvas fails | Excel file support not enabled, or downloads blocked | Use **Source → Browse existing →** `group_limits` folder instead |
+# MAGIC | Row counts don't match the lab, for example the Source shows 1,000 rows instead of 76,166 | The preview processes only the first 1,000 rows | In the canvas toolbar, set **Preview** to **All rows** (Lab 1, step 1) |
+# MAGIC | Unique leaves more than 74,757 rows | It's set to **All columns**, or to other columns: rows from the re-sent extract differ in `extract_ts` | **Selected columns** `facility_id` and `as_of_date`, ordered by `extract_ts` descending (Lab 1, step 2) |
+# MAGIC | Your total is higher than the checkpoint | The Aggregate doesn't read Guardrails' **Passed** output, or the Unique isn't set up as in step 2 | Connect the Aggregate to **Passed**, and check the Unique (Lab 1, steps 2 and 3) |
+# MAGIC | Your total is much lower than the checkpoint | The Aggregate reads Guardrails' **Failed** output | Connect it to **Passed** (Lab 1, step 3) |
 # MAGIC | Genie picks the wrong dates for "Q1 FY2026", "FY2025" or "FY2026 H1" | It assumed a calendar year (it does this inconsistently) | Add the fiscal-year instruction (A.4) |
 # MAGIC | Genie's arrears "share" is much higher than the dashboard's | It counted facilities instead of weighting by exposure | Add an instruction that shares are by exposure (see Stump the Genie) |
 # MAGIC | A question in Japanese gets an English answer | Possible: the agent framework wraps prompts in English. In testing, the Japanese question in Lab 2 was answered correctly, in Japanese. | Add Japanese metadata or instructions if needed |

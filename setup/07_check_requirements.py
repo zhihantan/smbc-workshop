@@ -94,10 +94,10 @@ def _():
     return "PASS", f"raw, bronze, silver, gold, ops; {len(folders)} landing folders"
 
 
-@check("9", "Gold tables", "Run 02_build_bronze_silver_gold, then 03_validate_bronze_silver_gold.")
+@check("9", "Gold tables and Lab 1's staging table", "Run 02_build_bronze_silver_gold, then 03_validate_bronze_silver_gold.")
 def _():
-    counts = {t: spark.table(f"{CATALOG}.{t}").count() for t in ("gold.group_exposure", "gold.facility_exposure")}
-    expected = {"gold.group_exposure": 7174, "gold.facility_exposure": 74283}
+    expected = {"gold.group_exposure": 7174, "gold.facility_exposure": 74283, "bronze.exposure_staging": 76166}
+    counts = {t: spark.table(f"{CATALOG}.{t}").count() for t in expected}
     return ("PASS" if counts == expected else "FAIL"), ", ".join(f"{t} {n:,} rows" for t, n in counts.items())
 
 
@@ -107,6 +107,8 @@ ATTENDEE_NEEDS = [
     (f"CATALOG {CATALOG}", "CREATE SCHEMA"),
     (f"SCHEMA {CATALOG}.raw", "USE SCHEMA"),
     (f"VOLUME {CATALOG}.raw.landing", "READ VOLUME"),
+    (f"SCHEMA {CATALOG}.bronze", "USE SCHEMA"),
+    (f"TABLE {CATALOG}.bronze.exposure_staging", "SELECT"),
     (f"SCHEMA {CATALOG}.gold", "USE SCHEMA"),
     (f"SCHEMA {CATALOG}.gold", "SELECT"),
     (f"SCHEMA {CATALOG}.ops", "USE SCHEMA"),

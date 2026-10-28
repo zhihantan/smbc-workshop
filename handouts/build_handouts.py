@@ -177,7 +177,7 @@ def extract(guide_text, url):
     body["5. Resources"] = drop_block(body["5. Resources"], "**Proposed follow-up with SMBC:**")
     body["Appendix B: Troubleshooting"] = participant_troubleshooting(body["Appendix B: Troubleshooting"])
 
-    for expected in ["2,370 → 2,325", "21 failed rows", "74,799 → 74,757"]:
+    for expected in ["76,166 → 74,757", "474 failed rows", "7,174 rows"]:
         assert expected in body[lab1], f"expected {expected!r} in Lab 1 (the cheat sheet quotes it)"
     kit = body["Appendix A: Copy-paste kit"]
     lab1_check = re.search(r"✅ \*\*Checkpoint:\*\*.*?```sql\n(.*?)```", body[lab1], re.S)
@@ -542,21 +542,16 @@ def cheat_sheet_html(url, snippets):
           else '<div class="qr placeholder">QR code<br>for the<br>workspace</div>')
     one = f"{html.escape(shown_url)}/one"
     checkin_code = "\n".join(l for l in snippets["checkin"].splitlines() if not l.startswith("--"))  # the text says it
-    lab1 = [  # step 0 (find your schema) is covered by the check-in
-        "<b>+ New → Visual data prep</b>. Name it <i>Monday exposure report</i>; compute: <b>Serverless</b>.",
-        "<b>Sources</b> from <code>smbc_workshop.raw.landing</code>: <code>counterparties</code>, <code>facilities</code>, "
-        "<code>monthly_balances</code>, <code>fx_rates</code>, and the limits (<code>group_limits.xlsx</code> or its folder).",
-        "<b>Unique</b> on counterparties, all columns: 2,370 → 2,325 rows.",
-        "<b>Genie Code</b> on facilities: clean <code>currency</code>, parse both date formats (prompt in A.2).",
-        "<b>Guardrails</b>: <code>committed_amount</code> &gt; 0, <code>maturity_date &gt;= start_date</code>, dates not null. "
-        "<b>Failed</b> → Output <code>quarantine_facilities</code>: 21 failed rows.",
-        "<b>Balances</b>: parse <code>as_of_date</code>, add <code>month</code>; <b>Unique</b> on <code>facility_id</code>, "
-        "<code>as_of_date</code>, latest <code>extract_ts</code>: 74,799 → 74,757. <b>FX</b>: add <code>rate_month</code>.",
-        "<b>Join</b> with Genie Code (A.2): balances → facilities → counterparties → FX on currency and month; "
-        "add <code>exposure_usd</code>, <code>exposure_jpy</code>.",
-        "<b>Aggregate</b> by <code>as_of_date</code>, <code>parent_group_id</code>; <b>Join</b> the limits; "
-        "<code>utilisation_pct</code> = 100 × exposure ÷ limit.",
-        "<b>Output</b> <code>gold_group_exposure</code> (Overwrite) → <b>Run</b> → <b>Schedule</b> daily, 07:00 Singapore time.",
+    lab1 = [
+        "<b>+ New → Visual data prep</b>, named <i>Monday exposure report</i>; compute <b>Serverless</b>; "
+        "<b>Preview → All rows</b>. <b>Source</b>: <code>smbc_workshop.bronze.exposure_staging</code> (76,166 rows).",
+        "<b>Unique</b> by <code>facility_id</code>, <code>as_of_date</code>, latest <code>extract_ts</code>: "
+        "76,166 → 74,757. <b>Guardrails</b>: expressions <code>committed_amount &gt; 0</code> and "
+        "<code>maturity_date &gt;= start_date</code>; <code>parent_group_id</code> not null. <b>Failed</b> → Output "
+        "<code>quarantine_facilities</code>: 474 failed rows.",
+        "<b>Aggregate</b> the Passed rows by <code>as_of_date</code>, <code>parent_group_id</code>, <code>group_name</code>, "
+        "sums named <code>exposure_usd</code>, <code>exposure_jpy</code>. <b>Output</b> <code>gold_group_exposure</code> "
+        "in your schema (Overwrite) → <b>Run all</b> → <b>Schedule</b> daily, 07:00 Singapore time.",
     ]
     lab2 = [
         "<b>Dashboard</b>: + New → Dashboard on both <code>gold</code> tables. Ask Genie Code for the "

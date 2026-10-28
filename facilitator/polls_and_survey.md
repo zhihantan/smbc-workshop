@@ -8,10 +8,10 @@ Set these up **the day before the workshop**: polls and Q&A in Slido, and the su
 |---|---|---|---|
 | 0:00, while people sign in | Poll, results shown live | What do you use most today? | Excel · SQL · Python · Power BI · ADF or Synapse · Something else |
 | All day | Q&A ("parking lot") | Questions that are off the current topic | Answer them in the recap email |
-| 2:55, before Genie Code | Open text | What's one question you wish you could ask your data? | Free text. The answers seed the 30-day Genie Agent challenge |
-| 3:10, during the quiz | Vote | Best dashboard | The 2–3 dashboards shortlisted during the second break (use screenshots) |
+| 2:35, before Genie Code | Open text | What's one question you wish you could ask your data? | Free text. The answers seed the 30-day Genie Agent challenge |
+| 2:50, during the quiz | Vote | Best dashboard | The 2–3 dashboards shortlisted during the second break (use screenshots) |
 
-## Feedback survey (3:25; it's also the raffle ticket)
+## Feedback survey (3:05; it's also the raffle ticket)
 
 1. Overall, how useful was today? *(1–5)*
 2. Which part was most useful? *(Lakeflow Designer and Jobs · AI/BI dashboards · Genie Agents and Genie One · Genie Code · Unity Catalog and governance)*

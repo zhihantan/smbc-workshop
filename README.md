@@ -1,6 +1,6 @@
 # SMBC Data & AI Workshop
 
-Materials for a 3.5-hour hands-on workshop for SMBC APAC data analysts and data engineers: Lakeflow Designer and Jobs, AI/BI dashboards and Genie Agents, and Genie Code. All data is synthetic: a made-up SMBC APAC corporate lending book with fictional borrowers.
+Materials for a hands-on workshop of 3 hours 15 minutes for SMBC APAC data analysts and data engineers: Lakeflow Designer and Jobs, AI/BI dashboards and Genie Agents, and Genie Code. All data is synthetic: a made-up SMBC APAC corporate lending book with fictional borrowers.
 
 ## The story
 
@@ -20,7 +20,7 @@ Unity Catalog's permissions follow the data throughout, into the dashboard and t
 | Asset | What it is | Its part in the story |
 |---|---|---|
 | Volume `smbc_workshop.raw.landing` | The four system extracts and the limits spreadsheet as the source systems deliver them, plus an optional ESG file | Monday morning's inbox |
-| Schemas `bronze`, `silver` and `gold` | The extracts as tables; the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The trusted tables: Lab 1's reference answer, and the source for everything below |
+| Schemas `bronze`, `silver` and `gold` | The extracts as tables, and `bronze.exposure_staging`: the extracts joined and converted, but not yet checked. Then the cleaned data, with rejected rows in `silver.quarantine_facilities`; and `gold.group_exposure` and `gold.facility_exposure` | The staging table is where Lab 1 starts. The trusted tables are Lab 1's reference answer, and the source for everything below |
 | Dashboard **Credit Committee: APAC exposure (reference)** | Total exposure, the groups above 80% and 90% of their limits, the top 10 groups, the monthly trend, exposure by country, the five largest groups' utilisation, a watchlist and trade-finance arrears | The Monday report, on one page |
 | Genie Agent **Credit Risk (reference)** | Plain-language questions over the gold tables, with the bank's definitions and fiscal-year rules, example SQL and benchmark questions | The questions nobody has asked yet |
 | Genie Agent **Credit Risk (secured demo)** | The same data behind a Unity Catalog row filter and column mask | Proof that permissions follow the data into AI answers |

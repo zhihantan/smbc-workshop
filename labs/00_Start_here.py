@@ -111,4 +111,5 @@
 # MAGIC | `gold.group_exposure` | Counterparty group × month | Exposure, limit and `utilisation_pct` per group |
 # MAGIC | `gold.facility_exposure` | Facility × month | Exposure with borrower, country, sector, branch, product, currency and days past due |
 # MAGIC | `silver.*`, including `silver.quarantine_facilities` | Cleaned inputs, and the rows held back with a reason | For comparing with your own Lab 1 output |
+# MAGIC | `bronze.exposure_staging` | Balance × facility × customer, duplicates included | The extracts joined and converted to USD and JPY, before any data-quality checks: where Lab 1 starts |
 # MAGIC | `bronze.*` | The extracts as delivered, as tables | Where the cleaning starts |

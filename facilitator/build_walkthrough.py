@@ -37,10 +37,10 @@ SEGMENTS = {
     "From days to seconds, with guardrails": "Welcome and check-in · 0:00",
     "Data engineering with Lakeflow": "Data engineering with Lakeflow · 0:25",
     "Lab 1: Build the trusted exposure table": "Lab 1 · 0:45",
-    "Self-service analytics": "Self-service analytics · 1:40",
-    "Lab 2: Credit Committee in 30 seconds": "Lab 2 · 2:00",
-    "AI-assisted development with Genie Code": "Genie Code · 2:55",
-    "Quiz: join on your phone": "Quiz and close · 3:10",
+    "Self-service analytics": "Self-service analytics · 1:20",
+    "Lab 2: Credit Committee in 30 seconds": "Lab 2 · 1:40",
+    "AI-assisted development with Genie Code": "Genie Code · 2:35",
+    "Quiz: join on your phone": "Quiz and close · 2:50",
 }
 LIST_ITEM = re.compile(r"\s*([-*]|\d+\.) ")
 

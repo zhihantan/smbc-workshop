@@ -95,6 +95,24 @@ check("SGN trade-finance arrears trend (% of exposure > 30 DPD)",
           GROUP BY as_of_date ORDER BY as_of_date""")],
       [round(m["share_of_exposure_over_30_dpd_pct"], 2) for m in key["dpd_creep"]["by_month"]])
 
+# Lab 1 starts from bronze.exposure_staging. Its Unique and Guardrails steps must reproduce the reference tables.
+staging = f"{bronze}.exposure_staging"
+lab1 = (f"(SELECT * FROM {staging} QUALIFY row_number() OVER (PARTITION BY facility_id, as_of_date "
+        "ORDER BY extract_ts DESC) = 1)")
+lab1_passed = (f"(SELECT * FROM {lab1} WHERE committed_amount > 0 AND maturity_date >= start_date "
+               "AND parent_group_id IS NOT NULL)")
+check("Lab 1 staging has duplicates for Unique to remove",
+      scalar(f"SELECT count(*) > count(DISTINCT facility_id, as_of_date) FROM {staging}"), True)
+check("Lab 1 staging after Unique: one row per facility and month", scalar(f"SELECT count(*) FROM {lab1}"),
+      rows["balance_rows_unique"])
+check("Lab 1 staging after Guardrails: the rows in gold.facility_exposure", scalar(f"SELECT count(*) FROM {lab1_passed}"),
+      scalar(f"SELECT count(*) FROM {gold}.facility_exposure"))
+check("Lab 1 staging after Guardrails: total exposure USD at 2026-09-30",
+      scalar(f"SELECT sum(exposure_usd) FROM {lab1_passed} WHERE as_of_date = '2026-09-30'"), totals["exposure_usd"], 5.0)
+check("Lab 1 staging after Aggregate: the rows in gold.group_exposure",
+      scalar(f"SELECT count(DISTINCT as_of_date, parent_group_id) FROM {lab1_passed}"),
+      scalar(f"SELECT count(*) FROM {gold}.group_exposure"))
+
 failed = [r for r in results if r[1] == "FAIL"]
 display(spark.createDataFrame(results, "check string, result string, actual string, expected string"))
 print(f"{len(results) - len(failed)} passed, {len(failed)} failed")
